@@ -1,0 +1,73 @@
+services:
+  # ============================================================================
+  # 1. MariaDB Database Service
+  # ============================================================================
+  db:
+    image: mariadb:11.4
+    container_name: hertz-mariadb
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max-connections=200
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-hertz_root_secret}
+      MARIADB_DATABASE: ${DATABASE_NAME:-hertz_db}
+      MARIADB_USER: ${DATABASE_USER:-hertz_user}
+      MARIADB_PASSWORD: ${DATABASE_PASSWORD:-hertz_password}
+      TZ: Asia/Bangkok
+    ports:
+      - "${DATABASE_EXPOSE_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - hertz-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # ============================================================================
+  # 2. Hertz Server (Next.js 16 + Prisma 7 Application)
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hertz-server-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      TZ: Asia/Bangkok
+      # Database Connection
+      DATABASE_HOST: db
+      DATABASE_PORT: 3306
+      DATABASE_USER: ${DATABASE_USER:-hertz_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-hertz_password}
+      DATABASE_NAME: ${DATABASE_NAME:-hertz_db}
+      DATABASE_URL: mysql://${DATABASE_USER:-hertz_user}:${DATABASE_PASSWORD:-hertz_password}@db:3306/${DATABASE_NAME:-hertz_db}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      # Auth & Discord OAuth2
+      JWT_SECRET: ${JWT_SECRET:-hertz_default_jwt_secret_change_in_prod}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI:-http://localhost:3000/api/v1/auth/discord/callback}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    networks:
+      - hertz-network
+
+volumes:
+  mariadb_data:
+    driver: local
+
+networks:
+  hertz-network:
+    driver: bridge

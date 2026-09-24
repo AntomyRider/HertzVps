@@ -1,6 +1,8 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ==============================================================================
+# Hertz Server — Production .gitignore
+# ==============================================================================
 
-# dependencies
+# 1. Dependencies
 /node_modules
 /.pnp
 .pnp.*
@@ -10,32 +12,55 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# 2. Next.js & Build Outputs
 /.next/
 /out/
+/build/
+/dist/
+*.tsbuildinfo
+next-env.d.ts
 
-# production
-/build
+# 3. Prisma Generated & Local DB Files
+/app/generated/prisma
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/*.sqlite
+/prisma/*.sqlite-journal
 
-# misc
-.DS_Store
+# 4. Environment Variables & Secrets (Keep .env.example in git)
+.env
+.env.*
+!.env.example
 *.pem
+*.key
+*.crt
+*.p12
 
-# debug
+# 5. Docker Local Data Volumes
+/docker-data/
+/mariadb-data/
+/mysql-data/
+
+# 6. Logs & Crash Reports
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# 7. Testing & Coverage
+/coverage/
+/.nyc_output/
 
-# vercel
+# 8. OS, IDE & Deployment Tooling
+.DS_Store
+Thumbs.db
+Desktop.ini
 .vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.agents/
+.claude/
+.windsurf/
