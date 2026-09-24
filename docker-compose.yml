@@ -54,6 +54,10 @@ services:
       DATABASE_NAME: ${DATABASE_NAME:-hertz_db}
       DATABASE_URL: mysql://${DATABASE_USER:-hertz_user}:${DATABASE_PASSWORD:-hertz_password}@db:3306/${DATABASE_NAME:-hertz_db}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SEED: ${RUN_SEED:-true}
+      # Initial Admin Account (Discord User ID)
+      ADMIN_DISCORD_ID: ${ADMIN_DISCORD_ID:-1048215319409328189}
+      ADMIN_NAME: ${ADMIN_NAME:-nutx}
       # Auth & Discord OAuth2
       JWT_SECRET: ${JWT_SECRET:-hertz_default_jwt_secret_change_in_prod}
       DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}

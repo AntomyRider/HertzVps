@@ -42,5 +42,11 @@ if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
   echo "[Entrypoint] Database schema is up to date."
 fi
 
+# 3. Run Database Seed (Admin user & default settings) if enabled
+if [ "${RUN_SEED:-true}" = "true" ]; then
+  echo "[Entrypoint] Seeding database (Admin account & default settings)..."
+  node ./prisma/seed.mjs || echo "[Entrypoint] Warning: Seed script returned non-zero status, continuing..."
+fi
+
 echo "[Entrypoint] Launching Next.js server on ${HOSTNAME:-0.0.0.0}:${PORT:-3000}..."
 exec "$@"

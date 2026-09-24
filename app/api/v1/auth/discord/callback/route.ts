@@ -101,6 +101,14 @@ export async function GET(req: NextRequest) {
     const displayName = global_name || username;
     const avatarUrl = getDiscordAvatarUrl(discordId, avatar, discriminator);
 
+    const adminDiscordIds = (
+      process.env.ADMIN_DISCORD_ID || "1048215319409328189"
+    )
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+    const isConfiguredAdmin = adminDiscordIds.includes(discordId);
+
     // 3. Upsert user in database
     const {
       id: userId,
@@ -111,12 +119,13 @@ export async function GET(req: NextRequest) {
       update: {
         name: displayName,
         avatar: avatarUrl,
+        ...(isConfiguredAdmin ? { role: "ADMIN" } : {}),
       },
       create: {
         discordId,
         name: displayName,
         avatar: avatarUrl,
-        role: "USER",
+        role: isConfiguredAdmin ? "ADMIN" : "USER",
         balance: 0,
       },
     });
