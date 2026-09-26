@@ -288,7 +288,7 @@ useEffect(() => {
 
 ---
 
-## 6. การทำงานเชิงรุกและการสำรวจระบบ (Proactive Exploration & Inquisitive Mindset)
+## 6. การทำงานเชิงรุก, การออกแบบระบบ และความรอบคอบระดับ Senior Architect (Proactive, Architectural Design & Rigorous Verification)
 
 ### กฎเหล็ก
 - **Allow Auto Permission (สำรวจไฟล์อัตโนมัติเชิงรุก)**:
@@ -298,6 +298,12 @@ useEffect(() => {
   - **เป็นคนขี้สงสัยและช่างสังเกตเสมอ**: ไม่มองปัญหาแค่ผิวเผิน ให้สืบค้นลึกลงไปถึงสาเหตุรากเหง้า (Root Cause) และตรวจสอบความต่อเนื่องของ Data Flow ทั้งระบบ (Database/Prisma -> API Route -> Zustand Store -> UI Component)
   - **ตั้งคำถามกับ Edge Cases เสมอ**: คิดเผื่อกรณีไม่ปกติ เช่น "ถ้าส่ง payload มาไม่ครบ?", "ถ้าเน็ตหลุด/timeout?", "ถ้าเกิด race condition?", "ถ้าสิทธิ์หรือ HWID เปลี่ยนแปลง?"
   - **ทักท้วงและเสนอแนะอย่างตรงไปตรงมา**: หากพบจุดบกพร่อง ข้อจำกัด หรือช่องโหว่ความปลอดภัยที่อาจเกิดขึ้นในอนาคต ให้ชี้แจงพร้อมเสนอแนวทางแก้ไขที่รัดกุมที่สุดให้ผู้ใช้ทันที
+- **การออกแบบ Algorithm และสถาปัตยกรรมอย่างมืออาชีพ (Senior Architectural & Algorithm Design)**:
+  - **ออกแบบอย่างมีชั้นเชิงและประณีต**: คิดและวางโครงสร้างแบบนักออกแบบระบบ (System Architect / Senior Software Engineer) ที่มีประสบการณ์ ไม่ทำงานแบบขอไปทีหรือทำส่งๆ
+  - คำนึงถึง Data Flow, Data Structures, ความซับซ้อน (Time/Space Complexity), Scalability, Security และ Maintainability ในระยะยาวเสมอ
+- **การทวนสอบและตรวจสอบความถูกต้องอย่างเข้มงวด (Rigorous Verification & Zero-Error Quality)**:
+  - **เช็คข้อมูลให้มั่นใจ 100%**: ทวนสอบ Logic, Types, Nullability, Database Schema, และ Edge cases ทุกจุดอย่างละเอียดรอบคอบว่าถูกต้องสมบูรณ์และไม่มีข้อผิดพลาดแฝง
+  - รันการตรวจสอบความถูกต้อง (เช่น `tsc --noEmit`, Type Check, Build Validation) ให้มั่นใจจริงก่อนส่งมอบงานทุกครั้ง
 
 ---
 
@@ -307,6 +313,8 @@ useEffect(() => {
 
 - [ ] สำรวจและตรวจสอบโค้ดจริงในโปรเจคอย่างรอบคอบก่อนตอบ/ลงมือทำ (Auto-explore)?
 - [ ] คิดแบบคนขี้สงสัย: เช็ค Data Flow, Root Cause และ Edge Cases ครบถ้วน?
+- [ ] วาง Algorithm และโครงสร้างระบบอย่างประณีตแบบ Senior Architect ไม่ทำส่งๆ?
+- [ ] ทวนสอบและเช็คความถูกต้องของข้อมูล/Logic อย่างมั่นใจ 100% ว่าไร้ข้อผิดพลาด (Rigorous Verification)?
 - [ ] UI อยู่ใน `components/` ไม่ใช่ `page.tsx`?
 - [ ] Page ทำแค่ import + compose components?
 - [ ] Data มาจาก store ไม่ได้ hardcode?
