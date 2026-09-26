@@ -341,6 +341,9 @@ useEffect(() => {
 - **การติดตามผล Auto Deploy จนสำเร็จ (Monitor CI/CD Auto Deploy Until Success)**:
   - **ติดตามสถานะการ Deploy ทุกครั้งที่ Push Git**: เมื่อได้รับคำสั่งให้ Push โค้ดขึ้น Git (`git push`) ห้ามจบงานเพียงแค่ push สำเร็จ แต่ต้องติดตาม (Monitor) สถานะ GitHub Actions Workflow (`Auto Deploy to VPS`) ผ่าน API จนกว่าจะขึ้นสถานะ `completed` และได้ผลสรุป `success` (Deploy สำเร็จ 100%)
   - **แก้ไขอัตโนมัติหาก Deploy ล้มเหลว (Self-Healing on Failure)**: หาก CI/CD รันไม่ผ่าน (`failure` ในขั้นตอน Build, Test หรือ Deploy บน VPS) ให้ดึง Log ข้อผิดพลาดมาวิเคราะห์ หาสาเหตุรากเหง้า ทำการแก้ไขโค้ด Commit และ Re-push ใหม่ทันที พร้อมติดตามผลซ้ำจนกว่าการ Deploy บนเซิร์ฟเวอร์จะสำเร็จสมบูรณ์ 100%
+- **การเชื่อมโยงระหว่าง `hertz-server` และโปรแกรม Client (`D:\Hertz Auto Post`)**:
+  - **ความสัมพันธ์ของระบบ**: `hertz-server` (Web Backend / Controller Hub / Key Auth) ทำงานเชื่อมโยงกับโปรแกรม Desktop Client ที่โฟลเดอร์ `D:\Hertz Auto Post`
+  - **สอบถามการเชื่อมโยงเชิงรุกเสมอ**: เมื่อใดก็ตามที่สร้างหรือแก้ไข API Routes, เปลี่ยนแปลง Data Schema / Contract, ปรับปรุง Key/HWID Logic หรือเพิ่มคำสั่ง Controller ใหม่ **ต้องสอบถามผู้ใช้เชิงรุกเสมอว่า *"ต้องการเชื่อมโยง/อัปเดตฟังก์ชันนี้ในโปรแกรม (`D:\Hertz Auto Post`) ด้วยเลยไหม?"*** พร้อมแจกแจงรายการสิ่งที่จะทำทั้งฝั่ง Server และฝั่ง Client ให้เห็นภาพชัดเจน
 
 ---
 
@@ -349,6 +352,7 @@ useEffect(() => {
 ก่อนเขียนโค้ด ให้ตรวจสอบทุกครั้ง:
 
 - [ ] อ่านและทบทวน `AGENTS.md` ก่อนเริ่มทำงานเสมอ?
+- [ ] หากงานเกี่ยวข้องกับโปรแกรม Desktop (`D:\Hertz Auto Post`): สอบถามเชิงรุกพร้อมแจกแจงสิ่งที่ต้องเชื่อมโยง?
 - [ ] นำเสนอแผนก่อนลงมือทำเสมอ (Plan First)?
 - [ ] เสนอ Template / แนวทาง UI 4-5 รูปแบบเมื่อต้องทำ UI ใหม่?
 - [ ] เมื่อ Push Git ต้องติดตาม Log Auto Deploy จนกว่าจะสำเร็จสมบูรณ์ (Monitor CI/CD)?
