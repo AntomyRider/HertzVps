@@ -316,7 +316,10 @@ useEffect(() => {
     - **Table / List UI**: เสนอ Pagination (แบ่งหน้า), Realtime Search (Debounced), Filter ตามสถานะ/หมวดหมู่, Quick Action Buttons, Sortable Columns, Copy Tool, Empty State หรือ Skeleton Loader
     - **Form / Input UI**: เสนอ Validation แสดงผลทันที, Auto-trim/Formatting, Modal ยืนยันการกระทำ (Confirmation Modal), Loading state ป้องกันการกดซ้ำ
     - **API & Data Flow**: เสนอ Caching, Pagination params, Error Handling ละเอียด หรือ Batch Actions
-  - **นำเสนออย่างชัดเจนและตรงกับ Design System**: ระบุเหตุผลสั้นๆ ว่าฟีเจอร์เสริมเหล่านี้จะช่วยให้ผู้ใช้ใช้งานสะดวกขึ้นหรือช่วยลดโหลด API ได้อย่างไร พร้อมให้ผู้ใช้ตัดสินใจเลือกนำไปใช้
+- **การสื่อสารแบบเนื้อๆ ตรงประเด็น (Concise, High-Signal & Zero-Fluff Communication)**:
+  - **เน้นเนื้อๆ ไม่เอาน้ำ**: ตอบเฉพาะสาระสำคัญ ตรงประเด็น กระชับ ไม่อารัมภบทหรือมีข้อความเกริ่นฟุ่มเฟือย
+- **อ่านและปฏิบัติตาม `AGENTS.md` เสมอ (Always Read & Comply with AGENTS.md First)**:
+  - ก่อนเริ่มทำงานและตอบคำถามทุกครั้ง ต้องอ่านและปฏิบัติตามกฎทั้งหมดใน `AGENTS.md` อย่างเคร่งครัด 100% ไม่มีข้อยกเว้น
 
 ---
 
@@ -324,6 +327,8 @@ useEffect(() => {
 
 ก่อนเขียนโค้ด ให้ตรวจสอบทุกครั้ง:
 
+- [ ] อ่านและทบทวน `AGENTS.md` ก่อนเริ่มทำงานเสมอ?
+- [ ] สื่อสารแบบเนื้อๆ ตรงประเด็น ไม่มีน้ำ (Zero Fluff)?
 - [ ] สำรวจและตรวจสอบโค้ดจริงในโปรเจคอย่างรอบคอบก่อนตอบ/ลงมือทำ (Auto-explore)?
 - [ ] คิดแบบคนขี้สงสัย: เช็ค Data Flow, Root Cause และ Edge Cases ครบถ้วน?
 - [ ] คิดย้อนแย้ง/วิเคราะห์แผนรอบด้าน: Security, Compatibility, Feasibility และ Performance ที่เร็วและดีที่สุด (Devil's Advocate)?
