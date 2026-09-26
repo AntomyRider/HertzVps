@@ -328,6 +328,8 @@ useEffect(() => {
     - **Table / List UI**: เสนอ Pagination (แบ่งหน้า), Realtime Search (Debounced), Filter ตามสถานะ/หมวดหมู่, Quick Action Buttons, Sortable Columns, Copy Tool, Empty State หรือ Skeleton Loader
     - **Form / Input UI**: เสนอ Validation แสดงผลทันที, Auto-trim/Formatting, Modal ยืนยันการกระทำ (Confirmation Modal), Loading state ป้องกันการกดซ้ำ
     - **API & Data Flow**: เสนอ Caching, Pagination params, Error Handling ละเอียด หรือ Batch Actions
+- **การนำเสนอ Template / ตัวอย่างหน้า UI 4-5 รูปแบบ (Proactive UI/Template Multi-Option Proposals)**:
+  - **เสนอแนวทาง UI 4-5 ตัวอย่างเสมอ**: เมื่อต้องออกแบบหรือสร้างหน้า UI / Layout ใหม่ ให้นำเสนอตัวอย่างโครงสร้างหรือ Template รูปแบบต่างๆ 4-5 แนวทางให้ผู้ใช้เลือกพิจารณาตามความเหมาะสมของการใช้งาน (เช่น Minimal Clean, Compact Data-Dense, Card Grid with Metrics, Split Master-Detail, Interactive Feed) โดยทุกตัวอย่างต้องเคารพ Design System และกฎ 15 ข้อ UI Anti-Slop เสมอ
 - **การสื่อสารแบบเนื้อๆ ตรงประเด็น (Concise, High-Signal & Zero-Fluff Communication)**:
   - **เน้นเนื้อๆ ไม่เอาน้ำ**: ตอบเฉพาะสาระสำคัญ ตรงประเด็น กระชับ ไม่อารัมภบทหรือมีข้อความเกริ่นฟุ่มเฟือย
 - **อ่านและปฏิบัติตาม `AGENTS.md` เสมอ (Always Read & Comply with AGENTS.md First)**:
@@ -348,6 +350,7 @@ useEffect(() => {
 
 - [ ] อ่านและทบทวน `AGENTS.md` ก่อนเริ่มทำงานเสมอ?
 - [ ] นำเสนอแผนก่อนลงมือทำเสมอ (Plan First)?
+- [ ] เสนอ Template / แนวทาง UI 4-5 รูปแบบเมื่อต้องทำ UI ใหม่?
 - [ ] เมื่อ Push Git ต้องติดตาม Log Auto Deploy จนกว่าจะสำเร็จสมบูรณ์ (Monitor CI/CD)?
 - [ ] สื่อสารแบบเนื้อๆ ตรงประเด็น ไม่มีน้ำ (Zero Fluff) พร้อมรายงานผลหลังทำเสร็จ (Report)?
 - [ ] สำรวจและตรวจสอบโค้ดจริงในโปรเจคอย่างรอบคอบก่อนตอบ/ลงมือทำ (Auto-explore)?
