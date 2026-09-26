@@ -177,10 +177,22 @@ useEffect(() => {
 
 ## 4. ห้าม UI AI Slop — ให้ทำตาม Design System ที่มีอยู่
 
-### กฎเหล็ก
-- **ดู UI ที่มีอยู่แล้วในโปรเจคก่อนเสมอ** แล้วทำตามรูปแบบเดียวกัน
-- **ห้ามใส่ decoration ที่ไม่มีใน design เดิม** เช่น gradient ที่ไม่ได้ใช้, emoji, icon ที่ไม่จำเป็น, shadow มากเกินไป
-- **ห้ามใช้ generic AI patterns** เช่น hero section สีรุ้ง, card ที่มี hover zoom + shadow ทุกอัน, gradient text ทุกที่
+### กฎเหล็ก 15 ข้อ (UI Anti-Slop Principles)
+1. **Preserve existing design language**: รักษา Design Language และ Pattern ที่มีอยู่เดิมเสมอ
+2. **Change only what the task requires**: แก้ไขเฉพาะส่วนที่โจทย์ระบุเท่านั้น ไม่แก้ไขเกินขอบเขต
+3. **Do not add decorative elements without purpose**: ห้ามใส่ของตกแต่งที่ไม่มีฟังก์ชันหรือวัตถุประสงค์ชัดเจน
+4. **Avoid excessive gradients, glow, blur, shadows and animations**: หลีกเลี่ยง gradient, glow, blur, shadow และ animation ที่เกินความจำเป็น
+5. **Do not wrap every section in a card**: ห้ามนำทุก Section มาใส่ใน Card โดยไม่จำเป็น
+6. **Use a consistent spacing scale**: ใช้ขนาด Spacing และ Padding ที่สม่ำเสมอตามระบบที่วางไว้
+7. **Use a restrained color system**: ใช้ชุดสีที่จำกัดและควบคุมให้อยู่ใน Palette ของระบบเท่านั้น
+8. **Maintain clear typography hierarchy**: รักษาระดับชั้นของตัวอักษร (Typography Hierarchy) ให้ชัดเจน
+9. **Prefer existing components over creating duplicates**: ใช้ Component ที่มีอยู่แล้วก่อนสร้างใหม่ซ้ำซ้อน
+10. **Do not introduce unnecessary abstractions**: ไม่สร้าง Abstraction หรือแยกไฟล์ย่อยเกินความจำเป็น
+11. **Do not redesign unrelated areas**: ห้าม Redesign ส่วนที่ไม่เกี่ยวข้องกับงานที่ได้รับมอบหมาย
+12. **Responsive behavior must be intentional**: การจัดวาง Responsive (Mobile/Desktop) ต้องคิดมาอย่างตั้งใจและใช้งานได้จริง
+13. **Every visual element must have a purpose**: ทุกองค์ประกอบทางสายตาต้องมีเหตุผลและหน้าที่ในการแสดงผล
+14. **Match the existing UI before introducing a new style**: ทำความเข้าใจและเลียนแบบ UI เดิมก่อนคิดจะสร้างสไตล์ใหม่
+15. **Review the final UI for visual noise and unnecessary complexity**: ตรวจสอบ UI สุดท้ายเสมอว่าไม่มี Visual Noise หรือความซับซ้อนที่รกตา
 
 ### Design System ของ Hertz Manager
 
