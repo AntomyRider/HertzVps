@@ -95,8 +95,8 @@ const NavbarUser = () => {
                   href={menu.href}
                   className={`flex items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition ${
                     isActive
-                      ? "bg-blue-500/10 text-blue-500"
-                      : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                      ? ""
+                      : "text-neutral-400 hover:text-white"
                   }`}
                 >
                   <Icon size={18} strokeWidth={1.8} />

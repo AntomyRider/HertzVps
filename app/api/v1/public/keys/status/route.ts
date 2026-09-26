@@ -1,218 +1,158 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Helper function to process key status check (Read-Only)
-async function checkKeyStatus(rawKey: unknown, rawHwid: unknown) {
-  const cleanCode = typeof rawKey === "string" ? rawKey.trim() : "";
-  const cleanHwid = typeof rawHwid === "string" ? rawHwid.trim() : "";
+export const dynamic = "force-dynamic";
+
+interface StatusPayload {
+  code?: string;
+  hwid?: string;
+}
+
+async function handleCheckStatus({ code, hwid }: StatusPayload) {
+  const cleanCode = typeof code === "string" ? code.trim() : "";
+  const cleanHwid = typeof hwid === "string" ? hwid.trim() : "";
 
   if (!cleanCode) {
     return NextResponse.json(
       {
-        success: false,
         valid: false,
-        status: "MISSING_KEY",
-        message: "กรุณาระบุรหัสคีย์ (key หรือ code)",
+        status: "INVALID_PARAM",
+        error: "กรุณาระบุรหัสคีย์ (code)",
       },
       { status: 400 }
     );
   }
 
-  if (!cleanHwid) {
-    return NextResponse.json(
-      {
-        success: false,
-        valid: false,
-        status: "MISSING_HWID",
-        message: "กรุณาระบุ Hardware ID (hwid)",
-      },
-      { status: 400 }
-    );
-  }
-
-  // 1. Find key in database
-  const key = await prisma.key.findUnique({
+  // ค้นหาข้อมูลคีย์ในฐานข้อมูล (Read-Only)
+  const keyRecord = await prisma.key.findUnique({
     where: { code: cleanCode },
   });
 
-  if (!key) {
+  if (!keyRecord) {
     return NextResponse.json(
       {
-        success: false,
         valid: false,
         status: "NOT_FOUND",
-        message: "ไม่พบรหัสคีย์นี้ในระบบ กรุณาตรวจสอบความถูกต้อง",
+        error: "ไม่พบรหัสคีย์นี้ในระบบ กรุณาตรวจสอบความถูกต้อง",
       },
       { status: 404 }
     );
   }
 
   const {
-    id,
-    code,
+    code: keyCode,
     isActive,
-    hwid: boundHwid,
+    hwid: dbHwid,
     durationDays,
     activatedAt,
     expiresAt,
-    hwidResetAt,
-  } = key;
+  } = keyRecord;
 
-  // 2. Check if key is suspended/inactive
+  // 1. ตรวจสอบสถานะการใช้งาน (ถูกระงับหรือไม่)
   if (!isActive) {
     return NextResponse.json(
       {
-        success: false,
         valid: false,
-        status: "SUSPENDED",
-        message: "คีย์นี้ถูกระงับหรือปิดการใช้งานโดยผู้ดูแลระบบ",
-        data: {
-          id,
-          code,
-          isActive,
-        },
+        status: "INACTIVE",
+        error: "คีย์นี้ถูกระงับหรือปิดการใช้งานโดยผู้ดูแลระบบ",
       },
       { status: 403 }
     );
   }
 
-  // 3. Check if key is not yet activated/bound to any HWID
-  if (!boundHwid) {
-    return NextResponse.json(
-      {
-        success: true,
-        valid: false,
-        status: "UNACTIVATED",
-        message: "คีย์นี้ยังไม่ถูกเปิดใช้งาน (ยังไม่ได้ผูกกับเครื่องใดๆ)",
-        data: {
-          id,
-          code,
-          isActive,
-          durationDays,
-          hwid: null,
-          activatedAt: null,
-          expiresAt: null,
-          hwidResetAt,
-        },
-      },
-      { status: 200 }
-    );
-  }
-
-  // 4. Check HWID match
-  if (boundHwid !== cleanHwid) {
-    return NextResponse.json(
-      {
-        success: false,
-        valid: false,
-        status: "HWID_MISMATCH",
-        message: "คีย์นี้ถูกผูกกับเครื่องอื่นอยู่แล้ว กรุณารีเซ็ต HWID ก่อนเข้าใช้งาน",
-        data: {
-          id,
-          code,
-          isActive,
-          hwidResetAt,
-        },
-      },
-      { status: 403 }
-    );
-  }
-
-  // 5. Check Expiration
   const now = new Date();
-  if (expiresAt && expiresAt.getTime() < now.getTime()) {
+
+  // 2. ตรวจสอบวันหมดอายุ
+  if (expiresAt && expiresAt < now) {
     return NextResponse.json(
       {
-        success: false,
         valid: false,
         status: "EXPIRED",
-        message: "คีย์นี้หมดอายุการใช้งานแล้ว",
-        data: {
-          id,
-          code,
-          isActive,
-          hwid: boundHwid,
-          durationDays,
-          activatedAt: activatedAt?.toISOString() || null,
-          expiresAt: expiresAt.toISOString(),
-          isExpired: true,
-          remainingDays: 0,
-          remainingSeconds: 0,
-          hwidResetAt,
-        },
+        error: "คีย์นี้หมดอายุการใช้งานแล้ว กรุณาต่ออายุคีย์",
+        expiresAt: expiresAt.toISOString(),
       },
       { status: 403 }
     );
   }
 
-  // 6. Calculate remaining time
-  const remainingMs = expiresAt ? Math.max(0, expiresAt.getTime() - now.getTime()) : durationDays * 24 * 60 * 60 * 1000;
-  const remainingDays = Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
-  const remainingSeconds = Math.floor(remainingMs / 1000);
-
-  return NextResponse.json(
-    {
-      success: true,
+  // 3. กรณีคีย์ยังไม่เคยผูกกับเครื่องใด (ยังไม่ได้ Redeem/Activate)
+  if (!dbHwid) {
+    return NextResponse.json({
       valid: true,
-      status: "ACTIVE",
-      message: "คีย์ถูกต้องและพร้อมใช้งาน",
-      data: {
-        id,
-        code,
+      status: "UNACTIVATED",
+      message: "คีย์ถูกต้อง แต่ยังไม่เคยเปิดใช้งานหรือผูกกับเครื่องใด",
+      key: {
+        code: keyCode,
         isActive,
-        hwid: boundHwid,
+        isActivated: false,
         durationDays,
-        activatedAt: activatedAt?.toISOString() || null,
-        expiresAt: expiresAt?.toISOString() || null,
-        remainingDays,
-        remainingSeconds,
-        isExpired: false,
-        hwidResetAt: hwidResetAt?.toISOString() || null,
+        remainingDays: durationDays,
+        remainingSeconds: (durationDays || 30) * 86400,
+        activatedAt: null,
+        expiresAt: null,
       },
-    },
-    { status: 200 }
-  );
-}
+    });
+  }
 
-// POST /api/v1/public/keys/status
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json().catch(() => ({}));
-    const { key, code, hwid } = body;
-    const targetKey = key || code;
-    return await checkKeyStatus(targetKey, hwid);
-  } catch (err: any) {
-    console.error("Key Status Check Error (POST):", err);
+  // 4. ตรวจสอบความถูกต้องของ Hardware ID (HWID)
+  if (cleanHwid && dbHwid !== cleanHwid) {
     return NextResponse.json(
       {
-        success: false,
         valid: false,
-        status: "SERVER_ERROR",
-        error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+        status: "HWID_MISMATCH",
+        error:
+          "Hardware ID (HWID) ไม่ตรงกับเครื่องที่ลงทะเบียนไว้ กรุณารีเซ็ต HWID ก่อนเปลี่ยนเครื่องใช้งาน",
       },
+      { status: 403 }
+    );
+  }
+
+  // 5. คำนวณเวลาคงเหลือ
+  const remainingSeconds = expiresAt
+    ? Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000))
+    : (durationDays || 30) * 86400;
+
+  return NextResponse.json({
+    valid: true,
+    status: "ACTIVE",
+    message: "คีย์ถูกต้องและพร้อมใช้งาน",
+    key: {
+      code: keyCode,
+      isActive,
+      isActivated: true,
+      durationDays,
+      remainingDays: Math.ceil(remainingSeconds / 86400),
+      remainingSeconds,
+      activatedAt: activatedAt?.toISOString() || null,
+      expiresAt: expiresAt?.toISOString() || null,
+    },
+  });
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { code, hwid } = await req.json().catch(() => ({}));
+    return await handleCheckStatus({ code, hwid });
+  } catch (error) {
+    console.error("POST /api/v1/public/keys/status error:", error);
+    return NextResponse.json(
+      { valid: false, status: "ERROR", error: "เกิดข้อผิดพลาดในการตรวจสอบคีย์" },
       { status: 500 }
     );
   }
 }
 
-// GET /api/v1/public/keys/status?key=...&hwid=... (or ?code=...&hwid=...)
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const key = searchParams.get("key");
-    const code = searchParams.get("code");
-    const hwid = searchParams.get("hwid");
-    const targetKey = key || code;
-    return await checkKeyStatus(targetKey, hwid);
-  } catch (err: any) {
-    console.error("Key Status Check Error (GET):", err);
+    const code = searchParams.get("code") || undefined;
+    const hwid = searchParams.get("hwid") || undefined;
+
+    return await handleCheckStatus({ code, hwid });
+  } catch (error) {
+    console.error("GET /api/v1/public/keys/status error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        valid: false,
-        status: "SERVER_ERROR",
-        error: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
-      },
+      { valid: false, status: "ERROR", error: "เกิดข้อผิดพลาดในการตรวจสอบคีย์" },
       { status: 500 }
     );
   }
