@@ -2,6 +2,7 @@
 
 import { useOrderStore } from "@/store/orderStore";
 import SearchUI from "@/components/ui/search";
+import FadeIn from "@/components/ui/fade-in";
 import { ShoppingBag, TrendingUp } from "lucide-react";
 
 export const ToolsOrder = () => {
@@ -14,7 +15,10 @@ export const ToolsOrder = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <FadeIn
+      direction="up"
+      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+    >
       {/* Search Input */}
       <SearchUI
         value={search}
@@ -43,7 +47,7 @@ export const ToolsOrder = () => {
           </span>
         </div>
       </div>
-    </div>
+    </FadeIn>
   );
 };
 

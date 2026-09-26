@@ -8,7 +8,8 @@ import {
   House,
   Store,
   Wallet,
-  Mail,
+  Download,
+  Usb,
   X,
   ScanFace,
   ShoppingBag,
@@ -52,7 +53,8 @@ export const UserMobileSidebar = ({
     { label: "หน้าแรก", href: "/", icon: House },
     { label: "ร้านค้า", href: "/shop", icon: Store },
     { label: "เติมเงิน", href: "/topup", icon: Wallet },
-    { label: "ติดต่อ", href: "/contact", icon: Mail },
+    { label: "ดาวน์โหลด", href: "/download", icon: Download },
+    { label: "ควบคุมโปรแกรม", href: "/controller", icon: Usb },
   ];
 
   return (
@@ -130,10 +132,10 @@ export const UserMobileSidebar = ({
                   <Link
                     href="/admin"
                     onClick={onClose}
-                    className="flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-medium text-blue-400 transition hover:bg-blue-500/10"
+                    className="flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-medium text-yellow-500 transition hover:bg-blue-500/10"
                   >
                     <ScanFace size={18} strokeWidth={1.8} />
-                    <span>จัดการระบบ (Admin)</span>
+                    <span>จัดการระบบ</span>
                   </Link>
                 )}
 
@@ -143,17 +145,9 @@ export const UserMobileSidebar = ({
                   className="flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-medium text-neutral-300 transition hover:bg-neutral-900 hover:text-white"
                 >
                   <ShoppingBag size={18} strokeWidth={1.8} />
-                  <span>ประวัติคำสั่งซื้อ</span>
+                  <span>ประวัติของคุณ</span>
                 </Link>
 
-                <Link
-                  href="/history?tab=payments"
-                  onClick={onClose}
-                  className="flex items-center gap-3 rounded-md px-3.5 py-2.5 text-sm font-medium text-neutral-300 transition hover:bg-neutral-900 hover:text-white"
-                >
-                  <Wallet size={18} strokeWidth={1.8} />
-                  <span>ประวัติการเติมเงิน</span>
-                </Link>
               </div>
             </div>
           )}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import FadeIn from "@/components/ui/fade-in";
 
 interface FAQItem {
   question: string;
@@ -47,8 +48,7 @@ const FAQHome = () => {
     <section className="w-full px-6 py-24 md:px-12 lg:px-20">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="text-center">
-
+        <FadeIn direction="up" className="text-center">
           <h2 className="mt-4 text-3xl font-bold tracking-tight text-white md:text-4xl">
             คำถามที่พบบ่อย
           </h2>
@@ -56,7 +56,7 @@ const FAQHome = () => {
           <p className="mt-3 text-base text-neutral-400">
             รวบรวมข้อสงสัยและคำถามที่พบบ่อยเกี่ยวกับโปรแกรม Hertz Manager
           </p>
-        </div>
+        </FadeIn>
 
         {/* FAQ Accordion */}
         <div className="mt-12 space-y-4">
@@ -64,30 +64,29 @@ const FAQHome = () => {
             const isOpen = openIndex === index;
 
             return (
-              <div
-                key={faq.question}
-                className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/50 backdrop-blur-xs transition hover:border-neutral-700"
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleFAQ(index)}
-                  className="flex w-full items-center justify-between gap-4 p-5 text-left text-base font-semibold text-white transition hover:text-blue-400"
-                >
-                  <span>{faq.question}</span>
-                  <ChevronDown
-                    size={20}
-                    className={`shrink-0 text-neutral-400 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 text-blue-500" : ""
-                    }`}
-                  />
-                </button>
+              <FadeIn key={faq.question} direction="up" delay={index * 60}>
+                <div className="overflow-hidden rounded-md border border-neutral-800 bg-neutral-900/50 backdrop-blur-xs transition hover:border-neutral-700">
+                  <button
+                    type="button"
+                    onClick={() => toggleFAQ(index)}
+                    className="flex w-full items-center justify-between gap-4 p-5 text-left text-base font-semibold text-white transition hover:text-blue-400"
+                  >
+                    <span>{faq.question}</span>
+                    <ChevronDown
+                      size={20}
+                      className={`shrink-0 text-neutral-400 transition-transform duration-200 ${
+                        isOpen ? "rotate-180 text-blue-500" : ""
+                      }`}
+                    />
+                  </button>
 
-                {isOpen && (
-                  <div className="border-t border-neutral-800/60 px-5 pt-3 pb-5 text-sm leading-6 text-neutral-400">
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
+                  {isOpen && (
+                    <div className="border-t border-neutral-800/60 px-5 pt-3 pb-5 text-sm leading-6 text-neutral-400">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              </FadeIn>
             );
           })}
         </div>

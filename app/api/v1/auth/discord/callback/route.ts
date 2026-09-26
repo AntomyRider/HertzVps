@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   const {
     DISCORD_CLIENT_ID: clientId,
     DISCORD_CLIENT_SECRET: clientSecret,
-    DISCORD_REDIRECT_URI: redirectUri = "http://localhost:3000/api/v1/auth/discord/callback",
+    DISCORD_REDIRECT_URI: redirectUri = "https://hertzx.xyz/api/v1/auth/discord/callback",
   } = process.env;
 
   if (!clientId || !clientSecret) {

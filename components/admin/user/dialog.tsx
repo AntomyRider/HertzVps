@@ -22,62 +22,84 @@ const roleDropdownOptions = [
   { value: "ADMIN", label: "ผู้ดูแลระบบ (ADMIN)" },
 ];
 
+interface UserFormState {
+  role: "USER" | "ADMIN";
+  balance: string;
+  balanceError: string | null;
+  isSubmitting: boolean;
+}
+
+const INITIAL_USER_FORM: UserFormState = {
+  role: "USER",
+  balance: "",
+  balanceError: null,
+  isSubmitting: false,
+};
+
 export const DialogUser = () => {
   const { editingUser, setEditingUser, updateUser } = useUserStore();
 
   const isOpen = !!editingUser;
 
-  const [role, setRole] = useState<"USER" | "ADMIN">("USER");
-  const [balance, setBalance] = useState("");
-  const [balanceError, setBalanceError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState<UserFormState>(INITIAL_USER_FORM);
+
+  const updateForm = (patch: Partial<UserFormState>) => {
+    setForm((prev) => ({ ...prev, ...patch }));
+  };
 
   useEffect(() => {
     if (editingUser) {
-      setRole(editingUser.role);
-      setBalance(String(editingUser.balance));
-      setBalanceError(null);
+      setForm({
+        role: editingUser.role,
+        balance: String(editingUser.balance),
+        balanceError: null,
+        isSubmitting: false,
+      });
     } else {
-      setRole("USER");
-      setBalance("");
-      setBalanceError(null);
+      setForm(INITIAL_USER_FORM);
     }
   }, [editingUser]);
 
   const handleClose = () => {
-    if (isSubmitting) return;
+    if (form.isSubmitting) return;
     setEditingUser(null);
-    setBalanceError(null);
+    updateForm({ balanceError: null });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
 
-    const numBalance = Number(balance);
-    if (balance === "" || isNaN(numBalance) || numBalance < 0) {
-      setBalanceError("กรุณาระบุยอดเงินที่ถูกต้อง (มากกว่าหรือเท่ากับ 0)");
+    const numBalance = Number(form.balance);
+    if (form.balance === "" || isNaN(numBalance) || numBalance < 0) {
+      updateForm({
+        balanceError: "กรุณาระบุยอดเงินที่ถูกต้อง (มากกว่าหรือเท่ากับ 0)",
+      });
       return;
     }
 
     try {
-      setIsSubmitting(true);
-      setBalanceError(null);
+      updateForm({ isSubmitting: true, balanceError: null });
 
       const res = await updateUser(editingUser.id, {
-        role,
+        role: form.role,
         balance: numBalance,
       });
 
       if (!res.success) {
-        setBalanceError(res.error || "ไม่สามารถอัปเดตข้อมูลผู้ใช้งานได้");
+        updateForm({
+          balanceError: res.error || "ไม่สามารถอัปเดตข้อมูลผู้ใช้งานได้",
+        });
         return;
       }
 
-      toast.success("บันทึกข้อมูลสำเร็จ", `อัปเดตข้อมูลผู้ใช้ "${editingUser.name}" เรียบร้อยแล้ว`);
+      toast.success(
+        "บันทึกข้อมูลสำเร็จ",
+        `อัปเดตข้อมูลผู้ใช้ "${editingUser.name}" เรียบร้อยแล้ว`
+      );
       handleClose();
     } finally {
-      setIsSubmitting(false);
+      updateForm({ isSubmitting: false });
     }
   };
 
@@ -96,7 +118,7 @@ export const DialogUser = () => {
           <div className="grid grid-cols-1 gap-5 py-1 sm:grid-cols-[160px_1fr]">
             {/* Left Column: Avatar & Discord Info */}
             <div className="flex flex-col items-center justify-center space-y-2.5 rounded-sm border border-neutral-800 bg-neutral-900/40 p-4 text-center">
-              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-800 bg-neutral-900">
+              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-neutral-800 bg-neutral-900">
                 {isValidImageUrl(editingUser?.avatar) ? (
                   <Image
                     src={editingUser!.avatar!}
@@ -129,9 +151,11 @@ export const DialogUser = () => {
                 </label>
                 <Dropdown
                   options={roleDropdownOptions}
-                  value={role}
-                  onChange={(val) => setRole(val as "USER" | "ADMIN")}
-                  disabled={isSubmitting}
+                  value={form.role}
+                  onChange={(val) =>
+                    updateForm({ role: val as "USER" | "ADMIN" })
+                  }
+                  disabled={form.isSubmitting}
                 />
               </div>
 
@@ -145,17 +169,19 @@ export const DialogUser = () => {
                   min="0"
                   step="0.01"
                   placeholder="0.00"
-                  value={balance}
-                  onChange={(e) => {
-                    setBalance(e.target.value);
-                    if (balanceError) setBalanceError(null);
-                  }}
-                  disabled={isSubmitting}
-                  className={balanceError ? "border-red-500/50 focus:border-red-500" : ""}
+                  value={form.balance}
+                  onChange={(e) =>
+                    updateForm({
+                      balance: e.target.value,
+                      balanceError: null,
+                    })
+                  }
+                  disabled={form.isSubmitting}
+                  className={form.balanceError ? "border-red-500/50 focus:border-red-500" : ""}
                 />
-                {balanceError && (
+                {form.balanceError && (
                   <span className="mt-1.5 block text-xs text-red-400 font-medium">
-                    {balanceError}
+                    {form.balanceError}
                   </span>
                 )}
                 <span className="mt-1 block text-[11px] text-neutral-500">
@@ -168,7 +194,7 @@ export const DialogUser = () => {
           <DialogFooter>
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={form.isSubmitting}
               onClick={handleClose}
               className="rounded-sm border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
             >
@@ -177,8 +203,8 @@ export const DialogUser = () => {
 
             <ButtonUI
               type="submit"
-              disabled={isSubmitting}
-              isLoading={isSubmitting}
+              disabled={form.isSubmitting}
+              isLoading={form.isSubmitting}
               className="rounded-sm bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
             >
               บันทึกข้อมูล

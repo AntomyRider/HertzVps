@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import AdminMobileHeader from "./mobile/header";
 import AdminMobileDrawer, { AdminMenuGroup } from "./mobile/drawer";
+import BackUI from "@/components/ui/back";
 
 const SidebarAdmin = () => {
   const pathname = usePathname();
@@ -131,10 +132,10 @@ const SidebarAdmin = () => {
                     <Link
                       key={menu.href}
                       href={menu.href}
-                      className={`flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition border ${
+                      className={`flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition ${
                         isActive
-                          ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                          : "text-neutral-400 hover:bg-blue-500/10 hover:text-white border-transparent"
+                          ? "bg-blue-500/10 text-blue-500"
+                          : "text-neutral-400 hover:bg-blue-500/10 hover:text-white"
                       }`}
                     >
                       <Icon size={18} strokeWidth={1.8} />
@@ -146,6 +147,15 @@ const SidebarAdmin = () => {
             </div>
           ))}
         </nav>
+
+        {/* Bottom BackUI Button */}
+        <div className="border-t border-neutral-900 pt-4">
+          <BackUI
+            href="/"
+            text="กลับสู่หน้าหลัก"
+            className="w-full rounded-sm px-3 py-2.5 text-sm hover:bg-blue-500/10"
+          />
+        </div>
       </aside>
     </>
   );

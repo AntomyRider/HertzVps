@@ -11,6 +11,7 @@ import {
   ShoppingBag,
   User as UserIcon,
   type LucideIcon,
+  KeySquare,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { isValidImageUrl } from "@/lib/utils";
@@ -72,17 +73,17 @@ const AvatarUser = () => {
 
   const menuItems: DropdownMenuItem[] = [
     {
-      label: "จัดการระบบ",
-      href: "/admin",
-      icon: ScanFace,
-      iconColor: "text-white-500",
-      roles: ["ADMIN"],
-    },
-    {
-      label: "ประวัติต่างๆ",
+      label: "ประวัติของคุณ",
       href: "/history?tab=orders",
       icon: ShoppingBag,
       iconColor: "text-white-500",
+    },
+    {
+      label: "จัดการระบบ",
+      href: "/admin",
+      icon: KeySquare,
+      iconColor: "text-yellow-500",
+      roles: ["ADMIN"],
     },
     {
       label: "ออกจากระบบ",

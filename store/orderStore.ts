@@ -27,6 +27,16 @@ export interface UserOrderItem {
   createdAt: string;
 }
 
+export interface RecentPublicOrderItem {
+  id: string;
+  buyerName: string;
+  productName: string;
+  productImage: string | null;
+  price: number;
+  quantity: number;
+  createdAt: string;
+}
+
 interface OrderSummary {
   totalOrders: number;
   totalRevenue: number;
@@ -50,6 +60,11 @@ interface OrderState {
   viewingUserOrder: UserOrderItem | null;
   setViewingUserOrder: (order: UserOrderItem | null) => void;
   fetchUserOrders: () => Promise<void>;
+
+  // Public recent orders (Home live notification)
+  recentOrders: RecentPublicOrderItem[];
+  isLoadingRecentOrders: boolean;
+  fetchRecentOrders: () => Promise<void>;
 }
 
 export const useOrderStore = create<OrderState>((set, get) => ({
@@ -108,6 +123,26 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     } catch (error) {
       console.error("fetchUserOrders error:", error);
       set({ userOrders: [], isLoadingUserOrders: false });
+    }
+  },
+
+  // Public recent orders (10 latest)
+  recentOrders: [],
+  isLoadingRecentOrders: false,
+
+  fetchRecentOrders: async () => {
+    set({ isLoadingRecentOrders: true });
+    try {
+      const response = await axios.get<{ orders: RecentPublicOrderItem[] }>(
+        "/api/v1/public/orders/recent"
+      );
+      set({
+        recentOrders: response.data.orders || [],
+        isLoadingRecentOrders: false,
+      });
+    } catch (error) {
+      console.error("fetchRecentOrders error:", error);
+      set({ recentOrders: [], isLoadingRecentOrders: false });
     }
   },
 }));

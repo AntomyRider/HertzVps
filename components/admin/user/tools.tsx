@@ -3,6 +3,7 @@
 import { useUserStore } from "@/store/userStore";
 import SearchUI from "@/components/ui/search";
 import Dropdown from "@/components/ui/dropdown";
+import FadeIn from "@/components/ui/fade-in";
 import { Users } from "lucide-react";
 
 const roleOptions = [
@@ -33,7 +34,10 @@ export const ToolsUser = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <FadeIn
+      direction="up"
+      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+    >
       {/* Search Input & Role Filter */}
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
         <SearchUI
@@ -61,7 +65,7 @@ export const ToolsUser = () => {
           <span className="font-semibold text-white">{users.length} คน</span>
         </div>
       </div>
-    </div>
+    </FadeIn>
   );
 };
 

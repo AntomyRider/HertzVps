@@ -5,6 +5,7 @@ import ButtonUI from "@/components/ui/button";
 import { Plus, Trash, AlertTriangle, Loader2 } from "lucide-react";
 import SearchUI from "@/components/ui/search";
 import Dialog, { DialogContent } from "@/components/ui/dialog";
+import FadeIn from "@/components/ui/fade-in";
 import { useCategoryStore } from "@/store/categoryStore";
 import { toast } from "@/components/ui/toast";
 
@@ -44,7 +45,10 @@ const ToolsCategory = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <FadeIn
+        direction="up"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
         {/* Search Input */}
         <SearchUI
           value={search}
@@ -76,7 +80,7 @@ const ToolsCategory = () => {
             <span>เพิ่มหมวดหมู่</span>
           </ButtonUI>
         </div>
-      </div>
+      </FadeIn>
 
       {/* Delete All Confirmation Dialog */}
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>

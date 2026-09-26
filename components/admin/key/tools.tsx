@@ -6,6 +6,7 @@ import { Plus, Trash, AlertTriangle, Loader2, Clock } from "lucide-react";
 import SearchUI from "@/components/ui/search";
 import Dropdown, { DropdownOption } from "@/components/ui/dropdown";
 import Dialog, { DialogContent } from "@/components/ui/dialog";
+import FadeIn from "@/components/ui/fade-in";
 import { useKeyStore } from "@/store/keyStore";
 import { toast } from "@/components/ui/toast";
 
@@ -84,7 +85,10 @@ const ToolsKey = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <FadeIn
+        direction="up"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
           <SearchUI
             value={search}
@@ -152,7 +156,7 @@ const ToolsKey = () => {
             <span>สร้างคีย์</span>
           </ButtonUI>
         </div>
-      </div>
+      </FadeIn>
 
       {/* Dynamic Delete Confirmation Dialog */}
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>

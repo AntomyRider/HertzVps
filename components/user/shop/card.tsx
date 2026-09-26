@@ -7,6 +7,7 @@ import { Package } from "lucide-react";
 
 import Empty from "@/components/ui/empty";
 import ButtonUI from "@/components/ui/button";
+import FadeIn from "@/components/ui/fade-in";
 import { useCategoryStore } from "@/store/categoryStore";
 import { isValidImageUrl } from "@/lib/utils";
 
@@ -106,27 +107,28 @@ const CategoryShop = () => {
 
   if (categories.length === 0) {
     return (
-      <div className="mx-auto w-full pb-16">
+      <FadeIn direction="up" className="mx-auto w-full pb-16">
         <Empty
           icon={Package}
           title="ยังไม่มีหมวดหมู่สินค้าในขณะนี้"
           description="ขณะนี้ยังไม่มีรายการหมวดหมู่สินค้าที่เปิดจำหน่าย กรุณากลับมาตรวจสอบใหม่อีกครั้งเร็วๆ นี้"
         />
-      </div>
+      </FadeIn>
     );
   }
 
   return (
     <div className="mx-auto w-full pb-16">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {categories.map((category) => (
-          <CategoryCard
-            key={category.id}
-            id={category.id}
-            name={category.name}
-            image={category.image}
-            description="เลือกหมวดหมู่เพื่อดูเพิ่มเติม"
-          />
+        {categories.map((category, index) => (
+          <FadeIn key={category.id} direction="up" delay={index * 70}>
+            <CategoryCard
+              id={category.id}
+              name={category.name}
+              image={category.image}
+              description="เลือกหมวดหมู่เพื่อดูเพิ่มเติม"
+            />
+          </FadeIn>
         ))}
       </div>
     </div>

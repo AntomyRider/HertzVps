@@ -9,7 +9,8 @@ import MemoryCard from "./memory-card";
 import DiskCard from "./disk-card";
 import ServiceCard from "./service-card";
 import NetworkCard from "./network-card";
-import { AlertCircle, RefreshCw, Loader2 } from "lucide-react";
+import FadeIn from "@/components/ui/fade-in";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 export default function ServerDashboard() {
   const { metrics, isLoading, error, refreshInterval, fetchMetrics } = useServerStore();
@@ -55,7 +56,10 @@ export default function ServerDashboard() {
   // Error State
   if (error && !metrics) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-md border border-red-500/20 bg-neutral-950 p-12 text-center">
+      <FadeIn
+        direction="up"
+        className="flex flex-col items-center justify-center rounded-md border border-red-500/20 bg-neutral-950 p-12 text-center"
+      >
         <div className="flex h-12 w-12 items-center justify-center rounded-sm border border-red-500/20 bg-red-500/10 text-red-400">
           <AlertCircle size={24} />
         </div>
@@ -71,7 +75,7 @@ export default function ServerDashboard() {
           <RefreshCw size={14} />
           <span>ลองใหม่อีกครั้ง</span>
         </button>
-      </div>
+      </FadeIn>
     );
   }
 
@@ -80,25 +84,39 @@ export default function ServerDashboard() {
   return (
     <div className="space-y-5">
       {/* Top Controls & Status Bar */}
-      <HeaderTools />
+      <FadeIn direction="up">
+        <HeaderTools />
+      </FadeIn>
 
       {/* System & OS Info */}
-      <SystemCard system={metrics.system} />
+      <FadeIn direction="up" delay={50}>
+        <SystemCard system={metrics.system} />
+      </FadeIn>
 
       {/* CPU & Memory Row */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <CpuCard cpu={metrics.cpu} />
-        <MemoryCard memory={metrics.memory} />
+        <FadeIn direction="up" delay={100}>
+          <CpuCard cpu={metrics.cpu} />
+        </FadeIn>
+        <FadeIn direction="up" delay={150}>
+          <MemoryCard memory={metrics.memory} />
+        </FadeIn>
       </div>
 
       {/* Storage Disk */}
-      <DiskCard disk={metrics.disk} />
+      <FadeIn direction="up" delay={200}>
+        <DiskCard disk={metrics.disk} />
+      </FadeIn>
 
       {/* Services (Database & Node.js) */}
-      <ServiceCard database={metrics.database} node={metrics.node} />
+      <FadeIn direction="up" delay={250}>
+        <ServiceCard database={metrics.database} node={metrics.node} />
+      </FadeIn>
 
       {/* Network Interfaces */}
-      <NetworkCard interfaces={metrics.network.interfaces} />
+      <FadeIn direction="up" delay={300}>
+        <NetworkCard interfaces={metrics.network.interfaces} />
+      </FadeIn>
     </div>
   );
 }

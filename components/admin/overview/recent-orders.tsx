@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useOverviewStore } from "@/store/overviewStore";
 import { ShoppingBag, ChevronRight, User, Package } from "lucide-react";
 import { isValidImageUrl } from "@/lib/utils";
+import FadeIn from "@/components/ui/fade-in";
 
 export default function RecentOrdersAdmin() {
   const { recentOrders, isLoading } = useOverviewStore();
@@ -24,7 +25,8 @@ export default function RecentOrdersAdmin() {
   };
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-5">
+    <FadeIn direction="up" delay={150} className="h-full">
+      <div className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-5">
       {/* Header */}
       <div>
         <div className="flex items-center justify-between">
@@ -37,9 +39,6 @@ export default function RecentOrdersAdmin() {
                 <h3 className="text-base font-semibold text-white">
                   คำสั่งซื้อล่าสุด
                 </h3>
-                <span className="rounded-sm border border-blue-500/20 bg-blue-500/10 px-1.5 py-0.5 text-[11px] font-medium text-blue-400">
-                  10 รายการ
-                </span>
               </div>
               <p className="text-xs text-neutral-400">
                 รายการสั่งซื้อสินค้าล่าสุดในระบบ
@@ -148,6 +147,7 @@ export default function RecentOrdersAdmin() {
           จัดการและดูรายละเอียดคำสั่งซื้อทั้งหมด →
         </Link>
       </div>
-    </div>
+      </div>
+    </FadeIn>
   );
 }

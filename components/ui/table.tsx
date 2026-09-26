@@ -1,5 +1,8 @@
+"use client";
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import FadeIn from "@/components/ui/fade-in";
 
 export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
   wrapperClassName?: string;
@@ -7,23 +10,25 @@ export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
 
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(
   ({ className, wrapperClassName, ...props }, ref) => (
-    <div
-      className={cn(
-        "relative w-full overflow-hidden rounded-md border border-neutral-800 bg-neutral-950",
-        wrapperClassName
-      )}
-    >
-      <div className="w-full overflow-x-auto">
-        <table
-          ref={ref}
-          className={cn(
-            "w-full caption-bottom text-sm text-left border-collapse",
-            className
-          )}
-          {...props}
-        />
+    <FadeIn direction="up" duration={500}>
+      <div
+        className={cn(
+          "relative w-full overflow-hidden rounded-md border border-neutral-800 bg-neutral-950",
+          wrapperClassName
+        )}
+      >
+        <div className="w-full overflow-x-auto">
+          <table
+            ref={ref}
+            className={cn(
+              "w-full caption-bottom text-sm text-left border-collapse",
+              className
+            )}
+            {...props}
+          />
+        </div>
       </div>
-    </div>
+    </FadeIn>
   )
 );
 Table.displayName = "Table";

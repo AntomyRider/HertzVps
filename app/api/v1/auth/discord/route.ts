@@ -5,7 +5,7 @@ import crypto from "crypto";
 export async function GET() {
   const {
     DISCORD_CLIENT_ID: clientId,
-    DISCORD_REDIRECT_URI = "http://localhost:3000/api/v1/auth/discord/callback",
+    DISCORD_REDIRECT_URI = "https://hertzx.xyz/api/v1/auth/discord/callback",
   } = process.env;
   const redirectUri = DISCORD_REDIRECT_URI;
 

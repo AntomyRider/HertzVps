@@ -16,6 +16,36 @@ import { useKeyStore } from "@/store/keyStore";
 import { useProductStore } from "@/store/productStore";
 import { toast } from "@/components/ui/toast";
 
+interface KeyDialogFormState {
+  count: string;
+  selectedPreset: "1" | "7" | "30" | "custom";
+  customDays: string;
+  targetProductId: string;
+  addedToProductName: string | null;
+  countError: string | null;
+  customDaysError: string | null;
+  isSubmittingCreate: boolean;
+  copiedAll: boolean;
+  addDaysInput: string;
+  addDaysError: string | null;
+  isSubmittingAddTime: boolean;
+}
+
+const INITIAL_KEY_DIALOG_FORM: KeyDialogFormState = {
+  count: "1",
+  selectedPreset: "30",
+  customDays: "30",
+  targetProductId: "",
+  addedToProductName: null,
+  countError: null,
+  customDaysError: null,
+  isSubmittingCreate: false,
+  copiedAll: false,
+  addDaysInput: "30",
+  addDaysError: null,
+  isSubmittingAddTime: false,
+};
+
 export const DialogKey = () => {
   const {
     isCreateOpen,
@@ -33,15 +63,13 @@ export const DialogKey = () => {
 
   const { products, fetchProducts } = useProductStore();
 
-  // Create form state
-  const [count, setCount] = useState("1");
-  const [selectedPreset, setSelectedPreset] = useState<"1" | "7" | "30" | "custom">("30");
-  const [customDays, setCustomDays] = useState("30");
-  const [targetProductId, setTargetProductId] = useState("");
-  const [addedToProductName, setAddedToProductName] = useState<string | null>(null);
-  const [countError, setCountError] = useState<string | null>(null);
-  const [customDaysError, setCustomDaysError] = useState<string | null>(null);
-  const [isSubmittingCreate, setIsSubmittingCreate] = useState(false);
+  const [form, setForm] = useState<KeyDialogFormState>(
+    INITIAL_KEY_DIALOG_FORM
+  );
+
+  const updateForm = (patch: Partial<KeyDialogFormState>) => {
+    setForm((prev) => ({ ...prev, ...patch }));
+  };
 
   // Fetch products when create dialog is opened
   useEffect(() => {
@@ -50,79 +78,81 @@ export const DialogKey = () => {
     }
   }, [isCreateOpen, products.length, fetchProducts]);
 
-  // Copy state for created keys
-  const [copiedAll, setCopiedAll] = useState(false);
-
-  // Add time form state
-  const [addDaysInput, setAddDaysInput] = useState("30");
-  const [addDaysError, setAddDaysError] = useState<string | null>(null);
-  const [isSubmittingAddTime, setIsSubmittingAddTime] = useState(false);
-
   // 1. Create Dialog Handlers
   const handleCloseCreate = () => {
-    if (isSubmittingCreate) return;
+    if (form.isSubmittingCreate) return;
     setIsCreateOpen(false);
-    setCount("1");
-    setSelectedPreset("30");
-    setCustomDays("30");
-    setTargetProductId("");
-    setCountError(null);
-    setCustomDaysError(null);
+    updateForm({
+      count: "1",
+      selectedPreset: "30",
+      customDays: "30",
+      targetProductId: "",
+      countError: null,
+      customDaysError: null,
+    });
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let hasError = false;
-    const countNum = parseInt(count, 10);
+    let countError: string | null = null;
+    let customDaysError: string | null = null;
+
+    const countNum = parseInt(form.count, 10);
     if (isNaN(countNum) || countNum < 1 || countNum > 100) {
-      setCountError("กรุณาระบุจำนวนคีย์ระหว่าง 1 ถึง 100");
-      hasError = true;
+      countError = "กรุณาระบุจำนวนคีย์ระหว่าง 1 ถึง 100";
     }
 
     let days: number;
-    if (selectedPreset === "1") {
+    if (form.selectedPreset === "1") {
       days = 1;
-    } else if (selectedPreset === "7") {
+    } else if (form.selectedPreset === "7") {
       days = 7;
-    } else if (selectedPreset === "30") {
+    } else if (form.selectedPreset === "30") {
       days = 30;
     } else {
-      const parsedDays = parseInt(customDays, 10);
+      const parsedDays = parseInt(form.customDays, 10);
       if (isNaN(parsedDays) || parsedDays <= 0) {
-        setCustomDaysError("กรุณาระบุจำนวนวันให้ถูกต้อง (มากกว่า 0 วัน)");
-        hasError = true;
+        customDaysError = "กรุณาระบุจำนวนวันให้ถูกต้อง (มากกว่า 0 วัน)";
       }
       days = parsedDays || 30;
     }
 
-    if (hasError) return;
+    if (countError || customDaysError) {
+      updateForm({ countError, customDaysError });
+      return;
+    }
 
     try {
-      setIsSubmittingCreate(true);
-      setCountError(null);
-      setCustomDaysError(null);
+      updateForm({
+        isSubmittingCreate: true,
+        countError: null,
+        customDaysError: null,
+      });
 
       const res = await createKeys({
         count: countNum,
         durationDays: days,
-        targetProductId: targetProductId || undefined,
+        targetProductId: form.targetProductId || undefined,
       });
 
       if (!res.success) {
-        setCountError(res.error || "ไม่สามารถสร้างคีย์ได้");
+        updateForm({ countError: res.error || "ไม่สามารถสร้างคีย์ได้" });
         return;
       }
 
-      toast.success("สร้างคีย์สำเร็จ", `สร้างคีย์ ${countNum} รายการเรียบร้อยแล้ว`);
-      setAddedToProductName(res.addedToProductName || null);
-      if (targetProductId) {
+      toast.success(
+        "สร้างคีย์สำเร็จ",
+        `สร้างคีย์ ${countNum} รายการเรียบร้อยแล้ว`
+      );
+      updateForm({ addedToProductName: res.addedToProductName || null });
+      if (form.targetProductId) {
         fetchProducts(); // Refresh products so stock counts update
       }
 
       handleCloseCreate();
     } finally {
-      setIsSubmittingCreate(false);
+      updateForm({ isSubmittingCreate: false });
     }
   };
 
@@ -130,55 +160,68 @@ export const DialogKey = () => {
   const handleCopyAllCreated = () => {
     if (!createdKeysList || createdKeysList.length === 0) return;
     navigator.clipboard.writeText(createdKeysList.join("\n"));
-    setCopiedAll(true);
+    updateForm({ copiedAll: true });
     toast.success("คัดลอกสำเร็จ", "คัดลอกรหัสคีย์ทั้งหมดลงในคลิปบอร์ดแล้ว");
-    setTimeout(() => setCopiedAll(false), 2000);
+    setTimeout(() => updateForm({ copiedAll: false }), 2000);
   };
 
   // 3. Add Time Dialog Handlers
   const isAddTimeOpen = !!addingTimeToKey || isAddTimeAllOpen;
 
   const handleCloseAddTime = () => {
-    if (isSubmittingAddTime) return;
+    if (form.isSubmittingAddTime) return;
     setAddingTimeToKey(null);
     setIsAddTimeAllOpen(false);
-    setAddDaysInput("30");
-    setAddDaysError(null);
+    updateForm({
+      addDaysInput: "30",
+      addDaysError: null,
+    });
   };
 
   const handleAddTimeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const daysNum = parseInt(addDaysInput, 10);
+    const daysNum = parseInt(form.addDaysInput, 10);
     if (isNaN(daysNum) || daysNum <= 0) {
-      setAddDaysError("กรุณาระบุจำนวนวันที่ต้องการเพิ่ม (มากกว่า 0 วัน)");
+      updateForm({
+        addDaysError: "กรุณาระบุจำนวนวันที่ต้องการเพิ่ม (มากกว่า 0 วัน)",
+      });
       return;
     }
 
     try {
-      setIsSubmittingAddTime(true);
-      setAddDaysError(null);
+      updateForm({ isSubmittingAddTime: true, addDaysError: null });
 
       if (addingTimeToKey) {
         // Specific key
         const res = await addTimeToKey(addingTimeToKey.id, daysNum);
         if (!res.success) {
-          setAddDaysError(res.error || "ไม่สามารถเพิ่มเวลาให้คีย์ได้");
+          updateForm({
+            addDaysError: res.error || "ไม่สามารถเพิ่มเวลาให้คีย์ได้",
+          });
           return;
         }
-        toast.success("เพิ่มเวลาสำเร็จ", `เพิ่มเวลา ${daysNum} วัน ให้กับคีย์เรียบร้อยแล้ว`);
+        toast.success(
+          "เพิ่มเวลาสำเร็จ",
+          `เพิ่มเวลา ${daysNum} วัน ให้กับคีย์เรียบร้อยแล้ว`
+        );
       } else if (isAddTimeAllOpen) {
         // All keys
         const res = await addTimeToAll(daysNum);
         if (!res.success) {
-          setAddDaysError(res.error || "ไม่สามารถเพิ่มเวลาให้ทุกคีย์ได้");
+          updateForm({
+            addDaysError: res.error || "ไม่สามารถเพิ่มเวลาให้ทุกคีย์ได้",
+          });
           return;
         }
-        toast.success("เพิ่มเวลาสำเร็จ", `เพิ่มเวลา ${daysNum} วัน ให้กับทุกคีย์ในระบบเรียบร้อยแล้ว`);
+        toast.success(
+          "เพิ่มเวลาสำเร็จ",
+          `เพิ่มเวลา ${daysNum} วัน ให้กับทุกคีย์ในระบบเรียบร้อยแล้ว`
+        );
       }
 
       handleCloseAddTime();
     } finally {
-      setIsSubmittingAddTime(false);
+      updateForm({ isSubmittingAddTime: false });
     }
   };
 
@@ -219,18 +262,20 @@ export const DialogKey = () => {
                   type="number"
                   min="1"
                   max="100"
-                  value={count}
-                  onChange={(e) => {
-                    setCount(e.target.value);
-                    if (countError) setCountError(null);
-                  }}
-                  disabled={isSubmittingCreate}
-                  className={countError ? "border-red-500/50 focus:border-red-500" : ""}
+                  value={form.count}
+                  onChange={(e) =>
+                    updateForm({
+                      count: e.target.value,
+                      countError: null,
+                    })
+                  }
+                  disabled={form.isSubmittingCreate}
+                  className={form.countError ? "border-red-500/50 focus:border-red-500" : ""}
                   autoFocus
                 />
-                {countError && (
+                {form.countError && (
                   <span className="mt-1.5 block text-xs text-red-400 font-medium">
-                    {countError}
+                    {form.countError}
                   </span>
                 )}
               </div>
@@ -252,13 +297,15 @@ export const DialogKey = () => {
                     <button
                       key={preset.id}
                       type="button"
-                      disabled={isSubmittingCreate}
-                      onClick={() => {
-                        setSelectedPreset(preset.id);
-                        if (customDaysError) setCustomDaysError(null);
-                      }}
+                      disabled={form.isSubmittingCreate}
+                      onClick={() =>
+                        updateForm({
+                          selectedPreset: preset.id,
+                          customDaysError: null,
+                        })
+                      }
                       className={`rounded-sm border py-2 text-xs font-medium transition ${
-                        selectedPreset === preset.id
+                        form.selectedPreset === preset.id
                           ? "border-blue-500/50 bg-blue-500/10 text-blue-400 font-semibold"
                           : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:text-white"
                       }`}
@@ -268,23 +315,25 @@ export const DialogKey = () => {
                   ))}
                 </div>
 
-                {selectedPreset === "custom" && (
+                {form.selectedPreset === "custom" && (
                   <div className="mt-2.5">
                     <Input
                       type="number"
                       min="1"
                       placeholder="ระบุจำนวนวัน เช่น 90, 365"
-                      value={customDays}
-                      onChange={(e) => {
-                        setCustomDays(e.target.value);
-                        if (customDaysError) setCustomDaysError(null);
-                      }}
-                      disabled={isSubmittingCreate}
-                      className={customDaysError ? "border-red-500/50 focus:border-red-500" : ""}
+                      value={form.customDays}
+                      onChange={(e) =>
+                        updateForm({
+                          customDays: e.target.value,
+                          customDaysError: null,
+                        })
+                      }
+                      disabled={form.isSubmittingCreate}
+                      className={form.customDaysError ? "border-red-500/50 focus:border-red-500" : ""}
                     />
-                    {customDaysError && (
+                    {form.customDaysError && (
                       <span className="mt-1.5 block text-xs text-red-400 font-medium">
-                        {customDaysError}
+                        {form.customDaysError}
                       </span>
                     )}
                   </div>
@@ -298,10 +347,10 @@ export const DialogKey = () => {
                 </label>
                 <Dropdown
                   options={productOptions}
-                  value={targetProductId}
-                  onChange={(val) => setTargetProductId(val)}
+                  value={form.targetProductId}
+                  onChange={(val) => updateForm({ targetProductId: val })}
                   placeholder="เลือกสินค้าที่ต้องการเติมคีย์เข้าสต็อก..."
-                  disabled={isSubmittingCreate}
+                  disabled={form.isSubmittingCreate}
                 />
                 <span className="mt-1 block text-[11px] text-neutral-500">
                   หากเลือกสินค้า ระบบจะนำรหัสคีย์ที่สร้างทั้งหมดไปต่อท้ายในสต็อกให้อัตโนมัติ
@@ -312,7 +361,7 @@ export const DialogKey = () => {
             <DialogFooter>
               <button
                 type="button"
-                disabled={isSubmittingCreate}
+                disabled={form.isSubmittingCreate}
                 onClick={handleCloseCreate}
                 className="rounded-sm border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
               >
@@ -321,8 +370,8 @@ export const DialogKey = () => {
 
               <ButtonUI
                 type="submit"
-                disabled={isSubmittingCreate}
-                isLoading={isSubmittingCreate}
+                disabled={form.isSubmittingCreate}
+                isLoading={form.isSubmittingCreate}
                 className="rounded-sm bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
               >
                 สร้างรหัสคีย์
@@ -343,9 +392,9 @@ export const DialogKey = () => {
               <DialogTitle>สร้างคีย์สำเร็จ!</DialogTitle>
               <DialogDescription>
                 ระบบได้สร้างรหัสคีย์เรียบร้อยแล้ว {createdKeysList?.length} รายการ
-                {addedToProductName && (
+                {form.addedToProductName && (
                   <span className="mt-1 block font-medium text-emerald-400">
-                    และได้เติมเข้าสต็อกของสินค้า &quot;{addedToProductName}&quot; เรียบร้อยแล้ว
+                    และได้เติมเข้าสต็อกของสินค้า &quot;{form.addedToProductName}&quot; เรียบร้อยแล้ว
                   </span>
                 )}
               </DialogDescription>
@@ -362,8 +411,8 @@ export const DialogKey = () => {
                   onClick={handleCopyAllCreated}
                   className="flex items-center gap-1 text-[11px] text-blue-400 transition hover:text-blue-300 cursor-pointer"
                 >
-                  {copiedAll ? <Check size={12} /> : <Copy size={12} />}
-                  <span>{copiedAll ? "คัดลอกแล้ว" : "คัดลอกทั้งหมด"}</span>
+                  {form.copiedAll ? <Check size={12} /> : <Copy size={12} />}
+                  <span>{form.copiedAll ? "คัดลอกแล้ว" : "คัดลอกทั้งหมด"}</span>
                 </button>
               </div>
 
@@ -425,18 +474,20 @@ export const DialogKey = () => {
                   type="number"
                   min="1"
                   placeholder="เช่น 7, 30, 90"
-                  value={addDaysInput}
-                  onChange={(e) => {
-                    setAddDaysInput(e.target.value);
-                    if (addDaysError) setAddDaysError(null);
-                  }}
-                  disabled={isSubmittingAddTime}
-                  className={addDaysError ? "border-red-500/50 focus:border-red-500" : ""}
+                  value={form.addDaysInput}
+                  onChange={(e) =>
+                    updateForm({
+                      addDaysInput: e.target.value,
+                      addDaysError: null,
+                    })
+                  }
+                  disabled={form.isSubmittingAddTime}
+                  className={form.addDaysError ? "border-red-500/50 focus:border-red-500" : ""}
                   autoFocus
                 />
-                {addDaysError && (
+                {form.addDaysError && (
                   <span className="mt-1.5 block text-xs text-red-400 font-medium">
-                    {addDaysError}
+                    {form.addDaysError}
                   </span>
                 )}
               </div>
@@ -447,13 +498,15 @@ export const DialogKey = () => {
                   <button
                     key={d}
                     type="button"
-                    disabled={isSubmittingAddTime}
-                    onClick={() => {
-                      setAddDaysInput(String(d));
-                      if (addDaysError) setAddDaysError(null);
-                    }}
+                    disabled={form.isSubmittingAddTime}
+                    onClick={() =>
+                      updateForm({
+                        addDaysInput: String(d),
+                        addDaysError: null,
+                      })
+                    }
                     className={`flex-1 rounded-sm border py-1 text-[11px] font-medium transition ${
-                      addDaysInput === String(d)
+                      form.addDaysInput === String(d)
                         ? "border-blue-500/50 bg-blue-500/10 text-blue-400 font-semibold"
                         : "border-neutral-800 bg-neutral-900/40 text-neutral-400 hover:border-neutral-700 hover:text-white"
                     }`}
@@ -467,7 +520,7 @@ export const DialogKey = () => {
             <DialogFooter>
               <button
                 type="button"
-                disabled={isSubmittingAddTime}
+                disabled={form.isSubmittingAddTime}
                 onClick={handleCloseAddTime}
                 className="rounded-sm border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
               >
@@ -476,8 +529,8 @@ export const DialogKey = () => {
 
               <ButtonUI
                 type="submit"
-                disabled={isSubmittingAddTime || !addDaysInput}
-                isLoading={isSubmittingAddTime}
+                disabled={form.isSubmittingAddTime || !form.addDaysInput}
+                isLoading={form.isSubmittingAddTime}
                 className="rounded-sm bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
               >
                 ยืนยันการเพิ่มเวลา

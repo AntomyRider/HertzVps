@@ -6,9 +6,9 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   X,
-  Store,
   type LucideIcon,
 } from "lucide-react";
+import BackUI from "@/components/ui/back";
 
 export interface AdminMenuGroup {
   title: string;
@@ -110,10 +110,10 @@ export const AdminMobileDrawer = ({
                       key={menu.href}
                       href={menu.href}
                       onClick={onClose}
-                      className={`flex items-center gap-3 rounded-md px-3 py-2.5 border text-xs font-medium transition ${
+                      className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-medium transition ${
                         isActive
-                          ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                          : "text-neutral-400 hover:bg-neutral-900 hover:text-white border-transparent"
+                          ? "bg-blue-500/10 text-blue-500"
+                          : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
                       }`}
                     >
                       <Icon size={16} strokeWidth={1.8} />
@@ -126,16 +126,13 @@ export const AdminMobileDrawer = ({
           ))}
         </nav>
 
-        {/* Bottom Utility Link: Back to Shop */}
-        <div className="border-t border-neutral-900 pt-3">
-          <Link
-            href="/shop"
-            onClick={onClose}
-            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white"
-          >
-            <Store size={15} />
-            <span>กลับสู่หน้าร้านค้า</span>
-          </Link>
+        {/* Bottom BackUI Button */}
+        <div className="border-t border-neutral-900 pt-3" onClick={onClose}>
+          <BackUI
+            href="/"
+            text="กลับสู่หน้าหลัก"
+            className="w-full rounded-md px-3 py-2 text-xs font-medium hover:bg-neutral-900"
+          />
         </div>
       </aside>
     </div>

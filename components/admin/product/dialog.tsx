@@ -25,6 +25,28 @@ interface ProductFormErrors {
   price?: string;
 }
 
+interface ProductFormState {
+  name: string;
+  price: string;
+  categoryId: string;
+  image: string;
+  description: string;
+  errors: ProductFormErrors;
+  imageError: boolean;
+  isSubmitting: boolean;
+}
+
+const INITIAL_PRODUCT_FORM: ProductFormState = {
+  name: "",
+  price: "",
+  categoryId: "",
+  image: "",
+  description: "",
+  errors: {},
+  imageError: false,
+  isSubmitting: false,
+};
+
 export const DialogProduct = () => {
   const {
     isCreateOpen,
@@ -40,14 +62,11 @@ export const DialogProduct = () => {
   const isEditing = !!editingProduct;
   const isOpen = isCreateOpen || isEditing;
 
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [image, setImage] = useState("");
-  const [description, setDescription] = useState("");
-  const [errors, setErrors] = useState<ProductFormErrors>({});
-  const [imageError, setImageError] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState<ProductFormState>(INITIAL_PRODUCT_FORM);
+
+  const updateForm = (patch: Partial<ProductFormState>) => {
+    setForm((prev) => ({ ...prev, ...patch }));
+  };
 
   // Fetch categories for dropdown options if not loaded
   useEffect(() => {
@@ -58,95 +77,95 @@ export const DialogProduct = () => {
 
   // Sync form values when editingProduct or dialog open state changes
   useEffect(() => {
-    setImageError(false);
     if (editingProduct) {
-      setName(editingProduct.name);
-      setPrice(String(editingProduct.price));
-      setCategoryId(editingProduct.categoryId);
-      setImage(editingProduct.image || "");
-      setDescription(editingProduct.description || "");
-      setErrors({});
+      setForm({
+        name: editingProduct.name,
+        price: String(editingProduct.price),
+        categoryId: editingProduct.categoryId,
+        image: editingProduct.image || "",
+        description: editingProduct.description || "",
+        errors: {},
+        imageError: false,
+        isSubmitting: false,
+      });
     } else if (isCreateOpen) {
-      setName("");
-      setPrice("");
-      setCategoryId("");
-      setImage("");
-      setDescription("");
-      setErrors({});
+      setForm(INITIAL_PRODUCT_FORM);
     }
   }, [editingProduct, isCreateOpen]);
 
   const handleClose = () => {
-    if (isSubmitting) return;
+    if (form.isSubmitting) return;
     setIsCreateOpen(false);
     setEditingProduct(null);
-    setErrors({});
+    updateForm({ errors: {} });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors: ProductFormErrors = {};
-    const trimmedName = name.trim();
+    const trimmedName = form.name.trim();
     if (!trimmedName) {
       newErrors.name = "กรุณาระบุชื่อสินค้า";
     }
 
-    if (!categoryId) {
+    if (!form.categoryId) {
       newErrors.categoryId = "กรุณาเลือกหมวดหมู่สินค้า";
     }
 
-    const numPrice = Number(price);
-    if (!price || isNaN(numPrice) || numPrice < 0) {
+    const numPrice = Number(form.price);
+    if (!form.price || isNaN(numPrice) || numPrice < 0) {
       newErrors.price = "กรุณาระบุราคาที่ถูกต้อง (มากกว่าหรือเท่ากับ 0)";
     }
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      updateForm({ errors: newErrors });
       return;
     }
 
     try {
-      setIsSubmitting(true);
-      setErrors({});
-      const trimmedImage = image.trim() || null;
-      const trimmedDesc = description.trim() || null;
+      updateForm({ isSubmitting: true, errors: {} });
+      const payload = {
+        name: trimmedName,
+        price: numPrice,
+        categoryId: form.categoryId,
+        image: form.image.trim() || null,
+        description: form.description.trim() || null,
+      };
 
       if (isEditing && editingProduct) {
-        const res = await updateProduct(editingProduct.id, {
-          name: trimmedName,
-          price: numPrice,
-          categoryId,
-          image: trimmedImage,
-          description: trimmedDesc,
-        });
+        const res = await updateProduct(editingProduct.id, payload);
 
         if (!res.success) {
-          setErrors({ name: res.error || "ไม่สามารถอัปเดตสินค้าได้" });
+          updateForm({
+            errors: { name: res.error || "ไม่สามารถอัปเดตสินค้าได้" },
+          });
           return;
         }
 
-        toast.success("บันทึกข้อมูลสำเร็จ", `อัปเดตข้อมูลสินค้า "${trimmedName}" เรียบร้อยแล้ว`);
+        toast.success(
+          "บันทึกข้อมูลสำเร็จ",
+          `อัปเดตข้อมูลสินค้า "${trimmedName}" เรียบร้อยแล้ว`
+        );
       } else {
-        const res = await createProduct({
-          name: trimmedName,
-          price: numPrice,
-          categoryId,
-          image: trimmedImage,
-          description: trimmedDesc,
-        });
+        const res = await createProduct(payload);
 
         if (!res.success) {
-          setErrors({ name: res.error || "ไม่สามารถสร้างสินค้าได้" });
+          updateForm({
+            errors: { name: res.error || "ไม่สามารถสร้างสินค้าได้" },
+          });
           return;
         }
 
-        toast.success("สร้างสินค้าสำเร็จ", `เพิ่มสินค้า "${trimmedName}" เรียบร้อยแล้ว`);
+        toast.success(
+          "สร้างสินค้าสำเร็จ",
+          `เพิ่มสินค้า "${trimmedName}" เรียบร้อยแล้ว`
+        );
       }
 
       handleClose();
     } finally {
-      setIsSubmitting(false);
+      updateForm({ isSubmitting: false });
     }
   };
 
@@ -178,20 +197,20 @@ export const DialogProduct = () => {
                 รูปภาพตัวอย่าง (1:1)
               </span>
               <div className="relative aspect-square w-full overflow-hidden rounded-sm border border-neutral-800 bg-neutral-900 flex flex-col items-center justify-center">
-                {isValidImageUrl(image) && !imageError ? (
+                {isValidImageUrl(form.image) && !form.imageError ? (
                   <Image
-                    src={image.trim()}
-                    alt={name || "ตัวอย่างรูปภาพสินค้า"}
+                    src={form.image.trim()}
+                    alt={form.name || "ตัวอย่างรูปภาพสินค้า"}
                     fill
                     className="object-cover"
-                    unoptimized={image.trim().startsWith("http")}
-                    onError={() => setImageError(true)}
+                    unoptimized={form.image.trim().startsWith("http")}
+                    onError={() => updateForm({ imageError: true })}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center p-4 text-center">
                     <ImageIcon size={32} className="text-neutral-600 mb-1.5" />
                     <span className="text-[11px] text-neutral-500">
-                      {image.trim() && imageError
+                      {form.image.trim() && form.imageError
                         ? "ไม่สามารถโหลดรูปภาพได้"
                         : "ยังไม่มีรูปภาพสินค้า"}
                     </span>
@@ -206,12 +225,14 @@ export const DialogProduct = () => {
                 <Input
                   type="url"
                   placeholder="https://example.com/item.png"
-                  value={image}
-                  onChange={(e) => {
-                    setImage(e.target.value);
-                    if (imageError) setImageError(false);
-                  }}
-                  disabled={isSubmitting}
+                  value={form.image}
+                  onChange={(e) =>
+                    updateForm({
+                      image: e.target.value,
+                      imageError: false,
+                    })
+                  }
+                  disabled={form.isSubmitting}
                 />
                 <span className="mt-1 block text-[10px] text-neutral-500">
                   แนะนำสัดส่วน 1:1 หรือแนวนอน
@@ -229,20 +250,20 @@ export const DialogProduct = () => {
                 <Input
                   type="text"
                   placeholder="เช่น บัตรเติมเกม, ไอดีเริ่มต้น..."
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    if (errors.name) {
-                      setErrors((prev) => ({ ...prev, name: undefined }));
-                    }
-                  }}
-                  disabled={isSubmitting}
-                  className={errors.name ? "border-red-500/50 focus:border-red-500" : ""}
+                  value={form.name}
+                  onChange={(e) =>
+                    updateForm({
+                      name: e.target.value,
+                      errors: { ...form.errors, name: undefined },
+                    })
+                  }
+                  disabled={form.isSubmitting}
+                  className={form.errors.name ? "border-red-500/50 focus:border-red-500" : ""}
                   autoFocus
                 />
-                {errors.name && (
+                {form.errors.name && (
                   <span className="mt-1.5 block text-xs text-red-400 font-medium">
-                    {errors.name}
+                    {form.errors.name}
                   </span>
                 )}
               </div>
@@ -255,19 +276,19 @@ export const DialogProduct = () => {
                   </label>
                   <Dropdown
                     options={categoryOptions}
-                    value={categoryId}
-                    onChange={(val) => {
-                      setCategoryId(val);
-                      if (errors.categoryId) {
-                        setErrors((prev) => ({ ...prev, categoryId: undefined }));
-                      }
-                    }}
+                    value={form.categoryId}
+                    onChange={(val) =>
+                      updateForm({
+                        categoryId: val,
+                        errors: { ...form.errors, categoryId: undefined },
+                      })
+                    }
                     placeholder="เลือกหมวดหมู่..."
-                    disabled={isSubmitting || categories.length === 0}
+                    disabled={form.isSubmitting || categories.length === 0}
                   />
-                  {errors.categoryId && (
+                  {form.errors.categoryId && (
                     <span className="mt-1.5 block text-xs text-red-400 font-medium">
-                      {errors.categoryId}
+                      {form.errors.categoryId}
                     </span>
                   )}
                 </div>
@@ -281,19 +302,19 @@ export const DialogProduct = () => {
                     min="0"
                     step="0.01"
                     placeholder="0.00"
-                    value={price}
-                    onChange={(e) => {
-                      setPrice(e.target.value);
-                      if (errors.price) {
-                        setErrors((prev) => ({ ...prev, price: undefined }));
-                      }
-                    }}
-                    disabled={isSubmitting}
-                    className={errors.price ? "border-red-500/50 focus:border-red-500" : ""}
+                    value={form.price}
+                    onChange={(e) =>
+                      updateForm({
+                        price: e.target.value,
+                        errors: { ...form.errors, price: undefined },
+                      })
+                    }
+                    disabled={form.isSubmitting}
+                    className={form.errors.price ? "border-red-500/50 focus:border-red-500" : ""}
                   />
-                  {errors.price && (
+                  {form.errors.price && (
                     <span className="mt-1.5 block text-xs text-red-400 font-medium">
-                      {errors.price}
+                      {form.errors.price}
                     </span>
                   )}
                 </div>
@@ -307,9 +328,9 @@ export const DialogProduct = () => {
                 <Textarea
                   rows={4}
                   placeholder="รายละเอียดสินค้า เงื่อนไขการรับประกัน หรือคำแนะนำในการใช้งาน..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={isSubmitting}
+                  value={form.description}
+                  onChange={(e) => updateForm({ description: e.target.value })}
+                  disabled={form.isSubmitting}
                 />
               </div>
             </div>
@@ -318,7 +339,7 @@ export const DialogProduct = () => {
           <DialogFooter>
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={form.isSubmitting}
               onClick={handleClose}
               className="rounded-sm border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
             >
@@ -327,8 +348,8 @@ export const DialogProduct = () => {
 
             <ButtonUI
               type="submit"
-              disabled={isSubmitting || !name.trim() || !categoryId}
-              isLoading={isSubmitting}
+              disabled={form.isSubmitting || !form.name.trim() || !form.categoryId}
+              isLoading={form.isSubmitting}
               className="rounded-sm bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
             >
               {isEditing ? "บันทึกข้อมูล" : "สร้างสินค้า"}

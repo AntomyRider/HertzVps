@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useOverviewStore } from "@/store/overviewStore";
 import { Wallet, ChevronRight, User, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { isValidImageUrl } from "@/lib/utils";
+import FadeIn from "@/components/ui/fade-in";
 
 export default function RecentTopupAdmin() {
   const { recentTopups, isLoading } = useOverviewStore();
@@ -24,7 +25,8 @@ export default function RecentTopupAdmin() {
   };
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-5">
+    <FadeIn direction="up" delay={210} className="h-full">
+      <div className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-5">
       {/* Header */}
       <div>
         <div className="flex items-center justify-between">
@@ -37,12 +39,9 @@ export default function RecentTopupAdmin() {
                 <h3 className="text-base font-semibold text-white">
                   รายการเติมเงินล่าสุด
                 </h3>
-                <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-400">
-                  10 รายการ
-                </span>
               </div>
               <p className="text-xs text-neutral-400">
-                ประวัติการทำรายการเติมเงินล่าสุดในระบบ
+                ประวัติการทำรายการเติมเงินล่าสุด
               </p>
             </div>
           </div>
@@ -173,6 +172,7 @@ export default function RecentTopupAdmin() {
           จัดการและดูประวัติการเติมเงินทั้งหมด →
         </Link>
       </div>
-    </div>
+      </div>
+    </FadeIn>
   );
 }

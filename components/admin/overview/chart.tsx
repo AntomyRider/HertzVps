@@ -8,6 +8,7 @@ import {
   ChartConfiguration,
 } from "chart.js";
 import { TrendingUp, RefreshCw, Loader2 } from "lucide-react";
+import FadeIn from "@/components/ui/fade-in";
 
 // Register all Chart.js components (controllers, scales, elements, plugins)
 ChartJS.register(...registerables);
@@ -159,7 +160,11 @@ export default function SalesChartAdmin() {
   }, [salesChart]);
 
   return (
-    <div className="rounded-md border border-neutral-800 bg-neutral-950 p-5">
+    <FadeIn
+      direction="up"
+      delay={100}
+      className="rounded-md border border-neutral-800 bg-neutral-950 p-5"
+    >
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -221,6 +226,6 @@ export default function SalesChartAdmin() {
           <canvas ref={canvasRef} />
         )}
       </div>
-    </div>
+    </FadeIn>
   );
 }

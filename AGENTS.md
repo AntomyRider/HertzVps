@@ -195,8 +195,9 @@ useEffect(() => {
 - **Active State**: `bg-blue-500/10 text-blue-500`
 - **Danger**: `red-500`, `red-600` — สำหรับ destructive actions เท่านั้น
 
-#### Typography
-- **Font**: `Noto Sans Thai` (หลัก), `JetBrains Mono` (monospace)
+#### Typography (Fluid `clamp()` ทั้งระบบ)
+- **Font**: `Noto Sans Thai` (หลัก)
+- **Fluid Scale (`clamp()`)**: กำหนดไว้ใน `@theme inline` ของ `app/globals.css` (`--text-xs` ถึง `--text-5xl`) ทำให้การเรียกใช้ `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl` ถึง `text-4xl` ปรับขนาดแบบ Fluid `clamp()` ตามหน้าจออัตโนมัติ (หรือใช้ `text-[clamp(...)]` เมื่อต้องการขนาดเฉพาะจุด)
 - **Heading**: `font-bold tracking-tight text-white`
 - **Body**: `text-sm text-neutral-400`
 - **Label/Caption**: `text-xs text-neutral-400` หรือ `text-xs text-neutral-600`
@@ -281,6 +282,10 @@ useEffect(() => {
 - ใช้ **axios** สำหรับ API calls ใน store
 - ห้ามใช้ `fetch()` ใน client components — ใช้ axios ผ่าน store
 
+### Form & State Management (ห้ามแยก State ฟุ่มเฟือย)
+- **ห้ามเขียนแยก `useState` ทีละฟิลด์สำหรับ Form หรือข้อมูลชุดเดียวกันโดยไม่จำเป็น** (เช่น `const [name, setName] = useState("")`, `const [price, setPrice] = useState("")`, `const [image, setImage] = useState("")` เรียงต่อกันหลายตัว)
+- **ต้องรวมเป็น Object ก้อนเดียว** (ใน Zustand Store หรือ `const [form, setForm] = useState<FormType>(INITIAL_FORM)`) แล้วอัปเดต/ส่งข้อมูลทั้งก้อน (`saveData(form)`) เพื่อลดความซ้ำซ้อนของโค้ดและการส่ง props
+
 ---
 
 ## 6. สรุปกฎสำคัญ (Quick Checklist)
@@ -290,6 +295,7 @@ useEffect(() => {
 - [ ] UI อยู่ใน `components/` ไม่ใช่ `page.tsx`?
 - [ ] Page ทำแค่ import + compose components?
 - [ ] Data มาจาก store ไม่ได้ hardcode?
+- [ ] ห้ามแยก `useState` หลายตัวใน Form — รวมเป็น Object ก้อนเดียว (`form` / Store) แล้วส่งทั้งก้อน?
 - [ ] ใช้ component ที่มีอยู่ใน `components/ui/` ก่อนสร้างใหม่?
 - [ ] Border Radius ใช้เฉพาะ `rounded-sm` และ `rounded-md` เท่านั้น?
 - [ ] สี, spacing, border-radius ตรงกับ design system?

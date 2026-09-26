@@ -16,8 +16,6 @@ services:
       MARIADB_USER: ${DATABASE_USER:-hertz_user}
       MARIADB_PASSWORD: ${DATABASE_PASSWORD:-hertz_password}
       TZ: Asia/Bangkok
-    ports:
-      - "${DATABASE_EXPOSE_PORT:-3306}:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
@@ -62,7 +60,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-hertz_default_jwt_secret_change_in_prod}
       DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
       DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
-      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI:-http://localhost:3000/api/v1/auth/discord/callback}
+      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI:-https://hertzx.xyz/api/v1/auth/discord/callback}
     ports:
       - "${APP_PORT:-3000}:3000"
     networks:

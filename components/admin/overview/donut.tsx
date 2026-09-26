@@ -8,6 +8,7 @@ import {
   ChartConfiguration,
 } from "chart.js";
 import { PieChart, Loader2 } from "lucide-react";
+import FadeIn from "@/components/ui/fade-in";
 
 ChartJS.register(...registerables);
 
@@ -125,7 +126,11 @@ export default function DonutAdmin() {
   }, [activeData, metric, totalValue]);
 
   return (
-    <div className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-5">
+    <FadeIn
+      direction="up"
+      delay={150}
+      className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-5"
+    >
       {/* Header */}
       <div>
         <div className="flex items-center justify-between gap-2">
@@ -242,6 +247,6 @@ export default function DonutAdmin() {
           })
         )}
       </div>
-    </div>
+    </FadeIn>
   );
 }
