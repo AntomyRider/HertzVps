@@ -311,6 +311,12 @@ useEffect(() => {
     3. **ความเป็นไปได้และข้อจำกัด (Feasibility & Trade-offs)**: มีปัญหา Edge Cases, ข้อจำกัดทางเทคนิค หรือความซับซ้อนที่ไม่จำเป็นหรือไม่?
     4. **ประสิทธิภาพและความเร็วสูงสุด (High Performance & Extreme Speed)**: **เน้นย้ำ Performance เป็นหัวใจหลักเสมอ** (Database Indexing, Query Optimization, ป้องกัน N+1 Queries, Minimal Payload, Low Latency, Non-blocking I/O, Cache Strategy)
   - **เสนอทางเลือกที่ดีกว่าเสมอ**: สรุปจุดอ่อนของแผนเดิม พร้อมเสนอแผนทางเลือกที่ปลอดภัยกว่า เร็วกว่า และมีประสิทธิภาพสูงสุด
+- **การให้ข้อเสนอแนะเชิงรุกเพื่อยกระดับ UX/DX และฟีเจอร์ที่เกี่ยวข้อง (Proactive UX/DX & Feature Value-Add Advisor)**:
+  - **เสนอส่วนเสริมที่ช่วยให้ระบบสมบูรณ์เสมอ**: เมื่อได้รับโจทย์ในการทำฟังก์ชันหรือ UI ใดๆ (เช่น "ทำ Table UI หน่อย") **อย่าทำแค่ขั้นต่ำที่สั่งเท่านั้น** ให้คิดต่อยอดและเสนอแนะฟีเจอร์หรือ Tools เสริมที่เข้ากับ Context และเส้น API นั้นๆ ทันที เช่น:
+    - **Table / List UI**: เสนอ Pagination (แบ่งหน้า), Realtime Search (Debounced), Filter ตามสถานะ/หมวดหมู่, Quick Action Buttons, Sortable Columns, Copy Tool, Empty State หรือ Skeleton Loader
+    - **Form / Input UI**: เสนอ Validation แสดงผลทันที, Auto-trim/Formatting, Modal ยืนยันการกระทำ (Confirmation Modal), Loading state ป้องกันการกดซ้ำ
+    - **API & Data Flow**: เสนอ Caching, Pagination params, Error Handling ละเอียด หรือ Batch Actions
+  - **นำเสนออย่างชัดเจนและตรงกับ Design System**: ระบุเหตุผลสั้นๆ ว่าฟีเจอร์เสริมเหล่านี้จะช่วยให้ผู้ใช้ใช้งานสะดวกขึ้นหรือช่วยลดโหลด API ได้อย่างไร พร้อมให้ผู้ใช้ตัดสินใจเลือกนำไปใช้
 
 ---
 
@@ -321,6 +327,7 @@ useEffect(() => {
 - [ ] สำรวจและตรวจสอบโค้ดจริงในโปรเจคอย่างรอบคอบก่อนตอบ/ลงมือทำ (Auto-explore)?
 - [ ] คิดแบบคนขี้สงสัย: เช็ค Data Flow, Root Cause และ Edge Cases ครบถ้วน?
 - [ ] คิดย้อนแย้ง/วิเคราะห์แผนรอบด้าน: Security, Compatibility, Feasibility และ Performance ที่เร็วและดีที่สุด (Devil's Advocate)?
+- [ ] เสนอฟีเจอร์/Tools เสริมเชิงรุกที่ช่วยยกระดับ UX/DX และเข้ากับเส้น API (เช่น Pagination, Search, Filter)?
 - [ ] วาง Algorithm และโครงสร้างระบบอย่างประณีตแบบ Senior Architect ไม่ทำส่งๆ?
 - [ ] ทวนสอบและเช็คความถูกต้องของข้อมูล/Logic อย่างมั่นใจ 100% ว่าไร้ข้อผิดพลาด (Rigorous Verification)?
 - [ ] UI อยู่ใน `components/` ไม่ใช่ `page.tsx`?
