@@ -16,6 +16,8 @@ import {
   normalizeAccounts,
   normalizeIncomingLogs,
   formatCurrentThaiTime,
+  scheduleKeyDailyStatFlush,
+  syncHistoricalDailyStats,
   type ControllerTimeRange,
   type ControllerWebSSEEvent,
 } from "@/lib/controllerHub";
@@ -41,7 +43,7 @@ export async function GET(req: NextRequest) {
     const timeRange: ControllerTimeRange =
       rawRange === "30d" || rawRange === "1y" ? rawRange : "7d";
 
-    const { valid, error, status, keyCode } = await validateControllerKey(code);
+    const { valid, error, status, keyCode, keyId } = await validateControllerKey(code);
     if (!valid || !keyCode) {
       return NextResponse.json(
         { error: error || "คีย์ไม่ถูกต้อง" },
@@ -57,7 +59,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(snapshot);
     }
 
-    const session = getOrCreateSession(keyCode);
+    const session = getOrCreateSession(keyCode, keyId);
     const encoder = new TextEncoder();
 
     const stream = new ReadableStream({
@@ -227,7 +229,7 @@ export async function POST(req: NextRequest) {
       ackCommandIds?: string[];
     } = await req.json();
 
-    const { valid, error, status, keyCode } = await validateControllerKey(
+    const { valid, error, status, keyCode, keyId } = await validateControllerKey(
       code || "",
       hwid
     );
@@ -238,7 +240,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const session = markProgramOnline(keyCode);
+    const session = markProgramOnline(keyCode, keyId);
 
     // 0. Fast-path สำหรับ WebRTC Signaling (RTC_SIGNAL: Offer / ICE จากตัวโปรแกรม -> หน้าเว็บ)
     if (action === "RTC_SIGNAL" && rtcSignal) {
@@ -319,6 +321,8 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      scheduleKeyDailyStatFlush(keyCode);
+
       const commands = consumePendingCommands(keyCode, ackCommandIds);
       return NextResponse.json({
         success: true,
@@ -392,10 +396,12 @@ export async function POST(req: NextRequest) {
         failed: Number(stats.failed ?? session.stats.failed),
         pending: Number(stats.pending ?? session.stats.pending),
       };
+      scheduleKeyDailyStatFlush(keyCode);
     }
 
     if (Array.isArray(dailyStats) && dailyStats.length > 0) {
       session.chartDataByRange = buildChartFromDailyStats(dailyStats);
+      syncHistoricalDailyStats(keyCode, dailyStats).catch(console.error);
     } else if (Array.isArray(chartData) && chartData.length > 0) {
       const targetRange: ControllerTimeRange =
         timeRange === "30d" || timeRange === "1y" ? timeRange : "7d";
@@ -473,7 +479,7 @@ export async function PUT(req: NextRequest) {
       timeRange?: ControllerTimeRange;
     } = await req.json();
 
-    const { valid, error, status, keyCode } = await validateControllerKey(
+    const { valid, error, status, keyCode, keyId } = await validateControllerKey(
       code || "",
       hwid
     );
@@ -484,7 +490,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const session = markProgramOnline(keyCode);
+    const session = markProgramOnline(keyCode, keyId);
 
     if (groupsByAccount && typeof groupsByAccount === "object") {
       session.groupsByAccount = normalizeGroupsByAccount(groupsByAccount);
@@ -494,9 +500,11 @@ export async function PUT(req: NextRequest) {
     }
     if (stats) {
       session.stats = stats;
+      scheduleKeyDailyStatFlush(keyCode);
     }
     if (Array.isArray(dailyStats) && dailyStats.length > 0) {
       session.chartDataByRange = buildChartFromDailyStats(dailyStats);
+      syncHistoricalDailyStats(keyCode, dailyStats).catch(console.error);
     } else if (Array.isArray(chartData) && chartData.length > 0) {
       const targetRange: ControllerTimeRange =
         timeRange === "30d" || timeRange === "1y" ? timeRange : "7d";
@@ -551,7 +559,7 @@ export async function PATCH(req: NextRequest) {
       groupPatch?: Partial<ControllerGroupItem>;
     } = await req.json();
 
-    const { valid, error, status, keyCode } = await validateControllerKey(
+    const { valid, error, status, keyCode, keyId } = await validateControllerKey(
       code || "",
       hwid
     );
@@ -562,7 +570,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const session = markProgramOnline(keyCode);
+    const session = markProgramOnline(keyCode, keyId);
 
     if (accountId && accountPatch) {
       session.accounts = session.accounts.map((acc) => {
@@ -602,6 +610,10 @@ export async function PATCH(req: NextRequest) {
 
     if (chartPointDelta) {
       incrementTodayChartPoint(session, chartPointDelta);
+    }
+
+    if (stats || statsDelta || chartPointDelta) {
+      scheduleKeyDailyStatFlush(keyCode);
     }
 
     broadcastToWeb(keyCode, {
@@ -645,7 +657,7 @@ export async function DELETE(req: NextRequest) {
       groupId?: string;
     } = await req.json();
 
-    const { valid, error, status, keyCode } = await validateControllerKey(
+    const { valid, error, status, keyCode, keyId } = await validateControllerKey(
       code || "",
       hwid
     );
@@ -656,7 +668,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const session = getOrCreateSession(keyCode);
+    const session = getOrCreateSession(keyCode, keyId);
 
     if (!target || target === "SESSION" || target === "OFFLINE") {
       handleProgramDisconnect(keyCode, true);
