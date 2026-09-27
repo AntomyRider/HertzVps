@@ -350,117 +350,115 @@ export const getBangkokDateString = (
   }).format(d);
 };
 
-export async function flushKeyDailyStat(keyCode: string) {
-  const session = sessions.get(keyCode.trim());
-  if (!session) return;
-
+export async function flushFleetDailyStat() {
   try {
-    let keyId = session.keyId;
-    if (!keyId) {
-      const keyRecord = await prisma.key.findUnique({
-        where: { code: keyCode.trim() },
-        select: { id: true },
-      });
-      if (!keyRecord) return;
-      keyId = keyRecord.id;
-      session.keyId = keyId;
-    }
-
     const todayDateStr = getBangkokDateString();
     const todayDateObj = new Date(todayDateStr + "T00:00:00.000Z");
 
-    let postCount = 0;
-    let commentCount = 0;
-    let reactCount = 0;
+    let fleetTotal = 0;
+    let fleetSuccess = 0;
+    let fleetFailed = 0;
+    let fleetPending = 0;
+    let fleetPostCount = 0;
+    let fleetCommentCount = 0;
+    let fleetReactCount = 0;
 
-    if (session.accounts && session.accounts.length > 0) {
-      for (const acc of session.accounts) {
-        if (acc.stats) {
-          postCount += acc.stats.post || 0;
-          commentCount += acc.stats.comment || 0;
-          reactCount += acc.stats.reaction || 0;
+    for (const session of sessions.values()) {
+      const s = session.isProgramOnline
+        ? session.stats
+        : session.lastKnownStats || session.stats;
+      fleetTotal += s.total || 0;
+      fleetSuccess += s.success || 0;
+      fleetFailed += s.failed || 0;
+      fleetPending += s.pending || 0;
+
+      let sessionPost = 0;
+      let sessionComment = 0;
+      let sessionReact = 0;
+
+      if (session.accounts && session.accounts.length > 0) {
+        for (const acc of session.accounts) {
+          if (acc.stats) {
+            sessionPost += acc.stats.post || 0;
+            sessionComment += acc.stats.comment || 0;
+            sessionReact += acc.stats.reaction || 0;
+          }
         }
       }
-    }
 
-    if (postCount === 0 && commentCount === 0 && reactCount === 0) {
-      const allLogs = [
-        ...(session.logs || []),
-        ...(session.recentErrorHistory || []),
-      ];
-      for (const log of allLogs) {
-        if (log.action === "POST") postCount++;
-        else if (log.action === "COMMENT") commentCount++;
-        else if (log.action === "REACTION") reactCount++;
+      if (sessionPost === 0 && sessionComment === 0 && sessionReact === 0) {
+        const allLogs = [
+          ...(session.logs || []),
+          ...(session.recentErrorHistory || []),
+        ];
+        for (const log of allLogs) {
+          if (log.action === "POST") sessionPost++;
+          else if (log.action === "COMMENT") sessionComment++;
+          else if (log.action === "REACTION") sessionReact++;
+        }
       }
-    }
 
-    const { total, success, failed, pending } = session.stats;
+      fleetPostCount += sessionPost;
+      fleetCommentCount += sessionComment;
+      fleetReactCount += sessionReact;
+    }
 
     if (
-      total === 0 &&
-      success === 0 &&
-      failed === 0 &&
-      pending === 0 &&
-      postCount === 0 &&
-      commentCount === 0 &&
-      reactCount === 0
+      fleetTotal === 0 &&
+      fleetSuccess === 0 &&
+      fleetFailed === 0 &&
+      fleetPending === 0 &&
+      fleetPostCount === 0 &&
+      fleetCommentCount === 0 &&
+      fleetReactCount === 0
     ) {
       return;
     }
 
-    await prisma.keyDailyStat.upsert({
-      where: {
-        keyId_date: {
-          keyId,
-          date: todayDateObj,
-        },
-      },
+    await prisma.programDailyStat.upsert({
+      where: { date: todayDateObj },
       create: {
-        keyId,
         date: todayDateObj,
-        total,
-        success,
-        failed,
-        pending,
-        postCount,
-        commentCount,
-        reactCount,
+        total: fleetTotal,
+        success: fleetSuccess,
+        failed: fleetFailed,
+        pending: fleetPending,
+        postCount: fleetPostCount,
+        commentCount: fleetCommentCount,
+        reactCount: fleetReactCount,
       },
       update: {
-        total,
-        success,
-        failed,
-        pending,
-        postCount,
-        commentCount,
-        reactCount,
+        total: fleetTotal,
+        success: fleetSuccess,
+        failed: fleetFailed,
+        pending: fleetPending,
+        postCount: fleetPostCount,
+        commentCount: fleetCommentCount,
+        reactCount: fleetReactCount,
       },
     });
   } catch (err) {
-    console.error(`flushKeyDailyStat error for key ${keyCode}:`, err);
+    console.error("flushFleetDailyStat error:", err);
   }
 }
 
-const pendingDailyStatsToFlush = new Set<string>();
+export const flushKeyDailyStat = async (_keyCode?: string) => {
+  await flushFleetDailyStat();
+};
+
 let flushDailyStatsTimer: ReturnType<typeof setTimeout> | null = null;
 
-export const scheduleKeyDailyStatFlush = (keyCode: string) => {
-  pendingDailyStatsToFlush.add(keyCode.trim());
+export const scheduleKeyDailyStatFlush = (_keyCode?: string) => {
   if (flushDailyStatsTimer) return;
   flushDailyStatsTimer = setTimeout(async () => {
     flushDailyStatsTimer = null;
-    const keys = Array.from(pendingDailyStatsToFlush);
-    pendingDailyStatsToFlush.clear();
-    for (const code of keys) {
-      await flushKeyDailyStat(code);
-    }
+    await flushFleetDailyStat();
   }, 2000);
 };
 
 export async function syncHistoricalDailyStats(
-  keyCode: string,
-  statsList: Array<{
+  keyCodeOrStatsList: unknown,
+  maybeStatsList?: Array<{
     date?: string;
     success?: number;
     failed?: number;
@@ -468,12 +466,13 @@ export async function syncHistoricalDailyStats(
     total?: number;
   }>
 ) {
-  if (!Array.isArray(statsList) || statsList.length === 0) return;
-  const keyRecord = await prisma.key.findUnique({
-    where: { code: keyCode.trim() },
-    select: { id: true },
-  });
-  if (!keyRecord) return;
+  const statsList = Array.isArray(maybeStatsList)
+    ? maybeStatsList
+    : Array.isArray(keyCodeOrStatsList)
+      ? keyCodeOrStatsList
+      : [];
+
+  if (statsList.length === 0) return;
 
   for (const item of statsList) {
     if (!item?.date) continue;
@@ -485,15 +484,9 @@ export async function syncHistoricalDailyStats(
     const p = Number(item.pending) || 0;
     const t = Number(item.total) || s + f + p;
 
-    await prisma.keyDailyStat.upsert({
-      where: {
-        keyId_date: {
-          keyId: keyRecord.id,
-          date: dateObj,
-        },
-      },
+    await prisma.programDailyStat.upsert({
+      where: { date: dateObj },
       create: {
-        keyId: keyRecord.id,
         date: dateObj,
         total: t,
         success: s,
@@ -501,10 +494,10 @@ export async function syncHistoricalDailyStats(
         pending: p,
       },
       update: {
-        total: t,
-        success: s,
-        failed: f,
-        pending: p,
+        total: { increment: t },
+        success: { increment: s },
+        failed: { increment: f },
+        pending: { increment: p },
       },
     });
   }
@@ -1333,23 +1326,25 @@ export const getProgramOverviewData = async (
   const oneYearAgo = new Date(todayDateObj);
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-  // ดึงสถิติรายวันจาก DB ย้อนหลัง 1 ปี สำหรับทุกคีย์ที่เกี่ยวข้อง
-  const dbDailyStats =
-    keyIds.length > 0
-      ? await prisma.keyDailyStat.findMany({
-          where: {
-            keyId: { in: keyIds },
-            date: { gte: oneYearAgo },
-          },
-          orderBy: { date: "asc" },
-        })
-      : [];
+  // ดึงสถิติรายวันภาพรวมของระบบย้อนหลัง 1 ปี จาก DB
+  const dbDailyStats = await prisma.programDailyStat.findMany({
+    where: {
+      date: { gte: oneYearAgo },
+    },
+    orderBy: { date: "asc" },
+  });
 
-  // จัดกลุ่มสถิติรายวันตาม Key ID, ตามวัน (YYYY-MM-DD), และตามเดือน (YYYY-MM)
-  const dbStatsByKeyId = new Map<string, typeof dbDailyStats>();
   const dbPastDaysMap = new Map<
     string,
-    { total: number; success: number; failed: number; pending: number }
+    {
+      total: number;
+      success: number;
+      failed: number;
+      pending: number;
+      postCount: number;
+      commentCount: number;
+      reactCount: number;
+    }
   >();
   const dbMonthsMap = new Map<
     string,
@@ -1357,28 +1352,19 @@ export const getProgramOverviewData = async (
   >();
 
   for (const stat of dbDailyStats) {
-    const list = dbStatsByKeyId.get(stat.keyId) || [];
-    list.push(stat);
-    dbStatsByKeyId.set(stat.keyId, list);
-
     const dateKey = getBangkokDateString(stat.date);
     const monthKey = dateKey.slice(0, 7);
 
-    // รวมสถิติรายวันของทั้งระบบ
-    const prevDay = dbPastDaysMap.get(dateKey) || {
-      total: 0,
-      success: 0,
-      failed: 0,
-      pending: 0,
-    };
     dbPastDaysMap.set(dateKey, {
-      total: prevDay.total + stat.total,
-      success: prevDay.success + stat.success,
-      failed: prevDay.failed + stat.failed,
-      pending: prevDay.pending + stat.pending,
+      total: stat.total,
+      success: stat.success,
+      failed: stat.failed,
+      pending: stat.pending,
+      postCount: stat.postCount,
+      commentCount: stat.commentCount,
+      reactCount: stat.reactCount,
     });
 
-    // รวมสถิติรายเดือนของทั้งระบบ
     const prevMonth = dbMonthsMap.get(monthKey) || {
       total: 0,
       success: 0,
@@ -1426,11 +1412,6 @@ export const getProgramOverviewData = async (
       : 0;
     const accountCount = session ? session.accounts.length : 0;
 
-    const keyStats = dbStatsByKeyId.get(k.id) || [];
-    const todayDbStat = keyStats.find(
-      (s) => getBangkokDateString(s.date) === todayStr
-    );
-
     let currentStats: ControllerStats;
     if (isOnline) {
       currentStats = session?.stats || {
@@ -1449,13 +1430,6 @@ export const getProgramOverviewData = async (
       (session.stats.total > 0 || session.stats.failed > 0)
     ) {
       currentStats = { ...session.stats };
-    } else if (todayDbStat) {
-      currentStats = {
-        total: todayDbStat.total,
-        success: todayDbStat.success,
-        failed: todayDbStat.failed,
-        pending: todayDbStat.pending,
-      };
     } else {
       currentStats = { total: 0, success: 0, failed: 0, pending: 0 };
     }
@@ -1507,42 +1481,7 @@ export const getProgramOverviewData = async (
       }
     }
 
-    // หากรีสตาร์ตเซิร์ฟเวอร์และไม่มีข้อมูล accounts ใน RAM ให้ดึง action counts จาก DB
-    if (todayDbStat) {
-      if (keyActionCounts.POST.total === 0 && todayDbStat.postCount > 0) {
-        keyActionCounts.POST.total = todayDbStat.postCount;
-        keyActionCounts.POST.success = Math.min(
-          todayDbStat.postCount,
-          currentStats.success
-        );
-        keyActionCounts.POST.failed = Math.max(
-          0,
-          todayDbStat.postCount - keyActionCounts.POST.success
-        );
-      }
-      if (keyActionCounts.COMMENT.total === 0 && todayDbStat.commentCount > 0) {
-        keyActionCounts.COMMENT.total = todayDbStat.commentCount;
-        keyActionCounts.COMMENT.success = Math.min(
-          todayDbStat.commentCount,
-          currentStats.success
-        );
-        keyActionCounts.COMMENT.failed = Math.max(
-          0,
-          todayDbStat.commentCount - keyActionCounts.COMMENT.success
-        );
-      }
-      if (keyActionCounts.REACTION.total === 0 && todayDbStat.reactCount > 0) {
-        keyActionCounts.REACTION.total = todayDbStat.reactCount;
-        keyActionCounts.REACTION.success = Math.min(
-          todayDbStat.reactCount,
-          currentStats.success
-        );
-        keyActionCounts.REACTION.failed = Math.max(
-          0,
-          todayDbStat.reactCount - keyActionCounts.REACTION.success
-        );
-      }
-    }
+
 
     for (const act of ["POST", "COMMENT", "REACTION"] as const) {
       keyActionCounts[act].total = Math.max(
@@ -1654,6 +1593,49 @@ export const getProgramOverviewData = async (
       weakestAction,
       recentErrors,
     });
+  }
+
+  // หากรีสตาร์ตเซิร์ฟเวอร์ และ RAM ยังไม่มีสถิติวันนี้ แต่มีสถิติภาพรวมที่เคยบันทึกไว้ใน DB
+  const todayDbStat = dbPastDaysMap.get(todayStr);
+  if (fleetTotal === 0 && todayDbStat && todayDbStat.total > 0) {
+    fleetTotal = todayDbStat.total;
+    fleetSuccess = todayDbStat.success;
+    fleetFailed = todayDbStat.failed;
+    fleetPending = todayDbStat.pending;
+
+    if (fleetActionCounts.POST.total === 0 && todayDbStat.postCount > 0) {
+      fleetActionCounts.POST.total = todayDbStat.postCount;
+      fleetActionCounts.POST.success = Math.min(
+        todayDbStat.postCount,
+        fleetSuccess
+      );
+      fleetActionCounts.POST.failed = Math.max(
+        0,
+        todayDbStat.postCount - fleetActionCounts.POST.success
+      );
+    }
+    if (fleetActionCounts.COMMENT.total === 0 && todayDbStat.commentCount > 0) {
+      fleetActionCounts.COMMENT.total = todayDbStat.commentCount;
+      fleetActionCounts.COMMENT.success = Math.min(
+        todayDbStat.commentCount,
+        fleetSuccess
+      );
+      fleetActionCounts.COMMENT.failed = Math.max(
+        0,
+        todayDbStat.commentCount - fleetActionCounts.COMMENT.success
+      );
+    }
+    if (fleetActionCounts.REACTION.total === 0 && todayDbStat.reactCount > 0) {
+      fleetActionCounts.REACTION.total = todayDbStat.reactCount;
+      fleetActionCounts.REACTION.success = Math.min(
+        todayDbStat.reactCount,
+        fleetSuccess
+      );
+      fleetActionCounts.REACTION.failed = Math.max(
+        0,
+        todayDbStat.reactCount - fleetActionCounts.REACTION.success
+      );
+    }
   }
 
   // Calculate fleet actions

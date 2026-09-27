@@ -137,16 +137,13 @@ model Key {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  dailyStats  KeyDailyStat[]
-
   @@index([code])
   @@index([isActive])
 }
 
-model KeyDailyStat {
+model ProgramDailyStat {
   id           String   @id @default(cuid())
-  keyId        String
-  date         DateTime @db.Date
+  date         DateTime @unique @db.Date
   total        Int      @default(0)
   success      Int      @default(0)
   failed       Int      @default(0)
@@ -157,9 +154,5 @@ model KeyDailyStat {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  key Key @relation(fields: [keyId], references: [id], onDelete: Cascade)
-
-  @@unique([keyId, date])
-  @@index([keyId])
   @@index([date])
 }
