@@ -29,6 +29,7 @@ export default function ProgramTools() {
     autoRefreshInterval,
     setAutoRefreshInterval,
     isRefreshing,
+    isRealtimeConnected,
     fetchOverview,
   } = useProgramOverviewStore();
 
@@ -91,6 +92,17 @@ export default function ProgramTools() {
             ))}
           </select>
         </div>
+
+        {/* Real-time Live Sync Badge */}
+        {isRealtimeConnected && (
+          <div className="flex items-center gap-1.5 rounded-sm border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1.5 text-xs font-medium text-emerald-400">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="hidden sm:inline">Auto-Sync สด</span>
+          </div>
+        )}
 
         {/* Manual Refresh Button */}
         <button

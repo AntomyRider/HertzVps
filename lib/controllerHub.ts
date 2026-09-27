@@ -10,7 +10,7 @@ import type {
   ControllerLogStatusType,
 } from "@/store/controllerStore";
 
-export type ControllerTimeRange = "7d" | "30d" | "1y";
+export type ControllerTimeRange = "1d" | "7d" | "30d" | "1y";
 export type ControllerMonitorPreset = "smooth" | "balanced" | "hd";
 
 export interface ControllerMonitorConfig {
@@ -126,6 +126,24 @@ const DEFAULT_DEV_KEY = "HERTZ-1CA1-FF66-C7B9";
 export const buildZeroChartPoints = (
   range: ControllerTimeRange
 ): ControllerChartPoint[] => {
+  if (range === "1d") {
+    const points: ControllerChartPoint[] = [];
+    const now = new Date();
+    // 12 points, every 2 hours covering past 24 hours
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 2 * 60 * 60 * 1000);
+      const evenHour = Math.floor(d.getHours() / 2) * 2;
+      points.push({
+        date: d.toISOString(),
+        label: `${String(evenHour).padStart(2, "0")}:00`,
+        success: 0,
+        failed: 0,
+        pending: 0,
+      });
+    }
+    return points;
+  }
+
   const count = range === "7d" ? 7 : range === "30d" ? 30 : 12;
   const now = new Date();
   const points: ControllerChartPoint[] = [];
@@ -251,6 +269,7 @@ export const buildChartFromDailyStats = (
   };
 
   return {
+    "1d": buildZeroChartPoints("1d"),
     "7d": buildDays(7),
     "30d": buildDays(30),
     "1y": buildMonths(),
@@ -269,6 +288,7 @@ const createEmptyChartMap = (): Record<
   ControllerTimeRange,
   ControllerChartPoint[]
 > => ({
+  "1d": buildZeroChartPoints("1d"),
   "7d": buildZeroChartPoints("7d"),
   "30d": buildZeroChartPoints("30d"),
   "1y": buildZeroChartPoints("1y"),
@@ -276,6 +296,7 @@ const createEmptyChartMap = (): Record<
 
 const globalForController = globalThis as unknown as {
   __hertzControllerSessions?: Map<string, ControllerKeySession>;
+  __hertzFleetSubscribers?: Set<() => void>;
 };
 
 const sessions =
@@ -285,6 +306,36 @@ const sessions =
 if (!globalForController.__hertzControllerSessions) {
   globalForController.__hertzControllerSessions = sessions;
 }
+
+const fleetSubscribers =
+  globalForController.__hertzFleetSubscribers ?? new Set<() => void>();
+
+if (!globalForController.__hertzFleetSubscribers) {
+  globalForController.__hertzFleetSubscribers = fleetSubscribers;
+}
+
+export const subscribeToFleetUpdates = (subscriber: () => void) => {
+  fleetSubscribers.add(subscriber);
+  return () => {
+    fleetSubscribers.delete(subscriber);
+  };
+};
+
+let fleetNotifyTimeout: ReturnType<typeof setTimeout> | null = null;
+
+export const notifyFleetUpdated = () => {
+  if (fleetNotifyTimeout) return;
+  fleetNotifyTimeout = setTimeout(() => {
+    fleetNotifyTimeout = null;
+    for (const sub of fleetSubscribers) {
+      try {
+        sub();
+      } catch {
+        fleetSubscribers.delete(sub);
+      }
+    }
+  }, 600);
+};
 
 export const getOrCreateSession = (rawCode: string): ControllerKeySession => {
   const keyCode = rawCode.trim();
@@ -514,6 +565,7 @@ export const markProgramOnline = (keyCode: string): ControllerKeySession => {
   session.lastHeartbeatAt = Date.now();
 
   if (wasOfflineOrReconnecting) {
+    notifyFleetUpdated();
     broadcastToWeb(session.keyCode, {
       type: "PROGRAM_STATUS",
       data: {
@@ -529,6 +581,8 @@ export const markProgramOnline = (keyCode: string): ControllerKeySession => {
 export const wipeSessionData = (keyCode: string) => {
   const session = sessions.get(keyCode.trim());
   if (!session) return;
+
+  notifyFleetUpdated();
 
   if (session.offlineTimer) {
     clearTimeout(session.offlineTimer);
@@ -689,7 +743,7 @@ export const incrementTodayChartPoint = (
   const fDelta = delta.failed || 0;
   const pDelta = delta.pending || 0;
 
-  (["7d", "30d", "1y"] as ControllerTimeRange[]).forEach((range) => {
+  (["1d", "7d", "30d", "1y"] as ControllerTimeRange[]).forEach((range) => {
     const list = session.chartDataByRange[range];
     if (!list || list.length === 0) return;
     const lastIdx = list.length - 1;
@@ -771,6 +825,8 @@ export const appendLogToSession = (
       };
     });
   }
+
+  notifyFleetUpdated();
 
   return newLog;
 };
@@ -1328,9 +1384,17 @@ export const getProgramOverviewData = (
     return a.code.localeCompare(b.code);
   });
 
-  // Calculate fleet chart data across ranges (7d, 30d, 1y)
-  const ranges: ControllerTimeRange[] = ["7d", "30d", "1y"];
+  // Calculate fleet chart data across ranges (1d, 7d, 30d, 1y)
+  const ranges: ControllerTimeRange[] = ["1d", "7d", "30d", "1y"];
   const chartDataByRange: Record<ControllerTimeRange, FleetChartPoint[]> = {
+    "1d": buildZeroChartPoints("1d").map((p) => ({
+      date: p.date,
+      label: p.label,
+      success: 0,
+      failed: 0,
+      pending: 0,
+      total: 0,
+    })),
     "7d": buildZeroChartPoints("7d").map((p) => ({
       date: p.date,
       label: p.label,
@@ -1370,6 +1434,43 @@ export const getProgramOverviewData = (
             fleetPoints[idx].pending += sp.pending || 0;
           }
         });
+      }
+    }
+
+    if (r === "1d") {
+      // Map logs of all active keys into the 12 two-hour buckets
+      for (const k of dbKeys) {
+        const session = sessions.get(k.code.trim());
+        if (!session) continue;
+        const allLogs = [
+          ...(session.logs || []),
+          ...(session.recentErrorHistory || []),
+        ];
+        const seen = new Set<string>();
+        for (const l of allLogs) {
+          if (seen.has(l.id)) continue;
+          seen.add(l.id);
+
+          let logHour = -1;
+          if (l.timestamp.includes("T")) {
+            const d = new Date(l.timestamp);
+            if (!isNaN(d.getTime())) logHour = d.getHours();
+          } else if (l.timestamp.includes(":")) {
+            const parts = l.timestamp.split(":");
+            const h = parseInt(parts[0], 10);
+            if (!isNaN(h)) logHour = h;
+          }
+
+          if (logHour >= 0 && logHour < 24) {
+            const evenHour = Math.floor(logHour / 2) * 2;
+            const targetLabel = `${String(evenHour).padStart(2, "0")}:00`;
+            const matchedPoint = fleetPoints.find((p) => p.label === targetLabel);
+            if (matchedPoint) {
+              if (l.status === "SUCCESS") matchedPoint.success += 1;
+              else if (l.status === "FAILED") matchedPoint.failed += 1;
+            }
+          }
+        }
       }
     }
 

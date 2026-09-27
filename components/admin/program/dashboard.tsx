@@ -19,6 +19,7 @@ export default function ProgramDashboard() {
     error,
     autoRefreshInterval,
     fetchOverview,
+    setIsRealtimeConnected,
   } = useProgramOverviewStore();
 
   // Initial fetch
@@ -26,7 +27,47 @@ export default function ProgramDashboard() {
     fetchOverview();
   }, [fetchOverview]);
 
-  // Polling interval
+  // Real-time SSE listener: Auto-refreshes immediately when data comes in
+  useEffect(() => {
+    let es: EventSource | null = null;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    try {
+      es = new EventSource("/api/v1/private/program/overview/stream");
+
+      es.addEventListener("open", () => {
+        setIsRealtimeConnected(true);
+      });
+
+      es.addEventListener("connected", () => {
+        setIsRealtimeConnected(true);
+      });
+
+      es.addEventListener("fleet_update", () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          fetchOverview(true);
+        }, 500);
+      });
+
+      es.addEventListener("error", () => {
+        setIsRealtimeConnected(false);
+      });
+    } catch (e) {
+      console.error("Failed to connect to fleet SSE stream:", e);
+      setIsRealtimeConnected(false);
+    }
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (es) {
+        es.close();
+        setIsRealtimeConnected(false);
+      }
+    };
+  }, [fetchOverview, setIsRealtimeConnected]);
+
+  // Fallback polling interval
   useEffect(() => {
     if (autoRefreshInterval <= 0) return;
 

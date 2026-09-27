@@ -63,12 +63,13 @@ export type ProgramStatusFilter = "ALL" | "ONLINE" | "OFFLINE" | "HAS_ERRORS";
 
 interface ProgramOverviewState {
   summary: FleetSummary | null;
-  chartDataByRange: Record<"7d" | "30d" | "1y", FleetChartPoint[]>;
-  chartTimeRange: "7d" | "30d" | "1y";
+  chartDataByRange: Record<"1d" | "7d" | "30d" | "1y", FleetChartPoint[]>;
+  chartTimeRange: "1d" | "7d" | "30d" | "1y";
   keys: KeyProgramHealth[];
   recentFleetErrors: FleetErrorItem[];
   isLoading: boolean;
   isRefreshing: boolean;
+  isRealtimeConnected: boolean;
   error: string | null;
   search: string;
   statusFilter: ProgramStatusFilter;
@@ -81,8 +82,9 @@ interface ProgramOverviewState {
   // Setters
   setSearch: (search: string) => void;
   setStatusFilter: (filter: ProgramStatusFilter) => void;
-  setChartTimeRange: (range: "7d" | "30d" | "1y") => void;
+  setChartTimeRange: (range: "1d" | "7d" | "30d" | "1y") => void;
   setAutoRefreshInterval: (interval: number) => void;
+  setIsRealtimeConnected: (connected: boolean) => void;
   setSelectedKeyHealth: (key: KeyProgramHealth | null) => void;
   setIsDetailOpen: (open: boolean) => void;
 
@@ -93,15 +95,17 @@ interface ProgramOverviewState {
 export const useProgramOverviewStore = create<ProgramOverviewState>((set, get) => ({
   summary: null,
   chartDataByRange: {
+    "1d": [],
     "7d": [],
     "30d": [],
     "1y": [],
   },
-  chartTimeRange: "7d",
+  chartTimeRange: "1d",
   keys: [],
   recentFleetErrors: [],
   isLoading: true,
   isRefreshing: false,
+  isRealtimeConnected: false,
   error: null,
   search: "",
   statusFilter: "ALL",
@@ -114,6 +118,7 @@ export const useProgramOverviewStore = create<ProgramOverviewState>((set, get) =
   setStatusFilter: (statusFilter) => set({ statusFilter }),
   setChartTimeRange: (chartTimeRange) => set({ chartTimeRange }),
   setAutoRefreshInterval: (autoRefreshInterval) => set({ autoRefreshInterval }),
+  setIsRealtimeConnected: (isRealtimeConnected) => set({ isRealtimeConnected }),
   setSelectedKeyHealth: (selectedKeyHealth) => set({ selectedKeyHealth }),
   setIsDetailOpen: (isDetailOpen) => set({ isDetailOpen }),
 
@@ -129,7 +134,7 @@ export const useProgramOverviewStore = create<ProgramOverviewState>((set, get) =
 
       const res = await axios.get<{
         summary: FleetSummary;
-        chartDataByRange: Record<"7d" | "30d" | "1y", FleetChartPoint[]>;
+        chartDataByRange: Record<"1d" | "7d" | "30d" | "1y", FleetChartPoint[]>;
         keys: KeyProgramHealth[];
         recentFleetErrors: FleetErrorItem[];
       }>("/api/v1/private/program/overview");
@@ -144,6 +149,7 @@ export const useProgramOverviewStore = create<ProgramOverviewState>((set, get) =
       set({
         summary: res.data.summary,
         chartDataByRange: res.data.chartDataByRange || {
+          "1d": [],
           "7d": [],
           "30d": [],
           "1y": [],

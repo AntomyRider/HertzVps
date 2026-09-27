@@ -12,7 +12,8 @@ import { useProgramOverviewStore } from "@/store/programOverviewStore";
 // Register Chart.js components
 ChartJS.register(...registerables);
 
-const TIME_RANGES: Array<{ label: string; value: "7d" | "30d" | "1y" }> = [
+const TIME_RANGES: Array<{ label: string; value: "1d" | "7d" | "30d" | "1y" }> = [
+  { label: "1 วัน (ทุก 2 ชม.)", value: "1d" },
   { label: "7 วัน", value: "7d" },
   { label: "30 วัน", value: "30d" },
   { label: "1 ปี", value: "1y" },
