@@ -13,6 +13,7 @@ import {
   KeySquare,
   Settings,
   Database,
+  Activity,
 } from "lucide-react";
 import AdminMobileHeader from "./mobile/header";
 import AdminMobileDrawer, { AdminMenuGroup } from "./mobile/drawer";
@@ -71,6 +72,11 @@ const SidebarAdmin = () => {
     {
       title: "ระบบโปรแกรม",
       menus: [
+        {
+          label: "ภาพรวมของโปรแกรม",
+          href: "/admin/program",
+          icon: Activity,
+        },
         {
           label: "จัดการคีย์",
           href: "/admin/key",

@@ -100,12 +100,15 @@ interface ControllerKeySession {
   isProgramOnline: boolean;
   isReconnecting: boolean;
   lastHeartbeatAt: number;
+  lastSeenAt?: number;
   offlineTimer: ReturnType<typeof setTimeout> | null;
   stats: ControllerStats;
+  lastKnownStats?: ControllerStats;
   chartDataByRange: Record<ControllerTimeRange, ControllerChartPoint[]>;
   accounts: ControllerAccountItem[];
   groupsByAccount: Record<string, ControllerGroupItem[]>;
   logs: ControllerLogItem[];
+  recentErrorHistory?: ControllerLogItem[];
   screenFrame: string | null;
   screenResolution: string | null;
   screenUpdatedAt: string | null;
@@ -534,7 +537,21 @@ export const wipeSessionData = (keyCode: string) => {
 
   session.isProgramOnline = false;
   session.isReconnecting = false;
+  session.lastSeenAt = session.lastHeartbeatAt || Date.now();
   session.lastHeartbeatAt = 0;
+
+  if (session.stats.total > 0 || session.stats.failed > 0) {
+    session.lastKnownStats = { ...session.stats };
+  }
+
+  const failedLogs = session.logs.filter((l) => l.status === "FAILED");
+  if (failedLogs.length > 0) {
+    session.recentErrorHistory = [
+      ...(session.recentErrorHistory || []),
+      ...failedLogs,
+    ].slice(-20);
+  }
+
   session.stats = { total: 0, success: 0, failed: 0, pending: 0 };
   session.chartDataByRange = createEmptyChartMap();
   session.accounts = [];
@@ -714,6 +731,13 @@ export const appendLogToSession = (
   };
 
   session.logs = [...session.logs.slice(-(MAX_LOGS_IN_MEMORY - 1)), newLog];
+
+  if (newLog.status === "FAILED") {
+    session.recentErrorHistory = [
+      ...(session.recentErrorHistory || []),
+      newLog,
+    ].slice(-20);
+  }
 
   if (updateStatsAutomatically && rawLog.action !== "SYSTEM") {
     const isSuccess = rawLog.status === "SUCCESS";
@@ -972,4 +996,420 @@ export const normalizeIncomingLogs = (
         message: msg,
       };
     });
+};
+
+export interface ActionHealthMetric {
+  action: "POST" | "COMMENT" | "REACTION";
+  label: string;
+  total: number;
+  success: number;
+  failed: number;
+  successRate: number; // 0 - 100%
+}
+
+export interface KeyProgramHealth {
+  id: string;
+  code: string;
+  isActive: boolean;
+  durationDays: number;
+  hwid: string | null;
+  activatedAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  isOnline: boolean;
+  isReconnecting: boolean;
+  lastHeartbeatAt: number;
+  lastSeenAt: number;
+  accountCount: number;
+  stats: ControllerStats;
+  successRate: number;
+  actions: Record<"POST" | "COMMENT" | "REACTION", ActionHealthMetric>;
+  weakestAction: ActionHealthMetric | null;
+  recentErrors: ControllerLogItem[];
+}
+
+export interface FleetChartPoint {
+  date: string;
+  label: string;
+  success: number;
+  failed: number;
+  pending: number;
+  total: number;
+}
+
+export interface FleetProgramOverview {
+  summary: {
+    totalKeys: number;
+    onlineCount: number;
+    offlineCount: number;
+    errorCount: number;
+    fleetSuccess: number;
+    fleetFailed: number;
+    fleetPending: number;
+    fleetTotal: number;
+    fleetSuccessRate: number;
+    weakestAction: ActionHealthMetric | null;
+    fleetActions: Record<"POST" | "COMMENT" | "REACTION", ActionHealthMetric>;
+  };
+  chartDataByRange: Record<ControllerTimeRange, FleetChartPoint[]>;
+  keys: KeyProgramHealth[];
+  recentFleetErrors: Array<ControllerLogItem & { keyCode: string }>;
+}
+
+export const getProgramOverviewData = (
+  dbKeys: Array<{
+    id: string;
+    code: string;
+    isActive: boolean;
+    durationDays: number;
+    hwid: string | null;
+    activatedAt: Date | null;
+    expiresAt: Date | null;
+    createdAt: Date;
+  }>
+): FleetProgramOverview => {
+  const calcRate = (success: number, failed: number) => {
+    const sum = success + failed;
+    if (sum === 0) return 100;
+    return Math.round((success / sum) * 1000) / 10;
+  };
+
+  const keyHealthList: KeyProgramHealth[] = [];
+  const allFleetErrors: Array<ControllerLogItem & { keyCode: string }> = [];
+
+  const fleetActionCounts: Record<
+    "POST" | "COMMENT" | "REACTION",
+    { total: number; success: number; failed: number }
+  > = {
+    POST: { total: 0, success: 0, failed: 0 },
+    COMMENT: { total: 0, success: 0, failed: 0 },
+    REACTION: { total: 0, success: 0, failed: 0 },
+  };
+
+  let onlineCount = 0;
+  let offlineCount = 0;
+  let errorCount = 0;
+  let fleetSuccess = 0;
+  let fleetFailed = 0;
+  let fleetPending = 0;
+  let fleetTotal = 0;
+
+  for (const k of dbKeys) {
+    const session = sessions.get(k.code.trim());
+    const isOnline = Boolean(session && session.isProgramOnline);
+    const isReconnecting = Boolean(session && session.isReconnecting);
+    const lastHeartbeatAt = session ? session.lastHeartbeatAt : 0;
+    const lastSeenAt = session
+      ? session.lastSeenAt || session.lastHeartbeatAt || 0
+      : 0;
+    const accountCount = session ? session.accounts.length : 0;
+
+    const currentStats = isOnline
+      ? session?.stats || { total: 0, success: 0, failed: 0, pending: 0 }
+      : session?.lastKnownStats ||
+        session?.stats || { total: 0, success: 0, failed: 0, pending: 0 };
+
+    // Combine logs and error history for action breakdown
+    const rawLogs = [
+      ...(session?.logs || []),
+      ...(session?.recentErrorHistory || []),
+    ];
+    const seenLogIds = new Set<string>();
+    const uniqueLogs: ControllerLogItem[] = [];
+    for (const l of rawLogs) {
+      if (!seenLogIds.has(l.id)) {
+        seenLogIds.add(l.id);
+        uniqueLogs.push(l);
+      }
+    }
+
+    const keyActionCounts: Record<
+      "POST" | "COMMENT" | "REACTION",
+      { total: number; success: number; failed: number }
+    > = {
+      POST: { total: 0, success: 0, failed: 0 },
+      COMMENT: { total: 0, success: 0, failed: 0 },
+      REACTION: { total: 0, success: 0, failed: 0 },
+    };
+
+    if (session?.accounts && session.accounts.length > 0) {
+      for (const acc of session.accounts) {
+        if (acc.stats) {
+          keyActionCounts.POST.total += acc.stats.post || 0;
+          keyActionCounts.COMMENT.total += acc.stats.comment || 0;
+          keyActionCounts.REACTION.total += acc.stats.reaction || 0;
+        }
+      }
+    }
+
+    for (const log of uniqueLogs) {
+      if (
+        log.action === "POST" ||
+        log.action === "COMMENT" ||
+        log.action === "REACTION"
+      ) {
+        if (log.status === "SUCCESS") {
+          keyActionCounts[log.action].success += 1;
+        } else if (log.status === "FAILED") {
+          keyActionCounts[log.action].failed += 1;
+        }
+      }
+    }
+
+    for (const act of ["POST", "COMMENT", "REACTION"] as const) {
+      keyActionCounts[act].total = Math.max(
+        keyActionCounts[act].total,
+        keyActionCounts[act].success + keyActionCounts[act].failed
+      );
+    }
+
+    const keyActions: Record<"POST" | "COMMENT" | "REACTION", ActionHealthMetric> = {
+      POST: {
+        action: "POST",
+        label: "โพสต์กลุ่ม",
+        total: keyActionCounts.POST.total,
+        success: keyActionCounts.POST.success,
+        failed: keyActionCounts.POST.failed,
+        successRate: calcRate(
+          keyActionCounts.POST.success,
+          keyActionCounts.POST.failed
+        ),
+      },
+      COMMENT: {
+        action: "COMMENT",
+        label: "คอมเมนต์",
+        total: keyActionCounts.COMMENT.total,
+        success: keyActionCounts.COMMENT.success,
+        failed: keyActionCounts.COMMENT.failed,
+        successRate: calcRate(
+          keyActionCounts.COMMENT.success,
+          keyActionCounts.COMMENT.failed
+        ),
+      },
+      REACTION: {
+        action: "REACTION",
+        label: "กดความรู้สึก",
+        total: keyActionCounts.REACTION.total,
+        success: keyActionCounts.REACTION.success,
+        failed: keyActionCounts.REACTION.failed,
+        successRate: calcRate(
+          keyActionCounts.REACTION.success,
+          keyActionCounts.REACTION.failed
+        ),
+      },
+    };
+
+    const keyRate = calcRate(currentStats.success, currentStats.failed);
+
+    // Identify weakest action
+    let weakestAction: ActionHealthMetric | null = null;
+    const actionsWithWork = Object.values(keyActions).filter(
+      (a) => a.total > 0 || a.failed > 0
+    );
+    if (actionsWithWork.length > 0) {
+      actionsWithWork.sort(
+        (a, b) => a.successRate - b.successRate || b.failed - a.failed
+      );
+      if (actionsWithWork[0].failed > 0 || actionsWithWork[0].successRate < 100) {
+        weakestAction = actionsWithWork[0];
+      }
+    }
+
+    const recentErrors = uniqueLogs
+      .filter((l) => l.status === "FAILED")
+      .slice(-5)
+      .reverse();
+
+    if (isOnline) onlineCount += 1;
+    else offlineCount += 1;
+
+    if (
+      currentStats.failed > 0 ||
+      (currentStats.total > 0 && keyRate < 80) ||
+      (weakestAction && weakestAction.failed > 0)
+    ) {
+      errorCount += 1;
+    }
+
+    fleetSuccess += currentStats.success;
+    fleetFailed += currentStats.failed;
+    fleetPending += currentStats.pending;
+    fleetTotal += currentStats.total;
+
+    for (const act of ["POST", "COMMENT", "REACTION"] as const) {
+      fleetActionCounts[act].total += keyActionCounts[act].total;
+      fleetActionCounts[act].success += keyActionCounts[act].success;
+      fleetActionCounts[act].failed += keyActionCounts[act].failed;
+    }
+
+    for (const err of recentErrors) {
+      allFleetErrors.push({ ...err, keyCode: k.code });
+    }
+
+    keyHealthList.push({
+      id: k.id,
+      code: k.code,
+      isActive: k.isActive,
+      durationDays: k.durationDays,
+      hwid: k.hwid,
+      activatedAt: k.activatedAt ? k.activatedAt.toISOString() : null,
+      expiresAt: k.expiresAt ? k.expiresAt.toISOString() : null,
+      createdAt: k.createdAt.toISOString(),
+      isOnline,
+      isReconnecting,
+      lastHeartbeatAt,
+      lastSeenAt,
+      accountCount,
+      stats: currentStats,
+      successRate: keyRate,
+      actions: keyActions,
+      weakestAction,
+      recentErrors,
+    });
+  }
+
+  // Calculate fleet actions
+  const fleetActions: Record<"POST" | "COMMENT" | "REACTION", ActionHealthMetric> = {
+    POST: {
+      action: "POST",
+      label: "โพสต์กลุ่ม",
+      total: fleetActionCounts.POST.total,
+      success: fleetActionCounts.POST.success,
+      failed: fleetActionCounts.POST.failed,
+      successRate: calcRate(
+        fleetActionCounts.POST.success,
+        fleetActionCounts.POST.failed
+      ),
+    },
+    COMMENT: {
+      action: "COMMENT",
+      label: "คอมเมนต์",
+      total: fleetActionCounts.COMMENT.total,
+      success: fleetActionCounts.COMMENT.success,
+      failed: fleetActionCounts.COMMENT.failed,
+      successRate: calcRate(
+        fleetActionCounts.COMMENT.success,
+        fleetActionCounts.COMMENT.failed
+      ),
+    },
+    REACTION: {
+      action: "REACTION",
+      label: "กดความรู้สึก",
+      total: fleetActionCounts.REACTION.total,
+      success: fleetActionCounts.REACTION.success,
+      failed: fleetActionCounts.REACTION.failed,
+      successRate: calcRate(
+        fleetActionCounts.REACTION.success,
+        fleetActionCounts.REACTION.failed
+      ),
+    },
+  };
+
+  let fleetWeakestAction: ActionHealthMetric | null = null;
+  const fleetActionsWithWork = Object.values(fleetActions).filter(
+    (a) => a.total > 0 || a.failed > 0
+  );
+  if (fleetActionsWithWork.length > 0) {
+    fleetActionsWithWork.sort(
+      (a, b) => a.successRate - b.successRate || b.failed - a.failed
+    );
+    if (
+      fleetActionsWithWork[0].failed > 0 ||
+      fleetActionsWithWork[0].successRate < 100
+    ) {
+      fleetWeakestAction = fleetActionsWithWork[0];
+    }
+  }
+
+  // Sort keys: online first, then error count descending, then code
+  keyHealthList.sort((a, b) => {
+    if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+    if (a.stats.failed !== b.stats.failed) return b.stats.failed - a.stats.failed;
+    return a.code.localeCompare(b.code);
+  });
+
+  // Calculate fleet chart data across ranges (7d, 30d, 1y)
+  const ranges: ControllerTimeRange[] = ["7d", "30d", "1y"];
+  const chartDataByRange: Record<ControllerTimeRange, FleetChartPoint[]> = {
+    "7d": buildZeroChartPoints("7d").map((p) => ({
+      date: p.date,
+      label: p.label,
+      success: 0,
+      failed: 0,
+      pending: 0,
+      total: 0,
+    })),
+    "30d": buildZeroChartPoints("30d").map((p) => ({
+      date: p.date,
+      label: p.label,
+      success: 0,
+      failed: 0,
+      pending: 0,
+      total: 0,
+    })),
+    "1y": buildZeroChartPoints("1y").map((p) => ({
+      date: p.date,
+      label: p.label,
+      success: 0,
+      failed: 0,
+      pending: 0,
+      total: 0,
+    })),
+  };
+
+  for (const r of ranges) {
+    const fleetPoints = chartDataByRange[r];
+    for (const k of dbKeys) {
+      const session = sessions.get(k.code.trim());
+      if (session && session.chartDataByRange[r]) {
+        const sessionPoints = session.chartDataByRange[r];
+        sessionPoints.forEach((sp, idx) => {
+          if (fleetPoints[idx]) {
+            fleetPoints[idx].success += sp.success || 0;
+            fleetPoints[idx].failed += sp.failed || 0;
+            fleetPoints[idx].pending += sp.pending || 0;
+          }
+        });
+      }
+    }
+
+    if (fleetPoints.length > 0) {
+      const lastIdx = fleetPoints.length - 1;
+      fleetPoints[lastIdx].success = Math.max(
+        fleetPoints[lastIdx].success,
+        fleetSuccess
+      );
+      fleetPoints[lastIdx].failed = Math.max(
+        fleetPoints[lastIdx].failed,
+        fleetFailed
+      );
+      fleetPoints[lastIdx].pending = Math.max(
+        fleetPoints[lastIdx].pending,
+        fleetPending
+      );
+    }
+
+    fleetPoints.forEach((pt) => {
+      pt.total = pt.success + pt.failed + pt.pending;
+    });
+  }
+
+  return {
+    summary: {
+      totalKeys: dbKeys.length,
+      onlineCount,
+      offlineCount,
+      errorCount,
+      fleetSuccess,
+      fleetFailed,
+      fleetPending,
+      fleetTotal,
+      fleetSuccessRate: calcRate(fleetSuccess, fleetFailed),
+      weakestAction: fleetWeakestAction,
+      fleetActions,
+    },
+    chartDataByRange,
+    keys: keyHealthList,
+    recentFleetErrors: allFleetErrors.slice(0, 20),
+  };
 };
