@@ -34,10 +34,14 @@ export async function GET(req: NextRequest) {
     const overview = await getProgramOverviewData(keys);
 
     return NextResponse.json(overview);
-  } catch (err) {
-    console.error("GET /api/v1/private/program/overview error:", err);
+  } catch (err: unknown) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("GET /api/v1/private/program/overview error:", detail, err);
     return NextResponse.json(
-      { error: "เกิดข้อผิดพลาดในการดึงข้อมูลภาพรวมของโปรแกรม" },
+      {
+        error: "เกิดข้อผิดพลาดในการดึงข้อมูลภาพรวมของโปรแกรม",
+        detail,
+      },
       { status: 500 }
     );
   }

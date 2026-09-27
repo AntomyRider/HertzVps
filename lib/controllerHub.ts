@@ -415,6 +415,10 @@ export async function flushFleetDailyStat() {
       return;
     }
 
+    if (!prisma || !("programDailyStat" in prisma)) {
+      return;
+    }
+
     await prisma.programDailyStat.upsert({
       where: { date: todayDateObj },
       create: {
@@ -473,6 +477,7 @@ export async function syncHistoricalDailyStats(
       : [];
 
   if (statsList.length === 0) return;
+  if (!prisma || !("programDailyStat" in prisma)) return;
 
   for (const item of statsList) {
     if (!item?.date) continue;
@@ -1327,12 +1332,29 @@ export const getProgramOverviewData = async (
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
   // ดึงสถิติรายวันภาพรวมของระบบย้อนหลัง 1 ปี จาก DB
-  const dbDailyStats = await prisma.programDailyStat.findMany({
-    where: {
-      date: { gte: oneYearAgo },
-    },
-    orderBy: { date: "asc" },
-  });
+  let dbDailyStats: Array<{
+    date: Date;
+    total: number;
+    success: number;
+    failed: number;
+    pending: number;
+    postCount: number;
+    commentCount: number;
+    reactCount: number;
+  }> = [];
+
+  try {
+    if (prisma && "programDailyStat" in prisma) {
+      dbDailyStats = await prisma.programDailyStat.findMany({
+        where: {
+          date: { gte: oneYearAgo },
+        },
+        orderBy: { date: "asc" },
+      });
+    }
+  } catch (dbErr) {
+    console.warn("Could not query programDailyStat from DB, falling back to memory:", dbErr);
+  }
 
   const dbPastDaysMap = new Map<
     string,
