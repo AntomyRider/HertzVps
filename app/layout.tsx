@@ -16,8 +16,13 @@ const notoSansThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  title: "Hertz Manager",
+  title: "Hertz",
   description: "เปลี่ยนงานที่ต้องทำซ้ำ ให้กลายเป็นระบบอัตโนมัติ",
+  icons: {
+    icon: "/hertz_logo.png",
+    shortcut: "/hertz_logo.png",
+    apple: "/hertz_logo.png",
+  },
 };
 
 export default function RootLayout({
