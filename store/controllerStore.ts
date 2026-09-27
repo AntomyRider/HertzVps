@@ -14,6 +14,7 @@ export interface ControllerChartPoint {
   success: number;
   failed: number;
   pending: number;
+  total?: number;
 }
 
 export interface ControllerAccountStats {

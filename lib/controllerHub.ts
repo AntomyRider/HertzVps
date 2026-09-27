@@ -937,9 +937,17 @@ export const incrementTodayChartPoint = (
   (["1d", "7d", "30d", "1y"] as ControllerTimeRange[]).forEach((range) => {
     const list = session.chartDataByRange[range];
     if (!list || list.length === 0) return;
-    const lastIdx = list.length - 1;
-    const lastPoint = list[lastIdx];
-    list[lastIdx] = {
+
+    let targetIdx = list.length - 1;
+    if (range === "1d") {
+      const currentEvenHour = Math.floor(new Date().getHours() / 2) * 2;
+      const targetLabel = `${String(currentEvenHour).padStart(2, "0")}:00`;
+      const matchedIdx = list.findIndex((p) => p.label === targetLabel);
+      if (matchedIdx !== -1) targetIdx = matchedIdx;
+    }
+
+    const lastPoint = list[targetIdx];
+    list[targetIdx] = {
       ...lastPoint,
       success: Math.max(0, lastPoint.success + sDelta),
       failed: Math.max(0, lastPoint.failed + fDelta),
@@ -1756,54 +1764,37 @@ export const getProgramOverviewData = async (
     })),
   };
 
-  // 1. คำนวณ Chart 1d (12 สล็อต ทุก 2 ชม.)
+  // 1. คำนวณ Chart 1d (12 สล็อต ทุก 2 ชม.) โดยนับเฉพาะฟิลด์ total, success, failed, pending
   const fleet1dPoints = chartDataByRange["1d"];
-  for (const k of dbKeys) {
-    const session = sessions.get(k.code.trim());
-    if (!session) continue;
-    const allLogs = [
-      ...(session.logs || []),
-      ...(session.recentErrorHistory || []),
-    ];
-    const seen = new Set<string>();
-    for (const l of allLogs) {
-      if (seen.has(l.id)) continue;
-      seen.add(l.id);
-
-      let logHour = -1;
-      if (l.timestamp.includes("T")) {
-        const d = new Date(l.timestamp);
-        if (!isNaN(d.getTime())) logHour = d.getHours();
-      } else if (l.timestamp.includes(":")) {
-        const parts = l.timestamp.split(":");
-        const h = parseInt(parts[0], 10);
-        if (!isNaN(h)) logHour = h;
-      }
-
-      if (logHour >= 0 && logHour < 24) {
-        const evenHour = Math.floor(logHour / 2) * 2;
-        const targetLabel = `${String(evenHour).padStart(2, "0")}:00`;
-        const matchedPoint = fleet1dPoints.find((p) => p.label === targetLabel);
-        if (matchedPoint) {
-          if (l.status === "SUCCESS") matchedPoint.success += 1;
-          else if (l.status === "FAILED") matchedPoint.failed += 1;
-        }
+  for (const session of sessions.values()) {
+    const s1d = session.chartDataByRange?.["1d"];
+    if (!Array.isArray(s1d)) continue;
+    for (const pt of s1d) {
+      const matchedPoint = fleet1dPoints.find((p) => p.label === pt.label);
+      if (matchedPoint) {
+        matchedPoint.success += Number(pt.success) || 0;
+        matchedPoint.failed += Number(pt.failed) || 0;
+        matchedPoint.pending += Number(pt.pending) || 0;
       }
     }
   }
 
   if (fleet1dPoints.length > 0) {
-    const lastIdx = fleet1dPoints.length - 1;
-    fleet1dPoints[lastIdx].success = Math.max(
-      fleet1dPoints[lastIdx].success,
+    const currentEvenHour = Math.floor(new Date().getHours() / 2) * 2;
+    const currentLabel = `${String(currentEvenHour).padStart(2, "0")}:00`;
+    const matchedSlotIdx = fleet1dPoints.findIndex((p) => p.label === currentLabel);
+    const targetIdx = matchedSlotIdx !== -1 ? matchedSlotIdx : fleet1dPoints.length - 1;
+
+    fleet1dPoints[targetIdx].success = Math.max(
+      fleet1dPoints[targetIdx].success,
       fleetSuccess
     );
-    fleet1dPoints[lastIdx].failed = Math.max(
-      fleet1dPoints[lastIdx].failed,
+    fleet1dPoints[targetIdx].failed = Math.max(
+      fleet1dPoints[targetIdx].failed,
       fleetFailed
     );
-    fleet1dPoints[lastIdx].pending = Math.max(
-      fleet1dPoints[lastIdx].pending,
+    fleet1dPoints[targetIdx].pending = Math.max(
+      fleet1dPoints[targetIdx].pending,
       fleetPending
     );
   }
@@ -1819,7 +1810,7 @@ export const getProgramOverviewData = async (
       pt.success = fleetSuccess;
       pt.failed = fleetFailed;
       pt.pending = fleetPending;
-      pt.total = fleetTotal;
+      pt.total = fleetTotal || (fleetSuccess + fleetFailed + fleetPending);
     } else {
       const pastStat = dbPastDaysMap.get(pointDateStr) || {
         total: 0,
@@ -1830,7 +1821,7 @@ export const getProgramOverviewData = async (
       pt.success = pastStat.success;
       pt.failed = pastStat.failed;
       pt.pending = pastStat.pending;
-      pt.total = pastStat.total;
+      pt.total = pastStat.total || (pastStat.success + pastStat.failed + pastStat.pending);
     }
   });
 
@@ -1842,7 +1833,7 @@ export const getProgramOverviewData = async (
       pt.success = fleetSuccess;
       pt.failed = fleetFailed;
       pt.pending = fleetPending;
-      pt.total = fleetTotal;
+      pt.total = fleetTotal || (fleetSuccess + fleetFailed + fleetPending);
     } else {
       const pastStat = dbPastDaysMap.get(pointDateStr) || {
         total: 0,
@@ -1853,7 +1844,7 @@ export const getProgramOverviewData = async (
       pt.success = pastStat.success;
       pt.failed = pastStat.failed;
       pt.pending = pastStat.pending;
-      pt.total = pastStat.total;
+      pt.total = pastStat.total || (pastStat.success + pastStat.failed + pastStat.pending);
     }
   });
 
@@ -1890,7 +1881,7 @@ export const getProgramOverviewData = async (
       pt.success = monthStat.success;
       pt.failed = monthStat.failed;
       pt.pending = monthStat.pending;
-      pt.total = monthStat.total;
+      pt.total = monthStat.total || (monthStat.success + monthStat.failed + monthStat.pending);
     }
   });
 
