@@ -150,14 +150,16 @@ const HeroHome = () => {
                 <div className="h-full w-2/5 animate-[laser-run_3.2s_linear_infinite] bg-gradient-to-r from-transparent via-blue-500 to-blue-100" />
               </div>
 
-              <div className="relative z-10 overflow-hidden rounded-md bg-black">
+              <div
+                style={{
+                  maskImage:
+                    "linear-gradient(to bottom, black 0%, black 72%, rgba(0, 0, 0, 0.6) 88%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to bottom, black 0%, black 72%, rgba(0, 0, 0, 0.6) 88%, transparent 100%)",
+                }}
+                className="relative z-10 overflow-hidden rounded-md"
+              >
                 <HeroPizzaBox />
-
-                {/* Bottom fade overlay so the box blends seamlessly into the #000000 page background */}
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-28 bg-gradient-to-t from-black via-black/85 to-transparent sm:h-40 md:h-52"
-                />
               </div>
             </div>
           </div>

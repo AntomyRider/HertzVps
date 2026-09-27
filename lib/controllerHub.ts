@@ -310,7 +310,7 @@ export const getOrCreateSession = (rawCode: string): ControllerKeySession => {
     screenResolution: null,
     screenUpdatedAt: null,
     monitorConfig: {
-      paused: false,
+      paused: true,
       preset: "balanced",
     },
     pendingCommands: [],
@@ -543,6 +543,10 @@ export const wipeSessionData = (keyCode: string) => {
   session.screenFrame = null;
   session.screenResolution = null;
   session.screenUpdatedAt = null;
+  session.monitorConfig = {
+    paused: true,
+    preset: session.monitorConfig.preset || "balanced",
+  };
   session.pendingCommands = [];
 
   broadcastToWeb(session.keyCode, {
@@ -558,6 +562,7 @@ export const wipeSessionData = (keyCode: string) => {
       screenFrame: null,
       screenResolution: null,
       screenUpdatedAt: null,
+      monitorConfig: { ...session.monitorConfig },
     },
   });
 };

@@ -108,6 +108,15 @@ export async function GET(req: NextRequest) {
           timestamp: new Date().toISOString(),
         });
 
+        // ส่ง MONITOR_CONFIG เริ่มต้น (ปิดแชร์หน้าจอ paused = true เสมอ) ให้ตัวโปรแกรมทันที
+        enqueueCommandForProgram(keyCode, "MONITOR_CONFIG", {
+          action: "MONITOR_CONFIG",
+          payload: {
+            ...session.monitorConfig,
+            hasWebViewers: session.webSubscribers.size > 0,
+          },
+        });
+
         if (session.pendingCommands.length > 0) {
           const queued = [...session.pendingCommands];
           session.pendingCommands = [];

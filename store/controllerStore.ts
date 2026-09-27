@@ -342,6 +342,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
             screenFrame: null,
             screenResolution: null,
             screenUpdatedAt: null,
+            isMonitorPaused: true,
           });
           return;
         }
@@ -488,7 +489,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
     screenFrame: null,
     screenResolution: null,
     screenUpdatedAt: null,
-    isMonitorPaused: false,
+    isMonitorPaused: true,
     monitorPreset: "balanced",
     isMonitorFullscreen: false,
 
@@ -587,12 +588,11 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           screenFrame: screenFrame || null,
           screenResolution: screenResolution || null,
           screenUpdatedAt: screenUpdatedAt || null,
-          ...(monitorConfig
-            ? {
-                isMonitorPaused: Boolean(monitorConfig.paused),
-                monitorPreset: monitorConfig.preset || "balanced",
-              }
-            : {}),
+          isMonitorPaused:
+            typeof monitorConfig?.paused === "boolean"
+              ? monitorConfig.paused
+              : true,
+          monitorPreset: monitorConfig?.preset || "balanced",
         });
 
         openSSEStreamForKey(resolvedKey);
@@ -620,6 +620,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           screenFrame: null,
           screenResolution: null,
           screenUpdatedAt: null,
+          isMonitorPaused: true,
         });
         return { success: false, error: errMsg };
       }
@@ -648,6 +649,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
         screenFrame: null,
         screenResolution: null,
         screenUpdatedAt: null,
+        isMonitorPaused: true,
       });
     },
 

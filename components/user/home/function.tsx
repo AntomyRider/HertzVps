@@ -85,15 +85,15 @@ const getCardPositionClass = (diff: number) => {
     case 0:
       return "z-30 scale-100 opacity-100 translate-x-[-50%] translate-y-[-50%] rotate-0 shadow-[0_0_30px_-5px_rgba(59,130,246,0.15)]";
     case -1:
-      return "z-20 scale-[0.84] sm:scale-[0.88] opacity-65 sm:opacity-75 translate-x-[calc(-50%-105px)] sm:translate-x-[calc(-50%-180px)] md:translate-x-[calc(-50%-235px)] lg:translate-x-[calc(-50%-270px)] translate-y-[calc(-50%+16px)] sm:translate-y-[calc(-50%+26px)] md:translate-y-[calc(-50%+34px)] -rotate-[6deg] sm:-rotate-[8deg] cursor-pointer";
+      return "z-20 scale-[0.84] sm:scale-[0.88] opacity-65 sm:opacity-75 translate-x-[calc(-50%-105px)] sm:translate-x-[calc(-50%-180px)] md:translate-x-[calc(-50%-235px)] lg:translate-x-[calc(-50%-270px)] translate-y-[calc(-50%+12px)] sm:translate-y-[calc(-50%+20px)] md:translate-y-[calc(-50%+26px)] -rotate-[5deg] sm:-rotate-[7deg] cursor-pointer";
     case 1:
-      return "z-20 scale-[0.84] sm:scale-[0.88] opacity-65 sm:opacity-75 translate-x-[calc(-50%+105px)] sm:translate-x-[calc(-50%+180px)] md:translate-x-[calc(-50%+235px)] lg:translate-x-[calc(-50%+270px)] translate-y-[calc(-50%+16px)] sm:translate-y-[calc(-50%+26px)] md:translate-y-[calc(-50%+34px)] rotate-[6deg] sm:rotate-[8deg] cursor-pointer";
+      return "z-20 scale-[0.84] sm:scale-[0.88] opacity-65 sm:opacity-75 translate-x-[calc(-50%+105px)] sm:translate-x-[calc(-50%+180px)] md:translate-x-[calc(-50%+235px)] lg:translate-x-[calc(-50%+270px)] translate-y-[calc(-50%+12px)] sm:translate-y-[calc(-50%+20px)] md:translate-y-[calc(-50%+26px)] rotate-[5deg] sm:rotate-[7deg] cursor-pointer";
     case -2:
-      return "z-10 scale-[0.70] sm:scale-[0.74] opacity-0 sm:opacity-35 pointer-events-none sm:pointer-events-auto translate-x-[calc(-50%-180px)] sm:translate-x-[calc(-50%-330px)] md:translate-x-[calc(-50%-430px)] lg:translate-x-[calc(-50%-490px)] translate-y-[calc(-50%+45px)] sm:translate-y-[calc(-50%+75px)] md:translate-y-[calc(-50%+95px)] -rotate-[12deg] sm:-rotate-[16deg] cursor-pointer";
+      return "z-10 scale-[0.70] sm:scale-[0.74] opacity-0 sm:opacity-35 pointer-events-none sm:pointer-events-auto translate-x-[calc(-50%-180px)] sm:translate-x-[calc(-50%-330px)] md:translate-x-[calc(-50%-430px)] lg:translate-x-[calc(-50%-490px)] translate-y-[calc(-50%+30px)] sm:translate-y-[calc(-50%+50px)] md:translate-y-[calc(-50%+65px)] -rotate-[10deg] sm:-rotate-[14deg] cursor-pointer";
     case 2:
-      return "z-10 scale-[0.70] sm:scale-[0.74] opacity-0 sm:opacity-35 pointer-events-none sm:pointer-events-auto translate-x-[calc(-50%+180px)] sm:translate-x-[calc(-50%+330px)] md:translate-x-[calc(-50%+430px)] lg:translate-x-[calc(-50%+490px)] translate-y-[calc(-50%+45px)] sm:translate-y-[calc(-50%+75px)] md:translate-y-[calc(-50%+95px)] rotate-[12deg] sm:rotate-[16deg] cursor-pointer";
+      return "z-10 scale-[0.70] sm:scale-[0.74] opacity-0 sm:opacity-35 pointer-events-none sm:pointer-events-auto translate-x-[calc(-50%+180px)] sm:translate-x-[calc(-50%+330px)] md:translate-x-[calc(-50%+430px)] lg:translate-x-[calc(-50%+490px)] translate-y-[calc(-50%+30px)] sm:translate-y-[calc(-50%+50px)] md:translate-y-[calc(-50%+65px)] rotate-[10deg] sm:rotate-[14deg] cursor-pointer";
     default:
-      return "z-0 scale-50 opacity-0 pointer-events-none translate-x-[-50%] translate-y-[calc(-50%+140px)]";
+      return "z-0 scale-50 opacity-0 pointer-events-none translate-x-[-50%] translate-y-[calc(-50%+120px)]";
   }
 };
 
@@ -165,7 +165,7 @@ const FunctionHome = () => {
 
       {/* Semi-Circle Arc Showcase Arena - Full-width relative container without px */}
       <FadeIn direction="up" delay={120} duration={650} className="w-full">
-        <div className="relative mt-8 sm:mt-12 flex h-[340px] sm:h-[380px] md:h-[410px] w-full items-center justify-center">
+        <div className="relative mt-8 sm:mt-12 flex h-[350px] sm:h-[390px] md:h-[420px] w-full items-center justify-center">
           {/* Subtle Arc Guide Behind Cards */}
           <div
             aria-hidden="true"
@@ -201,6 +201,12 @@ const FunctionHome = () => {
                 onClick={() => {
                   if (!isCenter) setActiveIndex(index);
                 }}
+                style={{
+                  maskImage:
+                    "linear-gradient(to bottom, black 0%, black 72%, rgba(0, 0, 0, 0.6) 88%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to bottom, black 0%, black 72%, rgba(0, 0, 0, 0.6) 88%, transparent 100%)",
+                }}
                 className={`absolute left-1/2 top-1/2 flex h-[310px] w-[250px] sm:h-[340px] sm:w-[280px] md:h-[360px] md:w-[310px] flex-col justify-start rounded-md bg-neutral-950 p-4 sm:p-5 transition-all duration-500 ease-out ${positionClass}`}
               >
                 {/* Top Header: Step Badge + Tag */}
@@ -230,12 +236,6 @@ const FunctionHome = () => {
               </div>
             );
           })}
-
-          {/* Bottom fade overlay spanning 100% full width with zero px padding constraints */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-40 h-36 w-full bg-gradient-to-t from-black via-black/85 to-transparent sm:h-44 md:h-52"
-          />
         </div>
       </FadeIn>
 
