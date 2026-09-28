@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { signLicenseToken } from "@/lib/license-token";
 
 export async function POST(req: NextRequest) {
   try {
@@ -84,6 +85,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         message: "เปิดใช้งานคีย์และผูกเครื่องนี้สำเร็จเรียบร้อยแล้ว",
+        licenseToken: signLicenseToken({
+          code: actCode,
+          hwid: actHwid || cleanHwid,
+          licenseExpiresAt: actExpiresAt?.toISOString() || null,
+        }),
         key: {
           code: actCode,
           isActive: actIsActive,
@@ -110,6 +116,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "ตรวจสอบสิทธิ์สำเร็จ",
+      licenseToken: signLicenseToken({
+        code: keyCode,
+        hwid: currentHwid,
+        licenseExpiresAt: expiresAt?.toISOString() || null,
+      }),
       key: {
         code: keyCode,
         isActive,

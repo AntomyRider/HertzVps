@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { signLicenseToken } from "@/lib/license-token";
 
 export const dynamic = "force-dynamic";
 
@@ -112,10 +113,18 @@ async function handleCheckStatus({ code, hwid }: StatusPayload) {
     ? Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / 1000))
     : (durationDays || 30) * 86400;
 
+  // 6. ออก signed license token สำหรับการยืนยันแบบ offline ฝั่ง Desktop App
+  const licenseToken = signLicenseToken({
+    code: keyCode,
+    hwid: dbHwid || cleanHwid,
+    licenseExpiresAt: expiresAt?.toISOString() || null,
+  });
+
   return NextResponse.json({
     valid: true,
     status: "ACTIVE",
     message: "คีย์ถูกต้องและพร้อมใช้งาน",
+    licenseToken,
     key: {
       code: keyCode,
       isActive,
