@@ -56,6 +56,10 @@ export interface ControllerGroupItem {
   enabled: boolean;
   image: string | null;
   images: string[];
+  // ใช้กับ delta image sync จากโปรแกรม (ภายใน hub — UI อ่าน images อย่างเดียว)
+  imageNames?: string[];
+  imagePreviewsByName?: Record<string, string>;
+  imageHashByName?: Record<string, string>;
   links: string;
   content: string;
   comment: string;
@@ -128,6 +132,10 @@ interface ControllerState {
   monitorPreset: "smooth" | "balanced" | "hd";
   isMonitorFullscreen: boolean;
 
+  // App config (จากโปรแกรม — แก้ได้ผ่านหน้า setting)
+  config: Record<string, unknown> | null;
+  isSavingConfig: boolean;
+
   // Actions
   setInputKey: (val: string) => void;
   setShowKey: (show: boolean) => void;
@@ -145,6 +153,9 @@ interface ControllerState {
   setMonitorPreset: (preset: "smooth" | "balanced" | "hd") => Promise<void>;
   setIsMonitorFullscreen: (open: boolean) => void;
   sendRtcSignal: (payload: Record<string, unknown>) => Promise<void>;
+
+  // App config actions (ส่งคำสั่ง UPDATE_CONFIG — คืน null เมื่อส่งสำเร็จ หรือข้อความ error)
+  updateAppConfig: (patch: Record<string, unknown>) => Promise<string | null>;
 
   // Manage actions (Full CRUD -> /api/v1/public/controller/to-program)
   setAccountSearch: (search: string) => void;
@@ -381,6 +392,9 @@ export const useControllerStore = create<ControllerState>((set, get) => {
                 monitorPreset: data.monitorConfig.preset || state.monitorPreset,
               }
             : {}),
+          ...(data.config && typeof data.config === "object"
+            ? { config: data.config as Record<string, unknown> }
+            : {}),
           isConnected: true,
           error: null,
           isLoading: false,
@@ -467,6 +481,8 @@ export const useControllerStore = create<ControllerState>((set, get) => {
     isAuthChecking: true,
     showKey: false,
     connectError: null,
+    config: null,
+    isSavingConfig: false,
 
     stats: { ...EMPTY_STATS },
     chartData: buildZeroChartPoints("7d"),
@@ -690,6 +706,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
             accounts,
             groupsByAccount,
             logs,
+            config,
           },
         } = await axios.get<{
           stats: ControllerStats;
@@ -701,6 +718,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           accounts?: ControllerAccountItem[];
           groupsByAccount?: Record<string, ControllerGroupItem[]>;
           logs?: ControllerLogItem[];
+          config?: Record<string, unknown> | null;
         }>(`/api/v1/public/controller/from-program${query}`);
 
         set({
@@ -716,6 +734,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           ...(Array.isArray(accounts) ? { accounts } : {}),
           ...(groupsByAccount ? { groupsByAccount } : {}),
           ...(Array.isArray(logs) ? { logs } : {}),
+          ...(config && typeof config === "object" ? { config } : {}),
           isLoading: false,
           isRefreshing: false,
           error: null,
@@ -776,6 +795,31 @@ export const useControllerStore = create<ControllerState>((set, get) => {
 
     setIsMonitorFullscreen: (isMonitorFullscreen) =>
       set({ isMonitorFullscreen }),
+
+    updateAppConfig: async (patch) => {
+      const { keyCode } = get();
+      if (!keyCode) return "ยังไม่ได้เชื่อมต่อด้วย key";
+      set({ isSavingConfig: true });
+      try {
+        await axios.post("/api/v1/public/controller/to-program", {
+          code: keyCode,
+          action: "UPDATE_CONFIG",
+          payload: { config: patch },
+        });
+        // อัปเดต optimistic — ค่าจริงจะยืนยันกลับมาทาง snapshot หลังแอปนำไปใช้
+        set({
+          config: { ...(get().config || {}), ...patch },
+          isSavingConfig: false,
+        });
+        return null;
+      } catch (err) {
+        set({ isSavingConfig: false });
+        const message =
+          (err as { response?: { data?: { error?: string } } })?.response?.data
+            ?.error || "ส่งคำสั่งไม่สำเร็จ";
+        return message;
+      }
+    },
 
     sendRtcSignal: async (payload) => {
       const { keyCode } = get();

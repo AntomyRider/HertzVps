@@ -284,6 +284,7 @@ export async function POST(req: NextRequest) {
         success: true,
         isProgramOnline: true,
         commands,
+        sessionEpoch: session.epoch,
       });
     }
 
@@ -441,6 +442,7 @@ export async function POST(req: NextRequest) {
       monitorConfig: session.monitorConfig,
       snapshot,
       commands,
+      sessionEpoch: session.epoch,
     });
   } catch (err) {
     console.error("POST /api/v1/public/controller/from-program error:", err);
@@ -463,6 +465,7 @@ export async function PUT(req: NextRequest) {
       dailyStats,
       chartData,
       timeRange,
+      config,
     }: {
       code?: string;
       hwid?: string;
@@ -477,6 +480,7 @@ export async function PUT(req: NextRequest) {
       }>;
       chartData?: ControllerChartPoint[];
       timeRange?: ControllerTimeRange;
+      config?: Record<string, unknown>;
     } = await req.json();
 
     const { valid, error, status, keyCode, keyId } = await validateControllerKey(
@@ -493,10 +497,17 @@ export async function PUT(req: NextRequest) {
     const session = markProgramOnline(keyCode, keyId);
 
     if (groupsByAccount && typeof groupsByAccount === "object") {
-      session.groupsByAccount = normalizeGroupsByAccount(groupsByAccount);
+      // ส่ง session เดิมเข้าไปเพื่อเติมรูปแบบ delta (imagePreview ที่มาเป็น "hash:...")
+      session.groupsByAccount = normalizeGroupsByAccount(
+        groupsByAccount,
+        session.groupsByAccount
+      );
     }
     if (Array.isArray(accounts)) {
       session.accounts = normalizeAccounts(accounts, session.groupsByAccount);
+    }
+    if (config && typeof config === "object") {
+      session.config = config;
     }
     if (stats) {
       session.stats = stats;
@@ -520,6 +531,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({
       success: true,
       snapshot,
+      sessionEpoch: session.epoch,
     });
   } catch (err) {
     console.error("PUT /api/v1/public/controller/from-program error:", err);

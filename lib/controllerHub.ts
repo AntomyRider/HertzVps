@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import type {
   ControllerStats,
@@ -31,6 +32,7 @@ export type ControllerCommandType =
   | "DELETE_ALL_GROUPS"
   | "CLEAR_LOGS"
   | "MONITOR_CONFIG"
+  | "UPDATE_CONFIG"
   | "RTC_SIGNAL"
   // Legacy / Desktop alias actions in Hertz Auto Post
   | "START_ALL"
@@ -64,6 +66,8 @@ export interface ControllerSnapshot {
   screenResolution: string | null;
   screenUpdatedAt: string | null;
   monitorConfig: ControllerMonitorConfig;
+  config?: Record<string, unknown> | null;
+  epoch?: string;
 }
 
 export interface ControllerWebSSEEvent {
@@ -103,6 +107,9 @@ interface ControllerKeySession {
   lastHeartbeatAt: number;
   lastSeenAt?: number;
   offlineTimer: ReturnType<typeof setTimeout> | null;
+  // เปลี่ยนทุกครั้งที่สร้าง session ใหม่ (server restart) — โปรแกรมใช้รู้ว่าต้องส่งข้อมูลเต็มใหม่
+  epoch: string;
+  config?: Record<string, unknown>;
   stats: ControllerStats;
   lastKnownStats?: ControllerStats;
   chartDataByRange: Record<ControllerTimeRange, ControllerChartPoint[]>;
@@ -528,6 +535,7 @@ export const getOrCreateSession = (
     isReconnecting: false,
     lastHeartbeatAt: 0,
     offlineTimer: null,
+    epoch: crypto.randomBytes(8).toString("hex"),
     stats: {
       total: 0,
       success: 0,
@@ -707,6 +715,8 @@ export const getSessionSnapshot = (
       screenResolution: null,
       screenUpdatedAt: null,
       monitorConfig: { ...session.monitorConfig },
+      config: session.config ? { ...session.config } : null,
+      epoch: session.epoch,
     };
   }
 
@@ -726,6 +736,8 @@ export const getSessionSnapshot = (
     screenResolution: session.screenResolution,
     screenUpdatedAt: session.screenUpdatedAt,
     monitorConfig: { ...session.monitorConfig },
+    config: session.config ? { ...session.config } : null,
+    epoch: session.epoch,
   };
 };
 
@@ -1038,6 +1050,7 @@ export const buildGroupItem = (
     name?: string;
     images?: string[];
     imagePreviews?: Record<string, string>;
+    imageHashes?: Record<string, string>;
     links?: string | string[];
     content?: string;
     comment?: string;
@@ -1048,11 +1061,47 @@ export const buildGroupItem = (
     randomReaction?: boolean;
     isActive?: boolean;
   },
-  fallbackIndex = 1
+  fallbackIndex = 1,
+  previousItem?: ControllerGroupItem
 ): ControllerGroupItem => {
-  let resolvedImages: string[] = [];
+  // โปรแกรมส่งรูปแบบ delta: รูปที่ไม่เปลี่ยนจะมาเป็น "hash:<sha1>" — เติม base64 จาก session เดิม
+  const imagePreviewsByName: Record<string, string> = {};
+  const imageHashByName: Record<string, string> = {};
+  const incomingPreviews = rawGroup.imagePreviews || {};
+  const incomingHashes = rawGroup.imageHashes || {};
+  for (const [name, value] of Object.entries(incomingPreviews)) {
+    if (typeof value !== "string" || !value) continue;
+    if (value.startsWith("hash:")) {
+      const wanted = value.slice(5);
+      if (
+        previousItem?.imageHashByName?.[name] === wanted &&
+        previousItem?.imagePreviewsByName?.[name]
+      ) {
+        imagePreviewsByName[name] = previousItem.imagePreviewsByName[name];
+        imageHashByName[name] = wanted;
+      }
+    } else {
+      imagePreviewsByName[name] = value;
+      if (incomingHashes[name]) imageHashByName[name] = incomingHashes[name];
+    }
+  }
+  for (const [name, hash] of Object.entries(incomingHashes)) {
+    if (!imageHashByName[name]) imageHashByName[name] = hash;
+  }
 
-  if (
+  const imageNames = Array.isArray(rawGroup.images)
+    ? rawGroup.images.filter((n) => typeof n === "string" && n)
+    : [];
+
+  // เรียงรูปตามชื่อไฟล์จากโปรแกรม, กลุ่มที่เว็บสร้างเอง (ไม่มี imageNames) ใช้ลำดับเดิม
+  let resolvedImages: string[] = [];
+  if (imageNames.length > 0) {
+    resolvedImages = imageNames
+      .map((n) => imagePreviewsByName[n])
+      .filter((v): v is string => Boolean(v));
+  } else if (Object.keys(imagePreviewsByName).length > 0) {
+    resolvedImages = Object.values(imagePreviewsByName).filter(Boolean);
+  } else if (
     rawGroup.imagePreviews &&
     typeof rawGroup.imagePreviews === "object" &&
     Object.keys(rawGroup.imagePreviews).length > 0
@@ -1097,6 +1146,9 @@ export const buildGroupItem = (
     enabled: resolvedEnabled,
     image: resolvedImages.length > 0 ? resolvedImages[0] : null,
     images: resolvedImages,
+    imageNames,
+    imagePreviewsByName,
+    imageHashByName,
     links: resolvedLinks,
     content: rawGroup.content || "",
     comment: resolvedComment,
@@ -1108,7 +1160,8 @@ export const buildGroupItem = (
 };
 
 export const normalizeGroupsByAccount = (
-  rawGroupsByAccount: Record<string, unknown[]>
+  rawGroupsByAccount: Record<string, unknown[]>,
+  previousByAccount?: Record<string, ControllerGroupItem[]>
 ): Record<string, ControllerGroupItem[]> => {
   const result: Record<string, ControllerGroupItem[]> = {};
   for (const [accountId, list] of Object.entries(rawGroupsByAccount)) {
@@ -1116,13 +1169,15 @@ export const normalizeGroupsByAccount = (
       result[accountId] = [];
       continue;
     }
-    result[accountId] = list.map((item, idx) =>
-      buildGroupItem(
-        accountId,
-        (item || {}) as Parameters<typeof buildGroupItem>[1],
-        idx + 1
-      )
-    );
+    const previousList = previousByAccount?.[accountId];
+    result[accountId] = list.map((item, idx) => {
+      const raw = (item || {}) as Parameters<typeof buildGroupItem>[1];
+      const groupId = String(raw.id || "");
+      const previousItem = groupId
+        ? (previousList || []).find((p) => p.id === groupId)
+        : undefined;
+      return buildGroupItem(accountId, raw, idx + 1, previousItem);
+    });
   }
   return result;
 };

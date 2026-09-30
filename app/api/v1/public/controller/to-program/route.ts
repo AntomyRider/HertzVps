@@ -182,7 +182,8 @@ export async function POST(req: NextRequest) {
         | "RTC_SIGNAL"
         | "CREATE_GROUP"
         | "START_ALL_ACCOUNTS"
-        | "STOP_ALL_ACCOUNTS";
+        | "STOP_ALL_ACCOUNTS"
+        | "UPDATE_CONFIG";
       accountId?: string;
       payload?: {
         name?: string;
@@ -198,6 +199,7 @@ export async function POST(req: NextRequest) {
         signalType?: string;
         sdp?: unknown;
         candidate?: unknown;
+        config?: Record<string, unknown>;
       };
       timeRange?: ControllerTimeRange;
     } = await req.json();
@@ -364,6 +366,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         accounts: session.accounts,
+        logs: session.logs,
+        command,
+      });
+    }
+
+    if (action === "UPDATE_CONFIG") {
+      const configPayload = payload?.config;
+      if (!configPayload || typeof configPayload !== "object") {
+        return NextResponse.json(
+          { error: "ต้องระบุ config ที่จะอัปเดต" },
+          { status: 400 }
+        );
+      }
+
+      const command = enqueueCommandForProgram(keyCode, "UPDATE_CONFIG", {
+        action: "UPDATE_CONFIG",
+        payload: { config: configPayload },
+      });
+
+      const now = formatCurrentThaiTime();
+      const configLog: ControllerLogItem = {
+        id: `log_${Date.now()}_cfg`,
+        timestamp: now,
+        accountId: "system",
+        accountName: "WEB",
+        action: "SYSTEM",
+        status: "INFO",
+        message: "เว็บส่งคำสั่งอัปเดตการตั้งค่าให้โปรแกรม",
+      };
+      session.logs = [...session.logs, configLog].slice(-500);
+
+      broadcastToWeb(keyCode, {
+        type: "STATE_UPDATED",
+        data: { logs: [...session.logs] },
+      });
+
+      return NextResponse.json({
+        success: true,
         logs: session.logs,
         command,
       });
