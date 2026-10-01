@@ -26,7 +26,12 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
-  const baseUrl = new URL("/", req.url);
+  // req.url reflects the bind address (0.0.0.0:3000) behind nginx/CF, not the public host —
+  // derive the redirect base from the canonical OAuth origin instead
+  const {
+    DISCORD_REDIRECT_URI: redirectUri = "https://hertzx.xyz/api/v1/auth/discord/callback",
+  } = process.env;
+  const baseUrl = new URL("/", redirectUri);
 
   if (error || !code) {
     console.error("Discord OAuth error or missing code:", error);
@@ -49,7 +54,6 @@ export async function GET(req: NextRequest) {
   const {
     DISCORD_CLIENT_ID: clientId,
     DISCORD_CLIENT_SECRET: clientSecret,
-    DISCORD_REDIRECT_URI: redirectUri = "https://hertzx.xyz/api/v1/auth/discord/callback",
   } = process.env;
 
   if (!clientId || !clientSecret) {
@@ -145,7 +149,7 @@ export async function GET(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(baseUrl);
   } catch (err: any) {
     console.error("Discord OAuth Callback Exception:", err.response?.data || err.message);
     baseUrl.searchParams.set("auth_error", "oauth_failed");
