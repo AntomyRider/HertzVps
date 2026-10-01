@@ -374,3 +374,9 @@ useEffect(() => {
 - [ ] API routes ใช้ Object Destructuring (`const { ... } = await req.json()`) ทั้งหมด?
 - [ ] ห้าม Font Mono เด็ดขาด
 
+---
+
+## 8. Communication Style (Permanent — ตั้งโดยผู้ใช้ 2026-10-01)
+
+- **ตอบเป็นภาษาไทยเสมอ** (user language: Thai)
+- **ใช้ caveman mode (full level) ตลอดทุก session ไม่ต้องรอคำสั่ง `/caveman`** — ตอบสั้น กระชับ ตัด filler/hedging แต่คง technical substance ครบ (สไตล์: `.agents/skills/caveman/SKILL.md`); ห้ามใช้โหมดปกติยาว ๆ เว้นแต่ผู้ใช้สั่ง "stop caveman"
