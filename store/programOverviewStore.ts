@@ -25,6 +25,9 @@ export interface KeyProgramHealth {
   lastHeartbeatAt: number;
   lastSeenAt: number;
   accountCount: number;
+  version: string;
+  onlineSince: number | null;
+  offlineSince: number | null;
   stats: ControllerStats;
   successRate: number;
   actions: Record<"POST" | "COMMENT" | "REACTION", ActionHealthMetric>;
@@ -109,7 +112,7 @@ export const useProgramOverviewStore = create<ProgramOverviewState>((set, get) =
   error: null,
   search: "",
   statusFilter: "ALL",
-  autoRefreshInterval: 10_000,
+  autoRefreshInterval: 3_000,
 
   selectedKeyHealth: null,
   isDetailOpen: false,

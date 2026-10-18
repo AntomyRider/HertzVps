@@ -32,7 +32,7 @@ export default function TaskManageController({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium text-neutral-500">Task</p>
+          <p className="text-2xs font-medium text-neutral-500">Task</p>
           <p className="truncate text-xs font-semibold text-neutral-200">
             {currentTask}
           </p>
@@ -46,7 +46,7 @@ export default function TaskManageController({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium text-neutral-500">Groups</p>
+          <p className="text-2xs font-medium text-neutral-500">Groups</p>
           <p className="truncate text-xs font-semibold text-neutral-200">
             {groupName || "ยังไม่ได้เลือกกลุ่ม"}{" "}
             <span className="text-blue-400">

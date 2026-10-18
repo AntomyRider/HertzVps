@@ -29,10 +29,10 @@ export const CategoryCard = ({
   const linkHref = href || (id ? `/shop/${id}` : "/shop");
 
   return (
-    <div className="rounded-md border border-neutral-800 bg-neutral-950 p-3 sm:p-3.5 transition-colors hover:border-neutral-700">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-3 sm:p-3.5 transition-colors hover:border-neutral-700">
       {/* Banner Image as Link */}
       <Link href={linkHref} className="block group">
-        <div className="relative aspect-[16/5] sm:aspect-[16/4] w-full overflow-hidden rounded-sm bg-neutral-900">
+        <div className="relative aspect-[16/5] sm:aspect-[16/4] w-full overflow-hidden rounded-xl bg-neutral-900 sm:rounded-2xl">
           {isValidImageUrl(image) ? (
             <Image
               src={image!}
@@ -58,14 +58,15 @@ export const CategoryCard = ({
             </h3>
           </Link>
 
-          <p className="mt-0.5 sm:mt-1 truncate text-[11px] sm:text-xs text-neutral-400">
+          <p className="mt-0.5 sm:mt-1 truncate text-2xs sm:text-xs text-neutral-400">
             {description}
           </p>
         </div>
 
         <ButtonUI
+          variant="primary"
           href={linkHref}
-          className="shrink-0 rounded-sm px-3 py-1.5 sm:px-4 sm:py-2 text-xs text-white transition-colors sm:text-sm"
+          className="shrink-0  sm:px-4  text-xs text-white transition-colors"
         >
           สินค้าทั้งหมด
         </ButtonUI>

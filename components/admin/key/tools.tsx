@@ -87,14 +87,14 @@ const ToolsKey = () => {
     <>
       <FadeIn
         direction="up"
-        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
           <SearchUI
             value={search}
             onChange={handleSearchChange}
             placeholder="ค้นหารหัสคีย์..."
-            className="rounded-sm flex-1"
+            className="flex-1"
           />
 
           <div className="w-full sm:w-36">
@@ -114,7 +114,7 @@ const ToolsKey = () => {
             <button
               type="button"
               onClick={clearSelectedKeys}
-              className="rounded-sm border border-neutral-800 px-3 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white cursor-pointer col-span-2 sm:col-span-1"
+              className="rounded-full border border-neutral-800 px-3 py-2 text-xs text-neutral-400 transition hover:bg-neutral-900 hover:text-white cursor-pointer col-span-2 sm:col-span-1"
             >
               ยกเลิก ({selectedKeyIds.length})
             </button>
@@ -125,7 +125,7 @@ const ToolsKey = () => {
             type="button"
             disabled={keys.length === 0}
             onClick={() => setIsAddTimeAllOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-sm border border-neutral-800 bg-neutral-900 text-xs font-medium text-neutral-300 transition hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center justify-center gap-2 border border-neutral-800 bg-neutral-900 text-xs text-neutral-300 transition hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Clock size={15} />
             <span>เพิ่มวันทั้งหมด</span>
@@ -136,7 +136,7 @@ const ToolsKey = () => {
             type="button"
             disabled={(!hasSelection && keys.length === 0) || isDeleting}
             onClick={() => setIsConfirmOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-sm bg-red-600/90 text-xs font-medium text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center justify-center gap-2  bg-red-600/90 text-xs text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Trash size={15} />
             <span className="truncate">
@@ -150,7 +150,7 @@ const ToolsKey = () => {
           <ButtonUI
             type="button"
             onClick={() => setIsCreateOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-sm bg-blue-600 text-xs font-medium text-white transition hover:bg-blue-500 col-span-2 sm:col-span-1"
+            className="flex items-center justify-center gap-2  text-xs text-white transition  col-span-2 sm:col-span-1"
           >
             <Plus size={15} />
             <span>สร้างคีย์</span>
@@ -186,7 +186,7 @@ const ToolsKey = () => {
               type="button"
               disabled={isDeleting}
               onClick={() => setIsConfirmOpen(false)}
-              className="rounded-sm border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white cursor-pointer"
+              className="rounded-sm border border-neutral-800 px-4 py-2 text-xs text-neutral-400 transition hover:bg-neutral-900 hover:text-white cursor-pointer"
             >
               ยกเลิก
             </button>
@@ -194,7 +194,7 @@ const ToolsKey = () => {
               type="button"
               disabled={isDeleting}
               onClick={handleDeleteConfirm}
-              className="flex items-center gap-1.5 rounded-sm bg-red-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-red-500 disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-sm bg-red-600 px-4 py-2 text-xs text-white transition hover:bg-red-500 disabled:opacity-50 cursor-pointer"
             >
               {isDeleting && <Loader2 size={13} className="animate-spin" />}
               <span>

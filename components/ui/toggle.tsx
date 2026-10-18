@@ -1,5 +1,5 @@
-import * as React from "react";
 
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface ToggleProps {
@@ -7,6 +7,7 @@ export interface ToggleProps {
   onCheckedChange?: (checked: boolean) => void;
   activeText?: string;
   inactiveText?: string;
+  innerCircle?: boolean;
   disabled?: boolean;
   className?: string;
   size?: "sm" | "md";
@@ -17,8 +18,6 @@ export const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
     {
       checked = false,
       onCheckedChange,
-      activeText = "เปิด",
-      inactiveText = "ปิด",
       disabled = false,
       className,
       size = "sm",
@@ -26,64 +25,44 @@ export const Toggle = React.forwardRef<HTMLButtonElement, ToggleProps>(
     },
     ref
   ) => {
-    const handleClick = () => {
-      if (!disabled && onCheckedChange) {
-        onCheckedChange(!checked);
-      }
-    };
-
     const isSm = size === "sm";
 
     return (
       <button
+        ref={ref}
         type="button"
         role="switch"
         aria-checked={checked}
         disabled={disabled}
-        ref={ref}
-        onClick={handleClick}
+        onClick={() => onCheckedChange?.(!checked)}
         className={cn(
-          "group relative inline-flex items-center rounded-sm border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] select-none cursor-pointer focus:outline-none",
-          isSm ? "h-7 min-w-[72px]" : "h-8 min-w-[82px]",
+          "relative inline-flex shrink-0 items-center rounded-full",
+          "border border-transparent p-0.5",
+          "transition-colors duration-200 ease-in-out",
+          "focus-visible:outline-none focus-visible:ring-2",
+          "focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2",
+          "focus-visible:ring-offset-neutral-950",
+          isSm ? "h-5 w-9" : "h-6 w-11",
           checked
-            ? "border-[#249d3f]/90 bg-gradient-to-b from-[#28a745] via-[#30b94f] to-[#34c759] shadow-[inset_0_2px_4px_rgba(0,0,0,0.35),inset_0_1px_1.5px_rgba(0,0,0,0.25),0_1px_0_rgba(255,255,255,0.08)]"
-            : "border-neutral-800/90 bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-800/90 shadow-[inset_0_2px_5px_rgba(0,0,0,0.85),inset_0_1px_2px_rgba(0,0,0,0.7),0_1px_0_rgba(255,255,255,0.06)] hover:border-neutral-700/80",
-          disabled && "cursor-not-allowed opacity-50",
+            ? "bg-emerald-500"
+            : "bg-neutral-700 hover:bg-neutral-600",
+          "disabled:cursor-not-allowed disabled:opacity-40",
           className
         )}
         {...props}
       >
-        {/* Square Sliding Thumb */}
         <span
           className={cn(
-            "pointer-events-none absolute top-0.5 rounded-sm transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            "bg-gradient-to-b from-white via-[#f8f8fa] to-[#dcdce2]",
-            "shadow-[0_2px_5px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.12)]",
-            isSm
-              ? "h-5.5 w-5.5 group-active:w-6.5"
-              : "h-6.5 w-6.5 group-active:w-7.5",
+            "pointer-events-none block shrink-0 rounded-full bg-white",
+            "shadow-sm transition-transform duration-200 ease-in-out",
+            isSm ? "size-4" : "size-5",
             checked
               ? isSm
-                ? "left-[calc(100%-1.5rem)] group-active:left-[calc(100%-1.75rem)]"
-                : "left-[calc(100%-1.75rem)] group-active:left-[calc(100%-2rem)]"
-              : "left-0.5"
+                ? "translate-x-4"
+                : "translate-x-5"
+              : "translate-x-0"
           )}
-        >
-          {/* Inner Square Highlight */}
-          <span className="absolute inset-[1.5px] rounded-[2px] bg-gradient-to-b from-white/90 to-transparent" />
-        </span>
-
-        {/* Text */}
-        <span
-          className={cn(
-            "w-full text-[11px] leading-none transition-all duration-300 select-none",
-            checked
-              ? "text-left pl-2 pr-6 font-semibold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.35)]"
-              : "text-right pl-6 pr-2 font-medium text-neutral-400 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
-          )}
-        >
-          {checked ? activeText : inactiveText}
-        </span>
+        />
       </button>
     );
   }

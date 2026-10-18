@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   X,
@@ -59,21 +58,15 @@ export const AdminMobileDrawer = ({
       />
 
       {/* Drawer Panel */}
-      <aside className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-neutral-900 bg-neutral-950 px-4 py-5 text-white shadow-2xl transition-transform animate-in slide-in-from-left duration-200">
+      <aside className="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[85vw] flex-col border-r border-neutral-800 bg-neutral-950 px-4 py-6 text-white shadow-2xl transition-transform animate-in slide-in-from-left duration-200">
         {/* Drawer Header */}
-        <div className="flex items-center justify-between border-b border-neutral-900 pb-4">
+        <div className="mb-6 flex items-center justify-between px-3">
           <Link
             href="/admin"
             onClick={onClose}
             className="flex items-center gap-2"
           >
-            <Image
-              src="/hertz_logo.png"
-              alt="Hertz"
-              width={80}
-              height={26}
-              className="h-6 w-auto object-contain"
-            />
+            <h1 className="text-lg font-bold">HERTZ PANEL</h1>
           </Link>
 
           <button
@@ -87,10 +80,10 @@ export const AdminMobileDrawer = ({
         </div>
 
         {/* Navigation Menus */}
-        <nav className="flex-1 overflow-y-auto py-5 space-y-6">
+        <nav className="flex flex-1 flex-col gap-6 overflow-y-auto">
           {menuGroups.map((group) => (
             <div key={group.title}>
-              <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
+              <p className="mb-2 px-3 text-2xs font-medium uppercase tracking-wider text-neutral-600">
                 {group.title}
               </p>
 
@@ -110,13 +103,13 @@ export const AdminMobileDrawer = ({
                       key={menu.href}
                       href={menu.href}
                       onClick={onClose}
-                      className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-medium transition ${
+                      className={`flex items-center gap-3 rounded-full px-4 py-2 text-sm transition ${
                         isActive
-                          ? "bg-blue-500/10 text-blue-500"
-                          : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                          ? "bg-neutral-800 text-white"
+                          : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                       }`}
                     >
-                      <Icon size={16} strokeWidth={1.8} />
+                      <Icon size={18} strokeWidth={1.8} />
                       <span>{menu.label}</span>
                     </Link>
                   );
@@ -127,11 +120,11 @@ export const AdminMobileDrawer = ({
         </nav>
 
         {/* Bottom BackUI Button */}
-        <div className="border-t border-neutral-900 pt-3" onClick={onClose}>
+        <div className="border-t border-neutral-900 pt-4" onClick={onClose}>
           <BackUI
             href="/"
             text="กลับสู่หน้าหลัก"
-            className="w-full rounded-md px-3 py-2 text-xs font-medium hover:bg-neutral-900"
+            className="w-full rounded-sm px-3 py-2.5 text-sm hover:bg-blue-500/10"
           />
         </div>
       </aside>

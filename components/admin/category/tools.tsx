@@ -47,14 +47,13 @@ const ToolsCategory = () => {
     <>
       <FadeIn
         direction="up"
-        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         {/* Search Input */}
         <SearchUI
           value={search}
           onChange={handleSearchChange}
           placeholder="ค้นหาหมวดหมู่..."
-          className="rounded-sm"
         />
 
         {/* Action Buttons */}
@@ -64,7 +63,7 @@ const ToolsCategory = () => {
             type="button"
             disabled={categories.length === 0 || isDeleting}
             onClick={() => setIsConfirmOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-sm bg-red-600/90 text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center justify-center gap-2  bg-red-600/90 text-white hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Trash size={16} />
             <span>ลบทั้งหมด</span>
@@ -74,7 +73,7 @@ const ToolsCategory = () => {
           <ButtonUI
             type="button"
             onClick={() => setIsCreateOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-sm bg-blue-600 text-white hover:bg-blue-500"
+            className="flex items-center justify-center gap-2 text-white "
           >
             <Plus size={16} />
             <span>เพิ่มหมวดหมู่</span>

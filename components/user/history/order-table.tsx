@@ -150,7 +150,7 @@ export const OrderHistoryTable = () => {
                           <span className="block truncate text-sm font-semibold text-white">
                             {order.productName}
                           </span>
-                          <span className="text-[11px] text-neutral-500">
+                          <span className="text-2xs text-neutral-500">
                             #{order.id.slice(-8)}
                           </span>
                         </div>
@@ -159,8 +159,8 @@ export const OrderHistoryTable = () => {
 
                     {/* Quantity */}
                     <TableCell className="text-center">
-                      <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-900/60 px-2 py-0.5 text-xs font-medium text-neutral-300">
-                        x{order.quantity || 1} ชิ้น
+                      <span className="inline-flex items-center rounded-full border border-neutral-800 bg-neutral-900/60 px-4 py-0.5 text-xs font-medium text-neutral-300">
+                        x{order.quantity || 1} 
                       </span>
                     </TableCell>
 
@@ -183,7 +183,7 @@ export const OrderHistoryTable = () => {
                       <button
                         type="button"
                         onClick={() => setViewingUserOrder(order)}
-                        className="inline-flex items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-900/80 px-2.5 py-1.5 text-xs font-medium text-neutral-300 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900/80 px-2.5 py-1.5 text-xs font-medium text-neutral-300 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400 cursor-pointer"
                       >
                         <Eye size={13} />
                         <span>ดูข้อมูล</span>

@@ -93,7 +93,8 @@ export const StockProductDialog = () => {
           <div className="flex items-center justify-between border-y border-neutral-800/80 py-2.5 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-neutral-400">จำนวนสต็อกที่พร้อมขาย:</span>
-              <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 font-bold text-emerald-400">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 font-bold text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 {validStockItems.length} ชิ้น
               </span>
             </div>
@@ -102,7 +103,7 @@ export const StockProductDialog = () => {
               <button
                 type="button"
                 onClick={handleCleanEmptyLines}
-                className="text-[11px] text-neutral-400 underline transition hover:text-white cursor-pointer"
+                className="text-2xs text-neutral-400 underline transition hover:text-white cursor-pointer"
               >
                 ลบบรรทัดว่าง
               </button>
@@ -130,7 +131,7 @@ export const StockProductDialog = () => {
                 {stockError}
               </span>
             )}
-            <span className="mt-1.5 block text-[11px] text-neutral-500">
+            <span className="mt-1.5 block text-2xs text-neutral-500">
               * ตัวอย่าง: สามารถใส่เป็น License Key, ลิงก์ดาวน์โหลด, หรือ User:Pass ได้
             </span>
           </div>

@@ -23,7 +23,7 @@ export default function ToolsGroupManageController({
   return (
     <FadeIn
       direction="up"
-      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
     >
       {/* Search Input using SearchUI */}
       <SearchUI

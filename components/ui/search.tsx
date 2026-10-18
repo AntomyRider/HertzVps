@@ -15,7 +15,7 @@ const SearchUI = ({
   return (
     <div
       className={cn(
-        "flex h-10 w-full sm:w-auto items-center gap-2 rounded-md border border-neutral-800 bg-neutral-900 px-3 transition-colors focus-within:border-neutral-700",
+        "flex h-10 w-full sm:w-auto items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900 px-3 transition-colors focus-within:border-neutral-700",
         className
       )}
     >

@@ -42,7 +42,7 @@ export const AdminTopupMobileCard = ({ payment }: AdminTopupMobileCardProps) => 
             <h4 className="truncate text-xs sm:text-sm font-semibold text-white">
               {payment.userName}
             </h4>
-            <p className="truncate text-[10px] text-neutral-500">
+            <p className="truncate text-2xs text-neutral-500">
               ID: {payment.userDiscordId}
             </p>
           </div>
@@ -60,25 +60,27 @@ export const AdminTopupMobileCard = ({ payment }: AdminTopupMobileCardProps) => 
       <div className="flex items-center justify-between rounded-sm bg-neutral-950/60 px-2.5 py-1.5 text-xs">
         <div className="min-w-0 flex-1 pr-2">
           {payment.voucherCode && (
-            <p className="truncate text-[11px] text-neutral-300">
+            <p className="truncate text-2xs text-neutral-300">
               รหัส: {payment.voucherCode}
             </p>
           )}
-          <p className="truncate text-[10px] text-neutral-500">
+          <p className="truncate text-2xs text-neutral-500">
             {payment.senderName ? `ผู้ส่ง: ${payment.senderName}` : payment.note || "-"}
           </p>
         </div>
 
-        <span className="inline-flex items-center rounded-sm border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-[10px] font-semibold text-orange-400 shrink-0">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-2xs font-semibold text-orange-400 shrink-0">
+          <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
           TrueMoney
         </span>
       </div>
 
       {/* Bottom: Date & Status */}
       <div className="flex items-center justify-between border-t border-neutral-900 pt-2.5 text-xs">
-        <span className="text-[10px] text-neutral-500">{formattedDate}</span>
+        <span className="text-2xs text-neutral-500">{formattedDate}</span>
 
-        <span className="inline-flex items-center rounded-sm border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-2xs font-semibold text-emerald-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
           สำเร็จ
         </span>
       </div>

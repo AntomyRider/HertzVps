@@ -12,6 +12,8 @@ import {
   User as UserIcon,
   type LucideIcon,
   KeySquare,
+  CreditCard,
+  Usb,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { isValidImageUrl } from "@/lib/utils";
@@ -27,7 +29,11 @@ interface DropdownMenuItem {
   onClick?: () => void;
 }
 
-export const DiscordIcon = ({ className = "h-4 w-4 fill-current" }: { className?: string }) => (
+export const DiscordIcon = ({
+  className = "h-4 w-4 fill-current",
+}: {
+  className?: string;
+}) => (
   <svg className={className} viewBox="0 0 127.14 96.36">
     <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z" />
   </svg>
@@ -60,14 +66,24 @@ const AvatarUser = () => {
 
   if (!user) {
     return (
-      <a
-        href="/api/v1/auth/discord"
-        className="flex items-center gap-2 rounded-full bg-[#5865F2] px-3.5 sm:px-4 py-2 text-xs font-medium text-white transition hover:bg-[#4752C4] shadow-sm"
-      >
-        <DiscordIcon />
-        <span className="hidden sm:inline">เข้าสู่ระบบด้วย Discord</span>
-        <span className="sm:hidden">เข้าสู่ระบบ</span>
-      </a>
+      <div className="flex items-center gap-2">
+        <a
+          href="/api/v1/auth/discord"
+          className="flex items-center gap-2 rounded-full bg-[#5865F2] px-3.5 sm:px-4 py-2 text-xs text-white transition hover:bg-[#4752C4] shadow-sm cursor-pointer"
+        >
+          <DiscordIcon />
+          <span>เข้าสู่ระบบ</span>
+        </a>
+        {process.env.NODE_ENV !== "production" && (
+          <a
+            href="/api/v1/auth/dev-login"
+            className="flex items-center gap-1 rounded-sm border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-2xs font-medium text-amber-400 transition hover:bg-amber-500/20 cursor-pointer"
+            title="เข้าสู่ระบบทันทีใน Dev Mode (Admin)"
+          >
+            Dev Login
+          </a>
+        )}
+      </div>
     );
   }
 
@@ -77,6 +93,12 @@ const AvatarUser = () => {
       href: "/history?tab=orders",
       icon: ShoppingBag,
       iconColor: "text-white-500",
+    },
+    {
+      label: "ควบคุมโปรแกรม",
+      href: "/controller",
+      icon: Usb,
+      iconColor: "text-blue-400",
     },
     {
       label: "จัดการระบบ",
@@ -99,121 +121,107 @@ const AvatarUser = () => {
   );
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Unified User & Balance Trigger Button */}
-      <button
-        onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="flex items-center gap-2.5 rounded-sm px-4 border border-neutral-800 bg-neutral-900/70 py-1 pr-3.5 transition hover:border-neutral-700 hover:bg-neutral-900 cursor-pointer"
-      >
-        {isValidImageUrl(user.avatar) ? (
-          <Image
-            src={user.avatar!}
-            alt={user.name}
-            width={34}
-            height={34}
-            className="h-8.5 w-8.5 rounded-full object-cover ring-1 ring-neutral-800"
-            unoptimized={user.avatar!.startsWith("http")}
-          />
-        ) : (
-          <div className="flex h-8.5 w-8.5 items-center justify-center rounded-full bg-blue-600 text-white">
-            <UserIcon size={16} />
-          </div>
-        )}
+    <div className="flex items-center gap-2">
+      <div className="inline-flex items-center gap-2 sm:gap-3 rounded-full border border-neutral-800 bg-neutral-900 px-2.5 sm:px-4 py-1.5 sm:py-2 text-2xs sm:text-xs text-cyan-400">
+        <CreditCard size={14} className="shrink-0 text-cyan-500 sm:w-4 sm:h-4" />
 
-        <div className="flex flex-col items-start text-left leading-tight">
-          <span className="max-w-[120px] truncate text-xs font-semibold text-white">
-            {user.name}
-          </span>
-          <span className="text-[11px] font-medium text-emerald-400">
-            ฿
-            {Number(user.balance).toLocaleString("th-TH", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
-        </div>
+        <span className="h-3 sm:h-4 w-px bg-neutral-700" />
 
-        <ChevronDown
-          size={14}
-          className={`text-neutral-400 transition-transform duration-200 ml-0.5 ${
-            dropdownOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+        <span className="font-mono tabular-nums">
+          {Number(user.balance).toLocaleString("th-TH", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </span>
+      </div>
+      <div className="relative" ref={dropdownRef}>
+        {/* Unified User & Balance Trigger Button */}
+        <button
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className="flex items-center gap-2.5 rounded-full transition hover:border-neutral-700 hover:bg-neutral-900 cursor-pointer"
+        >
+          {isValidImageUrl(user.avatar) ? (
+            <Image
+              src={user.avatar!}
+              alt={user.name}
+              width={34}
+              height={34}
+              className="h-8 w-8 rounded-full object-cover"
+              unoptimized={user.avatar!.startsWith("http")}
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white">
+              <UserIcon size={16} />
+            </div>
+          )}
+        </button>
 
-      {/* Dropdown Menu */}
-      {dropdownOpen && (
-        <div className="absolute right-0 top-full mt-2 w-56 rounded-sm border border-neutral-800 bg-neutral-950 p-2 shadow-2xl backdrop-blur-xl z-50">
-          {/* User info header */}
-          <div className="border-b border-neutral-900 px-3 py-2.5">
-            <p className="truncate text-sm font-semibold text-white">
-              {user.name}
-            </p>
-            <div className="mt-1 flex items-center justify-between text-xs"></div>
-            <div className="mt-2 flex items-center justify-between rounded-sm bg-neutral-900/60 px-2 py-2 text-xs">
-              <span className="text-neutral-400">คงเหลือ:</span>
-              <span className="font-semibold text-emerald-400">
-                ฿
-                {Number(user.balance).toLocaleString("th-TH", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
+        {/* Dropdown Menu */}
+
+        {dropdownOpen && (
+          <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 p-2 shadow-2xl shadow-black/40">
+            {/* User info header */}
+            <div className="px-3 pb-3 pt-2">
+              <p className="truncate text-sm font-semibold text-white">
+                {user.name}
+              </p>
+            </div>
+
+            {/* Menu items */}
+            <div className="space-y-1 border-t border-neutral-800/80 pt-2">
+              {visibleMenuItems.map((item, index) => {
+                const Icon = item.icon;
+
+                const content = (
+                  <>
+                    <Icon
+                      size={16}
+                      className={
+                        item.iconColor ||
+                        (item.isDanger ? "text-red-400" : "text-neutral-400")
+                      }
+                    />
+                    <span>{item.label}</span>
+                  </>
+                );
+
+                const itemClass = item.isDanger
+                  ? "flex w-full items-center gap-3 rounded-full px-3 py-2 text-xs text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  : "flex w-full items-center gap-3 rounded-full px-3 py-2 text-xs text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white";
+
+                return (
+                  <div key={item.href || item.label || index}>
+                    {item.hasDivider && (
+                      <div className="my-2 border-t border-neutral-800/80" />
+                    )}
+
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        onClick={() => setDropdownOpen(false)}
+                        className={itemClass}
+                      >
+                        {content}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          item.onClick?.();
+                        }}
+                        className={itemClass}
+                      >
+                        {content}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
-
-          {/* Menu items */}
-          <div className="mt-1 space-y-1">
-            {visibleMenuItems.map((item, index) => {
-              const Icon = item.icon;
-              const content = (
-                <>
-                  <Icon
-                    size={16}
-                    className={
-                      item.iconColor ||
-                      (item.isDanger ? "text-red-400" : "text-neutral-400")
-                    }
-                  />
-                  <span>{item.label}</span>
-                </>
-              );
-
-              const itemClass = item.isDanger
-                ? "flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-xs text-red-400 transition hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
-                : "flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-xs text-neutral-300 transition hover:bg-neutral-900 hover:text-white cursor-pointer";
-
-              return (
-                <div key={item.href || item.label || index}>
-                  {item.hasDivider && (
-                    <div className="my-1 border-t border-neutral-900" />
-                  )}
-                  {item.href ? (
-                    <Link
-                      href={item.href}
-                      onClick={() => setDropdownOpen(false)}
-                      className={itemClass}
-                    >
-                      {content}
-                    </Link>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDropdownOpen(false);
-                        item.onClick?.();
-                      }}
-                      className={itemClass}
-                    >
-                      {content}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

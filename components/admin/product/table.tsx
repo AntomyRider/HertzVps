@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { useAutoPageSize } from "@/lib/useAutoPageSize";
 import {
   Pencil,
   Trash2,
@@ -30,8 +31,6 @@ import StockProductDialog from "./stock";
 import AdminProductMobileCard from "./mobile/card";
 import { toast } from "@/components/ui/toast";
 
-const ITEMS_PER_PAGE = 10;
-
 export const TableProduct = () => {
   const {
     products,
@@ -46,6 +45,12 @@ export const TableProduct = () => {
     deleteProduct,
   } = useProductStore();
 
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const itemsPerPage = useAutoPageSize(tableWrapperRef, {
+    defaultSize: 9,
+    fallbackRowHeight: 68,
+  });
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -57,11 +62,19 @@ export const TableProduct = () => {
     setCurrentPage(1);
   }, [search, selectedCategoryId]);
 
-  const totalPages = Math.max(1, Math.ceil(products.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
+
+  // Clamp current page if total pages shrinks
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedProducts = products.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
+    (safePage - 1) * itemsPerPage,
+    safePage * itemsPerPage
   );
 
   const handleDeleteConfirm = async () => {
@@ -116,11 +129,35 @@ export const TableProduct = () => {
             />
           ))
         )}
+
+        {/* Mobile Pagination */}
+        {!isLoading && products.length > itemsPerPage && (
+          <div className="pt-2">
+            <Pagination
+              currentPage={safePage}
+              totalItems={products.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
 
       {/* Desktop Products Table (hidden on mobile) */}
-      <div className="hidden md:block">
-      <Table>
+      <div ref={tableWrapperRef} className="hidden md:block">
+        <Table
+          footer={
+            !isLoading && products.length > 0 && (
+              <Pagination
+                embedded
+                currentPage={safePage}
+                totalItems={products.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            )
+          }
+        >
         <TableHeader>
           <TableRow>
             <TableHead>สินค้า</TableHead>
@@ -223,7 +260,8 @@ export const TableProduct = () => {
 
                   {/* Category */}
                   <TableCell>
-                    <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-xs font-medium text-blue-400">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900 px-2.5 py-0.5 text-xs font-medium text-blue-400">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
                       {prod.categoryName || "ทั่วไป"}
                     </span>
                   </TableCell>
@@ -232,12 +270,18 @@ export const TableProduct = () => {
                   <TableCell className="text-center">
                     <span
                       className={cn(
-                        "inline-flex items-center rounded-sm border px-2 py-0.5  text-xs font-medium",
+                        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
                         stockCount > 0
                           ? "border-neutral-800 bg-neutral-900 text-neutral-300"
                           : "border-red-500/20 bg-red-500/10 text-red-400"
                       )}
                     >
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          stockCount > 0 ? "bg-emerald-400" : "bg-red-400"
+                        )}
+                      />
                       {stockCount} ชิ้น
                     </span>
                   </TableCell>
@@ -248,7 +292,7 @@ export const TableProduct = () => {
                       <span className=" text-xs font-semibold text-emerald-400">
                         {prod.soldCount || 0} ชิ้น
                       </span>
-                      <span className=" text-[11px] text-neutral-500">
+                      <span className=" text-2xs text-neutral-500">
                         ฿{Number(prod.totalRevenue || 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
                       </span>
                     </div>
@@ -311,16 +355,6 @@ export const TableProduct = () => {
         </TableBody>
       </Table>
       </div>
-
-      {/* Pagination (10 items per page) */}
-      {!isLoading && products.length > 0 && (
-        <Pagination
-          currentPage={safePage}
-          totalItems={products.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={setCurrentPage}
-        />
-      )}
 
       {/* Delete Confirmation Modal */}
       <Dialog

@@ -109,16 +109,15 @@ const SidebarAdmin = () => {
       />
 
       {/* Desktop Persistent Sidebar (hidden on mobile, visible on lg+) */}
-      <aside className="fixed left-0 top-0 hidden lg:flex h-screen w-64 flex-col border-r border-neutral-900 bg-neutral-950 px-4 py-6 text-white">
+      <aside className="fixed left-0 top-0 hidden lg:flex h-screen w-64 flex-col border-r border-neutral-800 bg-neutral-950 px-4 py-6 text-white">
         <div className="mb-8 px-3">
-          <h1 className="text-lg font-bold">Hertz Admin</h1>
-          <p className="mt-1 text-xs text-neutral-500">Management Panel</p>
+          <h1 className="text-lg font-bold">HERTZ PANEL</h1>
         </div>
 
         <nav className="flex flex-1 flex-col gap-6 overflow-y-auto">
           {menuGroups.map((group) => (
             <div key={group.title}>
-              <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-neutral-600">
+              <p className="mb-2 px-3 text-2xs font-medium uppercase tracking-wider text-neutral-600">
                 {group.title}
               </p>
 
@@ -138,10 +137,10 @@ const SidebarAdmin = () => {
                     <Link
                       key={menu.href}
                       href={menu.href}
-                      className={`flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition ${
+                      className={`flex items-center gap-3 rounded-full px-4 py-2 text-sm transition ${
                         isActive
-                          ? "bg-blue-500/10 text-blue-500"
-                          : "text-neutral-400 hover:bg-blue-500/10 hover:text-white"
+                          ? "bg-neutral-800 text-white"
+                          : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                       }`}
                     >
                       <Icon size={18} strokeWidth={1.8} />
@@ -159,7 +158,7 @@ const SidebarAdmin = () => {
           <BackUI
             href="/"
             text="กลับสู่หน้าหลัก"
-            className="w-full rounded-sm px-3 py-2.5 text-sm hover:bg-blue-500/10"
+            className="w-full rounded-full px-5 py-2 text-sm hover:bg-neutral-900"
           />
         </div>
       </aside>

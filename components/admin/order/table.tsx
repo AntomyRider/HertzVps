@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { useAutoPageSize } from "@/lib/useAutoPageSize";
 import {
   Eye,
   ShoppingBag,
@@ -23,11 +24,15 @@ import DialogOrder from "./dialog";
 import AdminOrderMobileCard from "./mobile/card";
 import { isValidImageUrl } from "@/lib/utils";
 
-const ITEMS_PER_PAGE = 10;
-
 export const TableOrder = () => {
   const { orders, isLoading, search, fetchOrders, setViewingOrder } =
     useOrderStore();
+
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const itemsPerPage = useAutoPageSize(tableWrapperRef, {
+    defaultSize: 10,
+    fallbackRowHeight: 56,
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -39,11 +44,18 @@ export const TableOrder = () => {
     setCurrentPage(1);
   }, [search]);
 
-  const totalPages = Math.max(1, Math.ceil(orders.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(orders.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedOrders = orders.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
+    (safePage - 1) * itemsPerPage,
+    safePage * itemsPerPage
   );
 
   return (
@@ -81,11 +93,35 @@ export const TableOrder = () => {
             />
           ))
         )}
+
+        {/* Mobile Pagination */}
+        {!isLoading && orders.length > itemsPerPage && (
+          <div className="pt-2">
+            <Pagination
+              currentPage={safePage}
+              totalItems={orders.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
 
       {/* Desktop Orders Table (hidden on mobile, visible on md+) */}
-      <div className="hidden md:block">
-        <Table>
+      <div ref={tableWrapperRef} className="hidden md:block">
+        <Table
+          footer={
+            !isLoading && orders.length > 0 && (
+              <Pagination
+                embedded
+                currentPage={safePage}
+                totalItems={orders.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            )
+          }
+        >
           <TableHeader>
             <TableRow>
               <TableHead>ผู้สั่งซื้อ</TableHead>
@@ -200,7 +236,7 @@ export const TableOrder = () => {
                         <span className="truncate font-medium text-white">
                           {order.productName}
                         </span>
-                        <span className="truncate text-[11px] text-neutral-500">
+                        <span className="truncate text-2xs text-neutral-500">
                           Order #{order.id.slice(-6)} • {order.quantity || 1} ชิ้น
                         </span>
                       </div>
@@ -254,16 +290,6 @@ export const TableOrder = () => {
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination (10 items per page) */}
-      {!isLoading && orders.length > 0 && (
-        <Pagination
-          currentPage={safePage}
-          totalItems={orders.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={setCurrentPage}
-        />
-      )}
 
       {/* View Order Dialog */}
       <DialogOrder />

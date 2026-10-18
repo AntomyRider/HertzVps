@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signLicenseToken } from "@/lib/license-token";
+import { getOrCreateSession } from "@/lib/controllerHub";
 
 export const dynamic = "force-dynamic";
 
 interface StatusPayload {
   code?: string;
   hwid?: string;
+  version?: string;
 }
 
-async function handleCheckStatus({ code, hwid }: StatusPayload) {
+async function handleCheckStatus({ code, hwid, version }: StatusPayload) {
   const cleanCode = typeof code === "string" ? code.trim() : "";
   const cleanHwid = typeof hwid === "string" ? hwid.trim() : "";
+
+  if (version && cleanCode) {
+    const session = getOrCreateSession(cleanCode);
+    session.version = String(version);
+  }
 
   if (!cleanCode) {
     return NextResponse.json(
@@ -140,8 +147,8 @@ async function handleCheckStatus({ code, hwid }: StatusPayload) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { code, hwid } = await req.json().catch(() => ({}));
-    return await handleCheckStatus({ code, hwid });
+    const { code, hwid, version } = await req.json().catch(() => ({}));
+    return await handleCheckStatus({ code, hwid, version });
   } catch (error) {
     console.error("POST /api/v1/public/keys/status error:", error);
     return NextResponse.json(
@@ -156,8 +163,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code") || undefined;
     const hwid = searchParams.get("hwid") || undefined;
+    const version = searchParams.get("version") || undefined;
 
-    return await handleCheckStatus({ code, hwid });
+    return await handleCheckStatus({ code, hwid, version });
   } catch (error) {
     console.error("GET /api/v1/public/keys/status error:", error);
     return NextResponse.json(

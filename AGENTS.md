@@ -215,11 +215,6 @@ useEffect(() => {
 - **Label/Caption**: `text-xs text-neutral-400` หรือ `text-xs text-neutral-600`
 - **ห้าม** ใช้ font-size ใหญ่เกินไป — heading ใช้ `text-2xl` ถึง `text-4xl` ตาม context
 
-#### Border Radius (บังคับใช้ `rounded-sm` และ `rounded-md` เท่านั้น)
-- **Card / Container / Dialog / Icon Box หลัก**: ใช้ `rounded-md`
-- **Input / Button / Badge / Tag / Alert / Elements ย่อย**: ใช้ `rounded-sm` หรือ `rounded-md`
-- **ห้าม** ใช้ `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-full`
-
 #### Spacing
 - Section padding: `px-6 py-24 md:px-12 lg:px-20`
 - Card padding: `p-3.5` ถึง `p-5`
@@ -244,7 +239,6 @@ useEffect(() => {
 - **Hover**: `transition hover:border-neutral-700` — subtle, ไม่ต้อง transform หรือ shadow
 
 ### สิ่งที่ห้ามทำ (AI Slop)
-- ❌ ห้ามใช้ Border Radius เกินขนาด `sm`, `md` — **ใช้ได้เฉพาะ `rounded-sm` และ `rounded-md` เท่านั้น** (ห้าม `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-full`)
 - ❌ ห้ามใส่ `shadow-lg`, `shadow-xl`, `shadow-2xl` — โปรเจคนี้แทบไม่มี shadow
 - ❌ ห้ามใช้ `scale` on hover (ไม่มี zoom card)
 - ❌ ห้ามใส่ gradient ที่ไม่จำเป็น — gradient มีแค่ใน hero title
@@ -306,6 +300,9 @@ useEffect(() => {
 - **Allow Auto Permission (สำรวจไฟล์อัตโนมัติเชิงรุก)**:
   - ได้รับอนุญาตให้เปิดอ่านไฟล์ สำรวจโค้ด ค้นหาไฟล์ และรันคำสั่งตรวจสอบ (เช่น `view_file`, `git status`, `tsc --noEmit`, ค้นหาโค้ด) ได้ทันทีอย่างอิสระเมื่อต้องการทำความเข้าใจระบบ หาคำตอบ หรือตรวจสอบบริบทให้ผู้ใช้ โดย**ไม่ต้องรอขออนุญาตก่อนทุกครั้ง**
   - อ่านโค้ดจริงและตรวจสอบโครงสร้างจริงในโปรเจคก่อนตอบเสมอ ห้ามตอบแบบเดาสุ่มหรือคาดเดาโครงสร้างเอง
+- **ตรวจสอบไฟล์จริงให้เป็นปัจจุบันเสมอ (Always Inspect Current & Up-to-Date Files)**:
+  - **เปิดดูไฟล์ล่าสุดเสมอ ห้ามเดาหรือพึ่งพาความจำเดิม**: ก่อนตอบ เสนอแผน หรือเริ่มลงมือแก้ไขโค้ดทุกครั้ง ต้องใช้เครื่องมืออ่านไฟล์จริง (`view_file`, `git status`) เพื่อเห็นโค้ดเวอร์ชันล่าสุดที่เป็นปัจจุบันเสมอ
+  - **ห้ามทึกทักเอาเองว่าไฟล์ยังเหมือนเดิม**: แม้จะเคยดูไปในรอบก่อนหน้า ต้องเปิดเช็คไฟล์ปัจจุบันให้แน่ใจ 100% เสมอก่อนลงมือเขียนโค้ดหรือแก้ไข ป้องกันการเขียนทับโค้ดที่อัปเดตไปแล้ว
 - **Mindset คนขี้สงสัย (Curious & Investigative Mindset)**:
   - **เป็นคนขี้สงสัยและช่างสังเกตเสมอ**: ไม่มองปัญหาแค่ผิวเผิน ให้สืบค้นลึกลงไปถึงสาเหตุรากเหง้า (Root Cause) และตรวจสอบความต่อเนื่องของ Data Flow ทั้งระบบ (Database/Prisma -> API Route -> Zustand Store -> UI Component)
   - **ตั้งคำถามกับ Edge Cases เสมอ**: คิดเผื่อกรณีไม่ปกติ เช่น "ถ้าส่ง payload มาไม่ครบ?", "ถ้าเน็ตหลุด/timeout?", "ถ้าเกิด race condition?", "ถ้าสิทธิ์หรือ HWID เปลี่ยนแปลง?"
@@ -353,7 +350,7 @@ useEffect(() => {
 - [ ] เสนอ Template / แนวทาง UI 4-5 รูปแบบเมื่อต้องทำ UI ใหม่?
 - [ ] เมื่อ Push Git ต้องติดตาม Log Auto Deploy จนกว่าจะสำเร็จสมบูรณ์ (Monitor CI/CD)?
 - [ ] สื่อสารแบบเนื้อๆ ตรงประเด็น ไม่มีน้ำ (Zero Fluff) พร้อมรายงานผลหลังทำเสร็จ (Report)?
-- [ ] สำรวจและตรวจสอบโค้ดจริงในโปรเจคอย่างรอบคอบก่อนตอบ/ลงมือทำ (Auto-explore)?
+- [ ] สำรวจและตรวจสอบโค้ดจริงเวอร์ชันปัจจุบันล่าสุดเสมอก่อนตอบหรือลงมือทำ ห้ามเดา (Always Inspect Current Files)?
 - [ ] คิดแบบคนขี้สงสัย: เช็ค Data Flow, Root Cause และ Edge Cases ครบถ้วน?
 - [ ] คิดย้อนแย้ง/วิเคราะห์แผนรอบด้าน: Security, Compatibility, Feasibility และ Performance ที่เร็วและดีที่สุด (Devil's Advocate)?
 - [ ] เสนอฟีเจอร์/Tools เสริมเชิงรุกที่ช่วยยกระดับ UX/DX และเข้ากับเส้น API (เช่น Pagination, Search, Filter)?
@@ -364,8 +361,7 @@ useEffect(() => {
 - [ ] Data มาจาก store ไม่ได้ hardcode?
 - [ ] ห้ามแยก `useState` หลายตัวใน Form — รวมเป็น Object ก้อนเดียว (`form` / Store) แล้วส่งทั้งก้อน?
 - [ ] ใช้ component ที่มีอยู่ใน `components/ui/` ก่อนสร้างใหม่?
-- [ ] Border Radius ใช้เฉพาะ `rounded-sm` และ `rounded-md` เท่านั้น?
-- [ ] สี, spacing, border-radius ตรงกับ design system?
+- [ ] สี, spacing ตรงกับ design system?
 - [ ] ไม่มี AI slop (shadow, gradient, scale, emoji ที่ไม่จำเป็น)?
 - [ ] ใช้ `@/` path aliases?
 - [ ] Client component มี `"use client";`?

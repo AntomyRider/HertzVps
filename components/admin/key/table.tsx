@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useAutoPageSize } from "@/lib/useAutoPageSize";
 import {
   RotateCcw,
   CalendarPlus,
@@ -29,8 +30,6 @@ import ToolsKey from "./tools";
 import DialogKey from "./dialog";
 import AdminKeyMobileCard from "./mobile/card";
 
-const ITEMS_PER_PAGE = 10;
-
 export const TableKey = () => {
   const {
     keys,
@@ -49,6 +48,12 @@ export const TableKey = () => {
     selectAllKeys,
   } = useKeyStore();
 
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const itemsPerPage = useAutoPageSize(tableWrapperRef, {
+    defaultSize: 10,
+    fallbackRowHeight: 53,
+  });
+
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingKeyId, setTogglingKeyId] = useState<string | null>(null);
@@ -63,11 +68,18 @@ export const TableKey = () => {
     setCurrentPage(1);
   }, [search, durationFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(keys.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(keys.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedKeys = keys.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
+    (safePage - 1) * itemsPerPage,
+    safePage * itemsPerPage
   );
 
   const handleCopyCode = (code: string, id: string) => {
@@ -170,11 +182,35 @@ export const TableKey = () => {
             />
           ))
         )}
+
+        {/* Mobile Pagination */}
+        {!isLoading && keys.length > itemsPerPage && (
+          <div className="pt-2">
+            <Pagination
+              currentPage={safePage}
+              totalItems={keys.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
 
       {/* Desktop Keys Table (hidden on mobile) */}
-      <div className="hidden md:block">
-      <Table>
+      <div ref={tableWrapperRef} className="hidden md:block">
+        <Table
+          footer={
+            !isLoading && keys.length > 0 && (
+              <Pagination
+                embedded
+                currentPage={safePage}
+                totalItems={keys.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            )
+          }
+        >
         <TableHeader>
           <TableRow>
             {/* Select All Checkbox */}
@@ -291,7 +327,8 @@ export const TableKey = () => {
                         </span>
                       </div>
                     ) : (
-                      <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-[11px] text-neutral-500">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900 px-2.5 py-0.5 text-2xs text-neutral-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
                         ยังไม่ผูก HWID
                       </span>
                     )}
@@ -311,7 +348,8 @@ export const TableKey = () => {
 
                   {/* Duration Days */}
                   <TableCell className="text-center">
-                    <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-900/60 px-2 py-0.5 text-xs font-medium text-neutral-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900/60 px-2.5 py-0.5 text-xs font-medium text-neutral-300">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                       {k.durationDays || 30} วัน
                     </span>
                   </TableCell>
@@ -319,7 +357,8 @@ export const TableKey = () => {
                   {/* Expiry Date */}
                   <TableCell>
                     {isExpired ? (
-                      <span className="inline-flex items-center gap-1 rounded-sm border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-400">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
                         หมดอายุแล้ว
                       </span>
                     ) : k.expiresAt ? (
@@ -394,16 +433,6 @@ export const TableKey = () => {
         </TableBody>
       </Table>
       </div>
-
-      {/* Pagination (10 items per page) */}
-      {!isLoading && keys.length > 0 && (
-        <Pagination
-          currentPage={safePage}
-          totalItems={keys.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={setCurrentPage}
-        />
-      )}
 
       {/* Delete Single Key Confirmation Dialog */}
       <Dialog

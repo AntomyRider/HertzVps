@@ -209,7 +209,7 @@ export const DialogProduct = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center p-4 text-center">
                     <ImageIcon size={32} className="text-neutral-600 mb-1.5" />
-                    <span className="text-[11px] text-neutral-500">
+                    <span className="text-2xs text-neutral-500">
                       {form.image.trim() && form.imageError
                         ? "ไม่สามารถโหลดรูปภาพได้"
                         : "ยังไม่มีรูปภาพสินค้า"}
@@ -220,7 +220,7 @@ export const DialogProduct = () => {
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-neutral-400">
-                  URL รูปภาพ
+                  ลิงค์รูปภาพ
                 </label>
                 <Input
                   type="url"
@@ -234,9 +234,6 @@ export const DialogProduct = () => {
                   }
                   disabled={form.isSubmitting}
                 />
-                <span className="mt-1 block text-[10px] text-neutral-500">
-                  แนะนำสัดส่วน 1:1 หรือแนวนอน
-                </span>
               </div>
             </div>
 
@@ -341,7 +338,7 @@ export const DialogProduct = () => {
               type="button"
               disabled={form.isSubmitting}
               onClick={handleClose}
-              className="rounded-sm border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
+              className="rounded-full border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
             >
               ยกเลิก
             </button>
@@ -350,7 +347,7 @@ export const DialogProduct = () => {
               type="submit"
               disabled={form.isSubmitting || !form.name.trim() || !form.categoryId}
               isLoading={form.isSubmitting}
-              className="rounded-sm bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
+              className="text-xs text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
             >
               {isEditing ? "บันทึกข้อมูล" : "สร้างสินค้า"}
             </ButtonUI>

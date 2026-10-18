@@ -68,7 +68,7 @@ export default function StatsAccManageController({
           >
             {/* Content Layer */}
             <div className="relative z-10">
-              <span className="block truncate text-[10px] font-medium leading-tight text-neutral-400">
+              <span className="block truncate text-2xs font-medium leading-tight text-neutral-400">
                 {box.label}
               </span>
 

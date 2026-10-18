@@ -92,7 +92,7 @@ function RowCard({
                 type="button"
                 onClick={badge.onClick}
                 title="คลิกเพื่อสลับโหมด"
-                className="cursor-pointer rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300 transition hover:bg-amber-500/20"
+                className="cursor-pointer rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-2xs font-semibold text-amber-300 transition hover:bg-amber-500/20"
               >
                 {badge.text}
               </button>

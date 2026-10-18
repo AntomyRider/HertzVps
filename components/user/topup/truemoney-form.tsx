@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Gift } from "lucide-react";
+import { BadgeDollarSign  } from "lucide-react";
 import Input from "@/components/ui/input";
 import ButtonUI from "@/components/ui/button";
 import { usePaymentStore } from "@/store/paymentStore";
@@ -58,7 +58,7 @@ const TrueMoneyForm = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="mb-2 block text-xs font-medium text-neutral-300">
-            ลิงก์ซองของขวัญ TrueMoney (Gift Voucher)
+            ลิงก์ซองของขวัญ TrueMoney
           </label>
           <div className="flex flex-col gap-2.5 sm:flex-row">
             <div className="relative flex-1">
@@ -78,20 +78,19 @@ const TrueMoneyForm = () => {
             {!user ? (
               <a
                 href="/api/v1/auth/discord"
-                className="flex w-full sm:w-auto min-w-[140px] items-center justify-center gap-2 rounded-sm bg-[#5865F2] px-6 py-2.5 text-xs font-semibold text-white transition hover:bg-[#4752C4] shadow-sm cursor-pointer"
+                className="flex w-full sm:w-auto  items-center justify-center gap-2 rounded-sm bg-[#5865F2] px-6 py-2.5 text-xs font-semibold text-white transition hover:bg-[#4752C4] shadow-sm cursor-pointer"
               >
                 <DiscordIcon />
-                <span>เข้าสู่ระบบด้วย Discord</span>
+                <span>เข้าสู่ระบบ</span>
               </a>
             ) : (
               <ButtonUI
                 type="submit"
                 disabled={isSubmitting || !voucherUrl.trim()}
                 isLoading={isSubmitting}
-                className="flex w-full sm:w-auto min-w-[130px] items-center justify-center gap-2 rounded-sm bg-blue-600 px-6 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
+                className="flex  items-center justify-center  text-xs text-white transition cursor-pointer"
               >
-                <Gift size={15} />
-                <span>แลกรับเงินทันที</span>
+                <BadgeDollarSign className="size-4 sm:size-5" />
               </ButtonUI>
             )}
           </div>
@@ -100,14 +99,14 @@ const TrueMoneyForm = () => {
               {voucherError}
             </span>
           )}
-          <span className="mt-1.5 block text-[11px] text-neutral-500">
+          <span className="mt-1.5 block text-2xs text-neutral-500">
             * คัดลอกลิงก์ซองของขวัญจากแอป TrueMoney มาวางที่นี่ ระบบจะเติมเงินอัตโนมัติทันที
           </span>
         </div>
       </form>
 
       {/* Guide Steps */}
-      <div className="rounded-md border border-neutral-800/80 bg-neutral-900/30 p-4">
+      <div className="rounded-3xl border border-neutral-800 bg-neutral-950 p-4">
         <h4 className="flex items-center gap-2 text-xs font-semibold text-white">
           <Image
             src="/truemoney.png"
@@ -120,7 +119,7 @@ const TrueMoneyForm = () => {
         </h4>
         <ol className="mt-3 space-y-2 text-xs text-neutral-400">
           <li className="flex items-start gap-2">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-[10px] font-bold text-neutral-300">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-2xs font-bold text-neutral-300">
               1
             </span>
             <span>
@@ -130,7 +129,7 @@ const TrueMoneyForm = () => {
             </span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-[10px] font-bold text-neutral-300">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-2xs font-bold text-neutral-300">
               2
             </span>
             <span>
@@ -139,7 +138,7 @@ const TrueMoneyForm = () => {
             </span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-[10px] font-bold text-neutral-300">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-2xs font-bold text-neutral-300">
               3
             </span>
             <span>
@@ -148,7 +147,7 @@ const TrueMoneyForm = () => {
             </span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-[10px] font-bold text-neutral-300">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-2xs font-bold text-neutral-300">
               4
             </span>
             <span>

@@ -77,13 +77,13 @@ export default function ContainerController() {
     <FadeIn
       direction="up"
       delay={65}
-      className="flex w-full shrink-0 flex-col divide-y divide-white/10 rounded-md border border-neutral-800 bg-neutral-950 xl:w-[380px] 2xl:w-[420px]"
+      className="flex w-full shrink-0 flex-col divide-y divide-white/10 rounded-3xl border border-neutral-800 bg-neutral-900 xl:w-[380px] 2xl:w-[420px]"
     >
       {/* 1. Key Status Section */}
       <div className="p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-medium text-neutral-400">
+            <p className="text-2xs font-medium text-neutral-400">
               License Key
             </p>
             <div className="mt-1 flex items-center gap-2">
@@ -127,7 +127,7 @@ export default function ContainerController() {
             <h4 className="text-xs font-semibold text-white">
               ควบคุมบัญชีด่วน
             </h4>
-            <span className="rounded-sm border border-neutral-800 bg-neutral-900 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">
+            <span className="rounded-sm border border-neutral-800 bg-neutral-900 px-1.5 py-0.5 text-2xs font-semibold text-blue-400">
               {runningCount}/{accounts.length}
             </span>
           </div>
@@ -138,7 +138,7 @@ export default function ContainerController() {
               onClick={() =>
                 isAnyRunning ? void stopAllAccounts() : void startAllAccounts()
               }
-              className={`inline-flex cursor-pointer items-center gap-1 rounded-sm border px-2 py-1 text-[11px] font-medium transition ${
+              className={`inline-flex cursor-pointer items-center gap-1 rounded-sm border px-2 py-1 text-2xs font-medium transition ${
                 isAnyRunning
                   ? "border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
                   : "border-blue-500/40 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
@@ -192,7 +192,7 @@ export default function ContainerController() {
                     <p className="truncate text-xs font-semibold text-white">
                       {acc.name}
                     </p>
-                    <p className="truncate text-[10px] text-neutral-400">
+                    <p className="truncate text-2xs text-neutral-400">
                       {acc.isRunning
                         ? acc.currentTask || "กำลังรันงาน..."
                         : "พร้อมทำงาน"}
@@ -204,7 +204,7 @@ export default function ContainerController() {
                 <button
                   type="button"
                   onClick={() => void toggleAccountRunning(acc.id)}
-                  className={`inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-sm px-2.5 py-1 text-[11px] font-medium transition ${
+                  className={`inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-sm px-2.5 py-1 text-2xs font-medium transition ${
                     acc.isRunning
                       ? "border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
                       : "bg-blue-600 text-white hover:bg-blue-500"
@@ -258,7 +258,7 @@ export default function ContainerController() {
                 key={item.id}
                 className="flex flex-col justify-center rounded-sm border border-neutral-800/80 bg-neutral-900/40 p-2.5 transition hover:border-neutral-700"
               >
-                <span className="text-[11px] font-medium text-neutral-400">
+                <span className="text-2xs font-medium text-neutral-400">
                   {item.label}
                 </span>
                 <span

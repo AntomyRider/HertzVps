@@ -188,7 +188,7 @@ export const TopupSettingContainer = () => {
       {/* Column 1: TrueMoney Wallet */}
       <FadeIn
         direction="up"
-        className="rounded-md border border-neutral-800 bg-neutral-950 p-5 space-y-5"
+        className="rounded-3xl border border-neutral-800 bg-neutral-950 p-5 space-y-5"
       >
         <div className="flex items-center justify-between border-b border-neutral-900 pb-4">
           <div className="flex items-center gap-3">
@@ -250,7 +250,7 @@ export const TopupSettingContainer = () => {
                 {form.tmPhoneError}
               </span>
             )}
-            <span className="mt-1.5 block text-[11px] leading-relaxed text-neutral-500">
+            <span className="mt-1.5 block text-2xs leading-relaxed text-neutral-500">
               * ระบบจะทำการแลกเงินจากซองของขวัญที่ลูกค้าส่งมาเข้าสู่เบอร์นี้โดยอัตโนมัติ
             </span>
           </div>
@@ -272,7 +272,7 @@ export const TopupSettingContainer = () => {
       <FadeIn
         direction="up"
         delay={80}
-        className="rounded-md border border-neutral-800 bg-neutral-950 p-5 space-y-5"
+        className="rounded-3xl border border-neutral-800 bg-neutral-950 p-5 space-y-5"
       >
         <div className="flex items-center justify-between border-b border-neutral-900 pb-4">
           <div className="flex items-center gap-3">
@@ -395,7 +395,7 @@ export const TopupSettingContainer = () => {
                 {form.bankAccountNumberError}
               </span>
             )}
-            <span className="mt-1.5 block text-[11px] leading-relaxed text-neutral-500">
+            <span className="mt-1.5 block text-2xs leading-relaxed text-neutral-500">
               * ข้อมูลบัญชีธนาคารนี้จะแสดงให้ลูกค้าเห็นในหน้าเติมเงินผ่านช่องทางโอนเงิน
             </span>
           </div>

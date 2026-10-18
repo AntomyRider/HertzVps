@@ -35,20 +35,20 @@ export default function ServerDashboard() {
     return (
       <div className="space-y-5">
         {/* Header tools skeleton */}
-        <div className="h-16 w-full animate-pulse rounded-md bg-neutral-900/60" />
+        <div className="h-16 w-full animate-pulse rounded-3xl bg-neutral-900/60" />
 
         {/* System info skeleton */}
-        <div className="h-44 w-full animate-pulse rounded-md bg-neutral-900/60" />
+        <div className="h-44 w-full animate-pulse rounded-3xl bg-neutral-900/60" />
 
         {/* CPU & Memory skeletons */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <div className="h-72 w-full animate-pulse rounded-md bg-neutral-900/60" />
-          <div className="h-72 w-full animate-pulse rounded-md bg-neutral-900/60" />
+          <div className="h-72 w-full animate-pulse rounded-3xl bg-neutral-900/60" />
+          <div className="h-72 w-full animate-pulse rounded-3xl bg-neutral-900/60" />
         </div>
 
         {/* Disk & Services skeleton */}
-        <div className="h-48 w-full animate-pulse rounded-md bg-neutral-900/60" />
-        <div className="h-44 w-full animate-pulse rounded-md bg-neutral-900/60" />
+        <div className="h-48 w-full animate-pulse rounded-3xl bg-neutral-900/60" />
+        <div className="h-44 w-full animate-pulse rounded-3xl bg-neutral-900/60" />
       </div>
     );
   }
@@ -58,12 +58,12 @@ export default function ServerDashboard() {
     return (
       <FadeIn
         direction="up"
-        className="flex flex-col items-center justify-center rounded-md border border-red-500/20 bg-neutral-950 p-12 text-center"
+        className="flex flex-col items-center justify-center rounded-3xl border border-red-500/20 bg-neutral-900 p-12 text-center"
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-sm border border-red-500/20 bg-red-500/10 text-red-400">
           <AlertCircle size={24} />
         </div>
-        <h3 className="mt-4 text-base font-semibold text-white">
+        <h3 className="mt-4 text-base text-white">
           เกิดข้อผิดพลาดในการโหลดข้อมูลสถานะ
         </h3>
         <p className="mt-1 max-w-md text-xs text-neutral-400">{error}</p>

@@ -101,7 +101,7 @@ export const DialogCategory = () => {
 
         toast.success(
           "บันทึกข้อมูลสำเร็จ",
-          `อัปเดตหมวดหมู่ "${trimmedName}" เรียบร้อยแล้ว`
+          `อัปเดตหมวดหมู่ "${trimmedName}" เรียบร้อยแล้ว`,
         );
       } else {
         const res = await createCategory(payload);
@@ -115,7 +115,7 @@ export const DialogCategory = () => {
 
         toast.success(
           "สร้างหมวดหมู่สำเร็จ",
-          `สร้างหมวดหมู่ "${trimmedName}" เรียบร้อยแล้ว`
+          `สร้างหมวดหมู่ "${trimmedName}" เรียบร้อยแล้ว`,
         );
       }
 
@@ -158,7 +158,9 @@ export const DialogCategory = () => {
                   })
                 }
                 disabled={form.isSubmitting}
-                className={form.nameError ? "border-red-500/50 focus:border-red-500" : ""}
+                className={
+                  form.nameError ? "border-red-500/50 focus:border-red-500" : ""
+                }
                 autoFocus
               />
               {form.nameError && (
@@ -171,7 +173,7 @@ export const DialogCategory = () => {
             {/* Category Image URL */}
             <div>
               <label className="mb-1.5 block text-xs font-medium text-neutral-300">
-                URL รูปภาพหมวดหมู่ (ไม่บังคับ)
+                รูปภาพหมวดหมู่
               </label>
               <Input
                 type="url"
@@ -185,18 +187,12 @@ export const DialogCategory = () => {
                 }
                 disabled={form.isSubmitting}
               />
-              <span className="mt-1 block text-[11px] text-neutral-500">
-                แนะนำให้ใช้รูปภาพที่มีสัดส่วน 1:1 หรือแนวนอน
-              </span>
             </div>
 
             {/* Image Preview Box */}
             {form.image.trim() && (
-              <div className="rounded-sm border border-neutral-800 bg-neutral-900/40 p-3">
-                <span className="mb-2 block text-xs font-medium text-neutral-400">
-                  ตัวอย่างรูปภาพ
-                </span>
-                <div className="relative aspect-video w-full overflow-hidden rounded-sm border border-neutral-800 bg-neutral-950 flex flex-col items-center justify-center">
+                <div className="relative aspect-[16/4] w-full overflow-hidden rounded-sm border border-neutral-800 bg-neutral-950 flex flex-col items-center justify-center">
+                  {" "}
                   {isValidImageUrl(form.image) && !form.imageError ? (
                     <Image
                       src={form.image.trim()}
@@ -208,8 +204,11 @@ export const DialogCategory = () => {
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center p-4 text-center">
-                      <ImageIcon size={32} className="text-neutral-600 mb-1.5" />
-                      <span className="text-[11px] text-neutral-500">
+                      <ImageIcon
+                        size={32}
+                        className="text-neutral-600 mb-1.5"
+                      />
+                      <span className="text-2xs text-neutral-500">
                         {form.imageError
                           ? "ไม่สามารถโหลดรูปภาพได้"
                           : "URL รูปภาพไม่ถูกต้อง"}
@@ -217,7 +216,6 @@ export const DialogCategory = () => {
                     </div>
                   )}
                 </div>
-              </div>
             )}
           </div>
 
@@ -226,16 +224,16 @@ export const DialogCategory = () => {
               type="button"
               disabled={form.isSubmitting}
               onClick={handleClose}
-              className="rounded-sm border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
+              className="rounded-full border border-neutral-800 px-4 py-2 text-xs  text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
             >
-              ยกเลิก
+              ปิดหน้าต่าง
             </button>
 
             <ButtonUI
               type="submit"
               disabled={form.isSubmitting || !form.name.trim()}
               isLoading={form.isSubmitting}
-              className="rounded-sm bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
+              className=" px-5 py-2 text-xs text-white transition  disabled:opacity-50 cursor-pointer"
             >
               {isEditing ? "บันทึกการแก้ไข" : "สร้างหมวดหมู่"}
             </ButtonUI>

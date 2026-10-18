@@ -46,7 +46,7 @@ export const AdminOrderMobileCard = ({
             <h4 className="truncate text-xs sm:text-sm font-semibold text-white">
               {order.userName}
             </h4>
-            <p className="truncate text-[10px] text-neutral-500">
+            <p className="truncate text-2xs text-neutral-500">
               ID: {order.userDiscordId}
             </p>
           </div>
@@ -80,7 +80,7 @@ export const AdminOrderMobileCard = ({
           <p className="truncate text-xs font-medium text-neutral-200">
             {order.productName}
           </p>
-          <div className="flex items-center gap-2 text-[10px] text-neutral-500">
+          <div className="flex items-center gap-2 text-2xs text-neutral-500">
             <span>Order #{order.id.slice(-6)}</span>
             <span>•</span>
             <span>จำนวน {order.quantity || 1} ชิ้น</span>
@@ -93,14 +93,14 @@ export const AdminOrderMobileCard = ({
         <button
           type="button"
           onClick={() => onView(order)}
-          className="truncate max-w-[170px] sm:max-w-[220px] rounded-sm border border-neutral-800/80 bg-neutral-900/60 px-2 py-1 text-left text-[11px] text-blue-400 transition hover:border-blue-500/40"
+          className="truncate max-w-[170px] sm:max-w-[220px] rounded-sm border border-neutral-800/80 bg-neutral-900/60 px-2 py-1 text-left text-2xs text-blue-400 transition hover:border-blue-500/40"
           title="ดูรายละเอียดสต็อกฉบับเต็ม"
         >
           <span className="truncate block">{order.deliveredStock}</span>
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-neutral-500">{formattedDate}</span>
+          <span className="text-2xs text-neutral-500">{formattedDate}</span>
           <button
             type="button"
             onClick={() => onView(order)}

@@ -6,14 +6,15 @@ import FadeIn from "@/components/ui/fade-in";
 
 export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
   wrapperClassName?: string;
+  footer?: React.ReactNode;
 }
 
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(
-  ({ className, wrapperClassName, ...props }, ref) => (
+  ({ className, wrapperClassName, footer, ...props }, ref) => (
     <FadeIn direction="up" duration={500}>
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-md border border-neutral-800 bg-neutral-950",
+          "relative w-full overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-950",
           wrapperClassName
         )}
       >
@@ -27,6 +28,11 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(
             {...props}
           />
         </div>
+        {footer && (
+          <div className="border-t border-neutral-800/80 bg-neutral-950">
+            {footer}
+          </div>
+        )}
       </div>
     </FadeIn>
   )
@@ -64,7 +70,7 @@ export const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={cn(
-      "border-t border-neutral-800 bg-neutral-900 font-medium text-white",
+      "border-t border-neutral-800 bg-neutral-900 text-white",
       className
     )}
     {...props}
@@ -94,7 +100,7 @@ export const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-11 px-4 text-left align-middle text-xs font-semibold tracking-wider text-neutral-400 [&:has([role=checkbox])]:pr-0",
+      "h-11 px-4 text-left align-middle text-xs tracking-wider text-neutral-400 [&:has([role=checkbox])]:pr-0",
       className
     )}
     {...props}

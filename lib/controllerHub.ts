@@ -106,6 +106,9 @@ interface ControllerKeySession {
   isReconnecting: boolean;
   lastHeartbeatAt: number;
   lastSeenAt?: number;
+  onlineSince?: number;
+  offlineSince?: number;
+  version?: string;
   offlineTimer: ReturnType<typeof setTimeout> | null;
   // เปลี่ยนทุกครั้งที่สร้าง session ใหม่ (server restart) — โปรแกรมใช้รู้ว่าต้องส่งข้อมูลเต็มใหม่
   epoch: string;
@@ -534,6 +537,9 @@ export const getOrCreateSession = (
     isProgramOnline: false,
     isReconnecting: false,
     lastHeartbeatAt: 0,
+    onlineSince: undefined,
+    offlineSince: undefined,
+    version: undefined,
     offlineTimer: null,
     epoch: crypto.randomBytes(8).toString("hex"),
     stats: {
@@ -758,6 +764,11 @@ export const markProgramOnline = (
   const wasOfflineOrReconnecting =
     !session.isProgramOnline || session.isReconnecting;
 
+  if (!session.isProgramOnline) {
+    session.onlineSince = Date.now();
+    session.offlineSince = undefined;
+  }
+
   session.isProgramOnline = true;
   session.isReconnecting = false;
   session.lastHeartbeatAt = Date.now();
@@ -792,6 +803,8 @@ export const wipeSessionData = (keyCode: string) => {
 
   session.isProgramOnline = false;
   session.isReconnecting = false;
+  session.offlineSince = Date.now();
+  session.onlineSince = undefined;
   session.lastSeenAt = session.lastHeartbeatAt || Date.now();
   session.lastHeartbeatAt = 0;
 
@@ -1333,6 +1346,9 @@ export interface KeyProgramHealth {
   lastHeartbeatAt: number;
   lastSeenAt: number;
   accountCount: number;
+  version: string;
+  onlineSince: number | null;
+  offlineSince: number | null;
   stats: ControllerStats;
   successRate: number;
   actions: Record<"POST" | "COMMENT" | "REACTION", ActionHealthMetric>;
@@ -1484,12 +1500,50 @@ export const getProgramOverviewData = async (
   let fleetPending = 0;
   let fleetTotal = 0;
 
-  for (const k of dbKeys) {
+  const knownKeyCodes = new Set(dbKeys.map((k) => k.code.trim()));
+  const allTargetKeys: Array<{
+    id: string;
+    code: string;
+    isActive: boolean;
+    durationDays?: number | null;
+    hwid?: string | null;
+    activatedAt?: Date | null;
+    expiresAt?: Date | null;
+    createdAt: Date;
+  }> = [...dbKeys];
+
+  for (const [sessionCode, session] of sessions.entries()) {
+    if (!knownKeyCodes.has(sessionCode)) {
+      allTargetKeys.push({
+        id: session.keyId || `session-${sessionCode}`,
+        code: sessionCode,
+        isActive: true,
+        durationDays: 365,
+        hwid: null,
+        activatedAt: new Date(session.onlineSince || session.lastHeartbeatAt || Date.now()),
+        expiresAt: null,
+        createdAt: new Date(),
+      });
+      knownKeyCodes.add(sessionCode);
+    }
+  }
+
+  for (const k of allTargetKeys) {
     const session = sessions.get(k.code.trim());
     if (session && !session.keyId) {
       session.keyId = k.id;
     }
-    const isOnline = Boolean(session && session.isProgramOnline);
+    const isHeartbeatFresh = session
+      ? session.lastHeartbeatAt === 0 || Date.now() - session.lastHeartbeatAt <= 20000
+      : false;
+
+    if (session && session.isProgramOnline && !isHeartbeatFresh) {
+      session.isProgramOnline = false;
+      session.offlineSince = session.lastHeartbeatAt || Date.now();
+      session.lastSeenAt = session.lastHeartbeatAt || Date.now();
+    }
+
+    const isOnline = Boolean(session && session.isProgramOnline && isHeartbeatFresh);
     const isReconnecting = Boolean(session && session.isReconnecting);
     const lastHeartbeatAt = session ? session.lastHeartbeatAt : 0;
     const lastSeenAt = session
@@ -1662,8 +1716,8 @@ export const getProgramOverviewData = async (
       id: k.id,
       code: k.code,
       isActive: k.isActive,
-      durationDays: k.durationDays,
-      hwid: k.hwid,
+      durationDays: k.durationDays ?? 30,
+      hwid: k.hwid ?? null,
       activatedAt: k.activatedAt ? k.activatedAt.toISOString() : null,
       expiresAt: k.expiresAt ? k.expiresAt.toISOString() : null,
       createdAt: k.createdAt.toISOString(),
@@ -1672,6 +1726,15 @@ export const getProgramOverviewData = async (
       lastHeartbeatAt,
       lastSeenAt,
       accountCount,
+      version:
+        session?.version ||
+        (session?.config && typeof session.config === "object" && "version" in session.config
+          ? String((session.config as any).version)
+          : "v1.0.0"),
+      onlineSince:
+        session?.onlineSince ?? (isOnline ? session?.lastHeartbeatAt || Date.now() : null),
+      offlineSince:
+        session?.offlineSince ?? (!isOnline && session?.lastSeenAt ? session.lastSeenAt : null),
       stats: currentStats,
       successRate: keyRate,
       actions: keyActions,

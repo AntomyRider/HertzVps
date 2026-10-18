@@ -26,17 +26,14 @@ export default function RecentOrdersAdmin() {
 
   return (
     <FadeIn direction="up" delay={150} className="h-full">
-      <div className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-5">
+      <div className="flex h-full flex-col justify-between rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
       {/* Header */}
       <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-neutral-800 bg-neutral-900/60 text-blue-400">
-              <ShoppingBag size={20} strokeWidth={1.8} />
-            </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base text-white">
                   คำสั่งซื้อล่าสุด
                 </h3>
               </div>
@@ -48,7 +45,7 @@ export default function RecentOrdersAdmin() {
 
           <Link
             href="/admin/order"
-            className="flex items-center gap-1 rounded-sm border border-neutral-800 px-2.5 py-1.5 text-xs font-medium text-neutral-400 transition hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+            className="flex items-center gap-1 rounded-full border border-neutral-800 px-2.5 py-1.5 text-xs font-medium text-neutral-400 transition hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
           >
             <span>ดูทั้งหมด</span>
             <ChevronRight size={13} />
@@ -107,7 +104,7 @@ export default function RecentOrdersAdmin() {
                       <span className="truncate text-xs font-medium text-white">
                         {order.user.name}
                       </span>
-                      <span className="shrink-0 text-[11px] text-neutral-500">
+                      <span className="shrink-0 text-2xs text-neutral-500">
                         ซื้อ
                       </span>
                       <span className="truncate text-xs font-semibold text-neutral-300">
@@ -115,7 +112,7 @@ export default function RecentOrdersAdmin() {
                       </span>
                     </div>
 
-                    <div className="mt-0.5 flex items-center gap-2 text-[11px] text-neutral-500">
+                    <div className="mt-0.5 flex items-center gap-2 text-2xs text-neutral-500">
                       <span>จำนวน {order.quantity} ชิ้น</span>
                       <span>•</span>
                       <span>{formatDate(order.createdAt)}</span>

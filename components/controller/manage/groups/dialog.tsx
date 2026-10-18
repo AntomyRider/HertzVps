@@ -285,7 +285,7 @@ export default function DialogGroupManageController({
                         <p className="text-xs font-semibold text-white">
                           คลิกเพื่อเลือกรูปภาพจากเครื่อง
                         </p>
-                        <p className="mt-0.5 text-[11px] text-neutral-500">
+                        <p className="mt-0.5 text-2xs text-neutral-500">
                           สามารถเลือกพร้อมกันได้หลายภาพ (PNG, JPG, WEBP)
                         </p>
                       </div>
@@ -305,7 +305,7 @@ export default function DialogGroupManageController({
                             />
 
                             {idx === 0 && (
-                              <span className="absolute bottom-1 left-1 rounded-sm bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">
+                              <span className="absolute bottom-1 left-1 rounded-sm bg-black/80 px-1.5 py-0.5 text-2xs font-semibold text-blue-400">
                                 ภาพหลัก
                               </span>
                             )}
@@ -358,7 +358,7 @@ export default function DialogGroupManageController({
                       <Icon size={14} strokeWidth={1.8} />
                       <span>{tab.label}</span>
                       <span
-                        className={`rounded-sm px-1.5 py-0.5 text-[10px] font-semibold ${
+                        className={`rounded-sm px-1.5 py-0.5 text-2xs font-semibold ${
                           isActive
                             ? "bg-blue-700 text-white"
                             : "bg-neutral-800 text-neutral-400"
@@ -379,7 +379,7 @@ export default function DialogGroupManageController({
                       <label className="text-xs font-medium text-neutral-400">
                         รายการลิ้งค์กลุ่ม
                       </label>
-                      <span className="text-[11px] text-neutral-500">
+                      <span className="text-2xs text-neutral-500">
                         ทั้งหมด {countNonEmptyLines(form.links)} ลิ้งค์
                       </span>
                     </div>
@@ -400,7 +400,7 @@ export default function DialogGroupManageController({
                       <label className="text-xs font-medium text-neutral-400">
                         ข้อความคอนเทนต์สำหรับโพสต์
                       </label>
-                      <span className="text-[11px] text-neutral-500">
+                      <span className="text-2xs text-neutral-500">
                         {form.content.length} ตัวอักษร
                       </span>
                     </div>
@@ -419,7 +419,7 @@ export default function DialogGroupManageController({
                       <label className="text-xs font-medium text-neutral-400">
                         ข้อความคอมเมนต์ใต้โพสต์
                       </label>
-                      <span className="text-[11px] text-neutral-500">
+                      <span className="text-2xs text-neutral-500">
                         {form.comment.length} ตัวอักษร
                       </span>
                     </div>

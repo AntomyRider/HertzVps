@@ -26,17 +26,14 @@ export default function RecentTopupAdmin() {
 
   return (
     <FadeIn direction="up" delay={210} className="h-full">
-      <div className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-5">
+      <div className="flex h-full flex-col justify-between rounded-3xl border border-neutral-800 bg-neutral-900 p-5">
       {/* Header */}
       <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-neutral-800 bg-neutral-900/60 text-emerald-400">
-              <Wallet size={20} strokeWidth={1.8} />
-            </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base text-white">
                   รายการเติมเงินล่าสุด
                 </h3>
               </div>
@@ -48,7 +45,7 @@ export default function RecentTopupAdmin() {
 
           <Link
             href="/admin/topup"
-            className="flex items-center gap-1 rounded-sm border border-neutral-800 px-2.5 py-1.5 text-xs font-medium text-neutral-400 transition hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+            className="flex items-center gap-1 rounded-full border border-neutral-800 px-2.5 py-1.5 text-xs font-medium text-neutral-400 transition hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
           >
             <span>ดูทั้งหมด</span>
             <ChevronRight size={13} />
@@ -108,17 +105,19 @@ export default function RecentTopupAdmin() {
                         {topup.user.name}
                       </span>
                       {topup.method === "TRUEMONEY" ? (
-                        <span className="shrink-0 rounded-sm border border-orange-500/20 bg-orange-500/10 px-1.5 py-0.2 text-[10px] font-semibold text-orange-400">
+                        <span className="inline-flex items-center gap-1 shrink-0 rounded-full border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-2xs font-semibold text-orange-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
                           TrueMoney
                         </span>
                       ) : (
-                        <span className="shrink-0 rounded-sm border border-blue-500/20 bg-blue-500/10 px-1.5 py-0.2 text-[10px] font-semibold text-blue-400">
+                        <span className="inline-flex items-center gap-1 shrink-0 rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-2xs font-semibold text-blue-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
                           ธนาคาร
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-neutral-500">
+                    <div className="mt-0.5 flex items-center gap-1.5 text-2xs text-neutral-500">
                       <span>{formatDate(topup.createdAt)}</span>
                       {topup.status === "SUCCESS" && (
                         <>

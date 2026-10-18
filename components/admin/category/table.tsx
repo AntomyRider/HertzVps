@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { useAutoPageSize } from "@/lib/useAutoPageSize";
 import {
   Pencil,
   Trash2,
@@ -27,8 +28,6 @@ import AdminCategoryMobileCard from "./mobile/card";
 import { toast } from "@/components/ui/toast";
 import { isValidImageUrl } from "@/lib/utils";
 
-const ITEMS_PER_PAGE = 10;
-
 export const TableCategory = () => {
   const {
     categories,
@@ -41,6 +40,12 @@ export const TableCategory = () => {
     deleteCategory,
   } = useCategoryStore();
 
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const itemsPerPage = useAutoPageSize(tableWrapperRef, {
+    defaultSize: 10,
+    fallbackRowHeight: 56,
+  });
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -52,11 +57,18 @@ export const TableCategory = () => {
     setCurrentPage(1);
   }, [search]);
 
-  const totalPages = Math.max(1, Math.ceil(categories.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(categories.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedCategories = categories.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
+    (safePage - 1) * itemsPerPage,
+    safePage * itemsPerPage
   );
 
   const handleDeleteConfirm = async () => {
@@ -110,11 +122,35 @@ export const TableCategory = () => {
             />
           ))
         )}
+
+        {/* Mobile Pagination */}
+        {!isLoading && categories.length > itemsPerPage && (
+          <div className="pt-2">
+            <Pagination
+              currentPage={safePage}
+              totalItems={categories.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
 
       {/* Desktop Categories Table (hidden on mobile) */}
-      <div className="hidden md:block">
-      <Table>
+      <div ref={tableWrapperRef} className="hidden md:block">
+        <Table
+          footer={
+            !isLoading && categories.length > 0 && (
+              <Pagination
+                embedded
+                currentPage={safePage}
+                totalItems={categories.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            )
+          }
+        >
         <TableHeader>
           <TableRow>
             <TableHead className="w-20">หมวดหมู่</TableHead>
@@ -200,7 +236,8 @@ export const TableCategory = () => {
 
                 {/* Product Count */}
                 <TableCell className="text-center">
-                  <span className="inline-flex items-center rounded-full border border-neutral-800 bg-neutral-900 px-2.5 py-0.5 text-xs font-semibold text-blue-400">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900 px-2.5 py-0.5 text-xs font-semibold text-blue-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
                     {cat.productCount} รายการ
                   </span>
                 </TableCell>
@@ -242,16 +279,6 @@ export const TableCategory = () => {
         </TableBody>
       </Table>
       </div>
-
-      {/* Pagination (10 items per page) */}
-      {!isLoading && categories.length > 0 && (
-        <Pagination
-          currentPage={safePage}
-          totalItems={categories.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={setCurrentPage}
-        />
-      )}
 
       {/* Delete Confirmation Modal using Reusable Dialog */}
       <Dialog

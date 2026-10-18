@@ -13,11 +13,6 @@ export async function GET(req: NextRequest) {
 
   try {
     const keys = await prisma.key.findMany({
-      where: {
-        activatedAt: {
-          not: null,
-        },
-      },
       select: {
         id: true,
         code: true,

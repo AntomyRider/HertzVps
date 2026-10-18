@@ -95,7 +95,7 @@ export const ControllerMobileDrawer = ({
         <nav className="flex-1 space-y-6 overflow-y-auto py-5">
           {menuGroups.map((group) => (
             <div key={group.title}>
-              <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
+              <p className="mb-2 px-3 text-2xs font-medium uppercase tracking-wider text-neutral-500">
                 {group.title}
               </p>
 
@@ -142,7 +142,7 @@ export const ControllerMobileDrawer = ({
                     <p className="truncate text-xs font-medium text-white">
                       {maskKey(keyCode)}
                     </p>
-                    <p className="flex items-center gap-1 text-[10px] text-neutral-400">
+                    <p className="flex items-center gap-1 text-2xs text-neutral-400">
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
                           isProgramOnline ? "bg-emerald-400" : "bg-neutral-500"

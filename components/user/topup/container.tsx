@@ -24,14 +24,16 @@ const TopupContainer = () => {
           {/* Section title skeleton */}
           <div className="h-4 w-36 rounded-sm bg-neutral-900" />
 
-          {/* Method cards skeleton */}
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <div className="h-20 rounded-md border border-neutral-800 bg-neutral-900/40" />
-            <div className="h-20 rounded-md border border-neutral-800 bg-neutral-900/40" />
+          {/* Method tabs container skeleton */}
+          <div className="rounded-2xl sm:rounded-3xl border border-neutral-800 bg-neutral-950 p-1.5 sm:p-2">
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 sm:gap-2">
+              <div className="h-16 rounded-xl sm:rounded-2xl border border-neutral-800/60 bg-neutral-900/40" />
+              <div className="h-16 rounded-xl sm:rounded-2xl border border-neutral-800/60 bg-neutral-900/40" />
+            </div>
           </div>
 
           {/* Form container skeleton */}
-          <div className="h-48 rounded-md border border-neutral-800 bg-neutral-900/40" />
+          <div className="h-48 rounded-3xl border border-neutral-800 bg-neutral-900/40" />
         </div>
       </div>
     );
@@ -66,7 +68,7 @@ const TopupContainer = () => {
               </a>
             </div>
 
-            <p className="pt-2 text-[11px] text-neutral-500">
+            <p className="pt-2 text-2xs text-neutral-500">
               * ยอดเงินที่เติมจะถูกปรับปรุงเข้าสู่กระเป๋าบัญชีของคุณโดยอัตโนมัติทันที
             </p>
           </div>
@@ -86,97 +88,97 @@ const TopupContainer = () => {
           </p>
         </FadeIn>
 
-        {/* Method Choices Grid */}
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-          {/* TrueMoney Option Card */}
-          <FadeIn direction="up" delay={50}>
-            <button
-              type="button"
-              onClick={() => setSelectedMethod("TRUEMONEY")}
-              className={cn(
-                "flex w-full items-start gap-3.5 rounded-md p-4 text-left transition cursor-pointer",
-                selectedMethod === "TRUEMONEY"
-                  ? "bg-orange-500/10 text-white"
-                  : "bg-neutral-950 text-neutral-300 hover:bg-neutral-900/60"
-              )}
-            >
-              <div
+        {/* Method Choices Tabs in Single Container */}
+        <FadeIn direction="up" delay={50}>
+          <div className="rounded-2xl sm:rounded-3xl border border-neutral-800 bg-neutral-950 p-1.5 sm:p-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
+              {/* TrueMoney Tab */}
+              <button
+                type="button"
+                onClick={() => setSelectedMethod("TRUEMONEY")}
                 className={cn(
-                  "relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm p-1.5 transition",
+                  "flex w-full items-center gap-3.5 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 text-left transition cursor-pointer",
                   selectedMethod === "TRUEMONEY"
-                    ? "bg-orange-500/10"
-                    : "bg-neutral-900"
+                    ? "border border-orange-500/30 bg-orange-500/10 text-white shadow-sm"
+                    : "border border-transparent text-neutral-400 hover:bg-neutral-900/60 hover:text-white"
                 )}
               >
-                <Image
-                  src="/truemoney.png"
-                  alt="TrueMoney"
-                  width={28}
-                  height={28}
-                  className="h-full w-full object-contain"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-white">
-                    TrueMoney
-                  </span>
-                  <span className="rounded-sm bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400">
-                    อัตโนมัติ
-                  </span>
+                <div
+                  className={cn(
+                    "relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl p-1.5 transition",
+                    selectedMethod === "TRUEMONEY"
+                      ? "bg-neutral-900 border border-orange-500/20"
+                      : "bg-neutral-900 border border-neutral-800"
+                  )}
+                >
+                  <Image
+                    src="/truemoney.png"
+                    alt="TrueMoney"
+                    width={28}
+                    height={28}
+                    className="h-full w-full object-contain"
+                  />
                 </div>
-                <p className="mt-1 text-xs text-neutral-400 leading-relaxed">
-                  เติมเงินทันทีด้วยซองของขวัญ
-                </p>
-              </div>
-            </button>
-          </FadeIn>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-white tracking-tight">
+                      TRUEMONEY
+                    </span>
+                    <span className="rounded-full bg-emerald-500/15 border border-emerald-500/20 px-2 py-0.5 text-2xs font-semibold text-emerald-400">
+                      ฟรีค่าธรรมเนียม
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-neutral-400 leading-relaxed">
+                    เติมเงินทันทีด้วยซองของขวัญ
+                  </p>
+                </div>
+              </button>
 
-          {/* Banking Option Card */}
-          <FadeIn direction="up" delay={100}>
-            <button
-              type="button"
-              onClick={() => setSelectedMethod("BANKING")}
-              className={cn(
-                "flex w-full items-start gap-3.5 rounded-md p-4 text-left transition cursor-pointer",
-                selectedMethod === "BANKING"
-                  ? "bg-blue-500/10 text-white"
-                  : "bg-neutral-950 text-neutral-300 hover:bg-neutral-900/60"
-              )}
-            >
-              <div
+              {/* Banking Tab */}
+              <button
+                type="button"
+                onClick={() => setSelectedMethod("BANKING")}
                 className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition",
+                  "flex w-full items-center gap-3.5 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 text-left transition cursor-pointer",
                   selectedMethod === "BANKING"
-                    ? "bg-blue-500/20 text-blue-400"
-                    : "bg-neutral-900 text-neutral-400"
+                    ? "border border-blue-500/30 bg-blue-500/10 text-white shadow-sm"
+                    : "border border-transparent text-neutral-400 hover:bg-neutral-900/60 hover:text-white"
                 )}
               >
-                <Landmark size={20} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-white">
-                    ธนาคาร &amp; พร้อมเพย์
-                  </span>
-                  <span className="rounded-sm bg-blue-500/20 px-1.5 py-0.5 text-[9px] font-medium text-blue-400">
-                    เร็วๆ นี้
-                  </span>
+                <div
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition",
+                    selectedMethod === "BANKING"
+                      ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                      : "bg-neutral-900 text-neutral-400 border border-neutral-800"
+                  )}
+                >
+                  <Landmark size={20} />
                 </div>
-                <p className="mt-1 text-xs text-neutral-400 leading-relaxed">
-                  โอนเงินผ่านบัญชีหรือสแกน QR
-                </p>
-              </div>
-            </button>
-          </FadeIn>
-        </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-white tracking-tight">
+                      ธนาคาร &amp; พร้อมเพย์
+                    </span>
+                    <span className="rounded-full bg-blue-500/15 border border-blue-500/20 px-2 py-0.5 text-2xs font-semibold text-blue-400">
+                      เร็วๆ นี้
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-neutral-400 leading-relaxed">
+                    โอนเงินผ่านบัญชีหรือสแกน QR
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </FadeIn>
 
         {/* Selected Method Form Container Below */}
         {selectedMethod && (
           <FadeIn
             direction="up"
             delay={140}
-            className="rounded-md border border-neutral-800 bg-neutral-950 p-6"
+            className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6"
           >
             {selectedMethod === "TRUEMONEY" ? (
               <TrueMoneyForm />

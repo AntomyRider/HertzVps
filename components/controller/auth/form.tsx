@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import FadeIn from "@/components/ui/fade-in";
 import ButtonUI from "@/components/ui/button";
+import HologramSpaceBackground from "@/components/ui/hologram-space-background";
 import { useControllerStore } from "@/store/controllerStore";
 
 export default function ControllerAuthForm() {
@@ -35,14 +36,15 @@ export default function ControllerAuthForm() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-black px-4 py-12">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-12">
+      <HologramSpaceBackground />
       {/* Background Subtle Glow Grid */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(59,130,246,0.08),transparent)]" />
 
       <FadeIn
         direction="up"
         delay={40}
-        className="relative z-10 w-full max-w-md rounded-md border border-neutral-800 bg-neutral-950 p-6 sm:p-8"
+        className="relative z-10 w-full max-w-md rounded-3xl border border-neutral-800 bg-neutral-950 p-6 sm:p-8"
       >
         {/* Header Section */}
         <div className="flex flex-col items-center text-center">
@@ -51,7 +53,7 @@ export default function ControllerAuthForm() {
           </div>
 
           <h2 className="mt-4 text-xl font-bold tracking-tight text-white sm:text-2xl">
-            เข้าสู่ระบบ Controller
+            ลงชื่อเข้าใช้งาน
           </h2>
           <p className="mt-1.5 text-xs text-neutral-400 sm:text-sm">
             กรุณากรอก License Key ของคุณเพื่อเข้าใช้งานระบบควบคุม
@@ -62,7 +64,7 @@ export default function ControllerAuthForm() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-neutral-300">
-              License Key
+              คีย์ของคุณ
             </label>
 
             <div className="relative flex w-full items-center">
@@ -77,7 +79,7 @@ export default function ControllerAuthForm() {
                 placeholder="HERTZ-XXXX-XXXX-XXXX"
                 disabled={isConnecting}
                 autoFocus
-                className="w-full rounded-sm border border-neutral-800 bg-neutral-900/60 py-2.5 pl-9 pr-10 text-sm text-white placeholder-neutral-500 outline-none transition focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-full border border-neutral-800 bg-neutral-900 py-2.5 pl-9 pr-10 text-sm text-white placeholder-neutral-500 outline-none transition focus:border-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
               />
 
               <button
@@ -108,7 +110,7 @@ export default function ControllerAuthForm() {
           <ButtonUI
             type="submit"
             disabled={isConnecting || !inputKey.trim()}
-            className="flex w-full items-center justify-center gap-2 rounded-sm bg-blue-600 py-2.5 text-sm font-medium hover:bg-blue-500"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 py-2 text-sm font-medium hover:bg-blue-500"
           >
             {isConnecting ? (
               <>
@@ -117,7 +119,7 @@ export default function ControllerAuthForm() {
               </>
             ) : (
               <>
-                <span>เข้าสู่ระบบ Controller</span>
+                <span>เข้าสู่ระบบ</span>
               </>
             )}
           </ButtonUI>
@@ -132,14 +134,6 @@ export default function ControllerAuthForm() {
             >
               <ArrowLeft size={14} />
               <span>กลับสู่หน้าหลัก</span>
-            </Link>
-
-            <Link
-              href="/shop"
-              className="inline-flex items-center gap-1.5 text-blue-400 transition hover:text-blue-300"
-            >
-              <ShoppingBag size={14} />
-              <span>สั่งซื้อ License Key</span>
             </Link>
           </div>
         </div>

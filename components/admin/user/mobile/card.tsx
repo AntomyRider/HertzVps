@@ -45,7 +45,7 @@ export const AdminUserMobileCard = ({
             <h4 className="truncate text-xs sm:text-sm font-semibold text-white">
               {user.name}
             </h4>
-            <p className="truncate text-[10px] text-neutral-500">
+            <p className="truncate text-2xs text-neutral-500">
               ID: {user.discordId}
             </p>
           </div>
@@ -54,12 +54,13 @@ export const AdminUserMobileCard = ({
         {/* Role Badge */}
         <div className="shrink-0">
           {user.role === "ADMIN" ? (
-            <span className="inline-flex items-center gap-1 rounded-sm border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-400">
-              <ShieldCheck size={12} />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-2xs font-semibold text-blue-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
               ADMIN
             </span>
           ) : (
-            <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-[10px] font-medium text-neutral-400">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900 px-2.5 py-0.5 text-2xs font-medium text-neutral-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
               USER
             </span>
           )}
@@ -68,7 +69,7 @@ export const AdminUserMobileCard = ({
 
       {/* Middle: Balance & Date */}
       <div className="flex items-center justify-between rounded-sm bg-neutral-950/60 px-2.5 py-1.5 text-xs">
-        <span className="text-[11px] text-neutral-400">ยอดเงินคงเหลือ:</span>
+        <span className="text-2xs text-neutral-400">ยอดเงินคงเหลือ:</span>
         <span className="font-semibold text-emerald-400 text-xs sm:text-sm">
           ฿{Number(user.balance).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
         </span>
@@ -76,7 +77,7 @@ export const AdminUserMobileCard = ({
 
       {/* Bottom: Date & Actions */}
       <div className="flex items-center justify-between border-t border-neutral-900 pt-2.5">
-        <span className="text-[11px] text-neutral-500">สมัครเมื่อ {formattedDate}</span>
+        <span className="text-2xs text-neutral-500">สมัครเมื่อ {formattedDate}</span>
 
         <div className="flex items-center gap-1.5">
           <button

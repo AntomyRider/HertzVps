@@ -39,11 +39,11 @@ export const CategoryProductGrid = ({
               delay={(index % 10) * 55}
               className="h-full"
             >
-              <div className="flex h-full flex-col justify-between rounded-md border border-neutral-800 bg-neutral-950 p-2.5 sm:p-3.5 transition-colors hover:border-neutral-700 min-w-0">
+              <div className="flex h-full flex-col justify-between rounded-2xl border border-neutral-800 bg-neutral-900 p-2.5 sm:p-3.5 transition-colors hover:border-neutral-700 min-w-0">
                 {/* Product Top: 1:1 Image + Name & Description */}
                 <div className="min-w-0">
                   {/* 1:1 Aspect Ratio Thumbnail */}
-                  <div className="relative mb-2.5 sm:mb-3 aspect-square w-full overflow-hidden rounded-sm border border-neutral-800/80 bg-neutral-900">
+                  <div className="relative mb-2.5 sm:mb-3 aspect-square w-full overflow-hidden rounded-xl bg-neutral-900 sm:rounded-2xl">
                     {isValidImageUrl(product.image) ? (
                       <Image
                         src={product.image!}
@@ -71,7 +71,7 @@ export const CategoryProductGrid = ({
                   <div className="flex items-center justify-between gap-1 text-xs">
                     {/* ราคา */}
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] sm:text-xs text-neutral-500">
+                      <span className="text-2xs sm:text-xs text-neutral-500">
                         ราคา
                       </span>
                       <span className="truncate text-xs sm:text-sm md:text-base font-bold text-blue-500">
@@ -84,12 +84,12 @@ export const CategoryProductGrid = ({
 
                     {/* คงเหลือ */}
                     <div className="flex flex-col items-end shrink-0">
-                      <span className="text-[10px] sm:text-xs text-neutral-500">
+                      <span className="text-xs sm:text-xs text-neutral-500">
                         คงเหลือ
                       </span>
                       <span
                         className={cn(
-                          "text-xs sm:text-sm md:text-base font-bold",
+                          "text-xs sm:text-sm md:text-base font-semibold",
                           isAvailable ? "text-white" : "text-red-400"
                         )}
                       >
@@ -104,10 +104,10 @@ export const CategoryProductGrid = ({
                       type="button"
                       disabled={!isAvailable}
                       onClick={() => setSelectedProduct(product)}
-                      className="flex items-center gap-1.5 rounded-sm bg-blue-600 py-1.5 sm:py-2 text-xs justify-center text-white transition hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed w-full"
+                      className="flex items-center gap-1.5   text-xs justify-center text-white transition w-full"
                     >
                       <ShoppingCart size={13} />
-                      <span>{isAvailable ? "สั่งซื้อ" : "หมด"}</span>
+                      <span>{isAvailable ? "สั่งซื้อ" : "สินค้าหมด"}</span>
                     </ButtonUI>
                   </div>
                 </div>

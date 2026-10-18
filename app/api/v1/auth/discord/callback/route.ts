@@ -20,33 +20,55 @@ interface DiscordUserResponse {
   discriminator: string;
 }
 
+function resolveBaseUrl(req: NextRequest, fallbackUri?: string): URL {
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const host = forwardedHost || req.headers.get("host");
+  const proto =
+    req.headers.get("x-forwarded-proto") ||
+    (host?.includes("localhost") || host?.includes("127.0.0.1") ? "http" : "https");
+
+  if (host && !host.includes("0.0.0.0")) {
+    return new URL("/", `${proto}://${host}`);
+  }
+
+  if (fallbackUri) {
+    try {
+      return new URL("/", fallbackUri);
+    } catch {}
+  }
+
+  return new URL(
+    "/",
+    process.env.NODE_ENV === "production"
+      ? "https://hertzx.xyz"
+      : "http://localhost:3000"
+  );
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
-  // req.url reflects the bind address (0.0.0.0:3000) behind nginx/CF, not the public host —
-  // derive the redirect base from the canonical OAuth origin instead
-  const {
-    DISCORD_REDIRECT_URI: redirectUri = "https://hertzx.xyz/api/v1/auth/discord/callback",
-  } = process.env;
-  const baseUrl = new URL("/", redirectUri);
+  const cookieStore = await cookies();
+  const storedState = cookieStore.get("oauth_state")?.value;
+  const storedRedirectUri = cookieStore.get("oauth_redirect_uri")?.value;
+
+  // Clean up state and redirect cookies
+  cookieStore.delete("oauth_state");
+  cookieStore.delete("oauth_redirect_uri");
+
+  const baseUrl = resolveBaseUrl(req, storedRedirectUri || process.env.DISCORD_REDIRECT_URI);
 
   if (error || !code) {
-    console.error("Discord OAuth error or missing code:", error);
+    console.error("[Discord OAuth Error]:", error || "Missing code parameter");
     baseUrl.searchParams.set("auth_error", error || "missing_code");
     return NextResponse.redirect(baseUrl);
   }
 
-  const cookieStore = await cookies();
-  const storedState = cookieStore.get("oauth_state")?.value;
-
-  // Clean up state cookie
-  cookieStore.delete("oauth_state");
-
   if (!state || state !== storedState) {
-    console.error("Discord OAuth CSRF state mismatch:", { state, storedState });
+    console.error("[Discord OAuth CSRF state mismatch]:", { state, storedState });
     baseUrl.searchParams.set("auth_error", "invalid_state");
     return NextResponse.redirect(baseUrl);
   }
@@ -57,10 +79,21 @@ export async function GET(req: NextRequest) {
   } = process.env;
 
   if (!clientId || !clientSecret) {
-    console.error("Discord credentials missing in environment variables");
+    console.error("[Discord OAuth] Credentials missing in environment variables");
     baseUrl.searchParams.set("auth_error", "server_misconfiguration");
     return NextResponse.redirect(baseUrl);
   }
+
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost:3000";
+  const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
+
+  // The redirect_uri MUST match the exact one sent to Discord /authorize
+  const redirectUri =
+    storedRedirectUri ||
+    process.env.DISCORD_REDIRECT_URI ||
+    (isLocalhost
+      ? `http://${host}/api/v1/auth/discord/callback`
+      : "https://hertzx.xyz/api/v1/auth/discord/callback");
 
   try {
     // 1. Exchange code for access token
@@ -141,9 +174,11 @@ export async function GET(req: NextRequest) {
       role,
     });
 
+    const isProd = process.env.NODE_ENV === "production" && !isLocalhost;
+
     cookieStore.set(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProd,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 days
@@ -151,7 +186,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.redirect(baseUrl);
   } catch (err: any) {
-    console.error("Discord OAuth Callback Exception:", err.response?.data || err.message);
+    console.error(
+      "[Discord OAuth Callback Exception]:",
+      err.response?.data || err.message,
+      { redirectUri, clientId }
+    );
     baseUrl.searchParams.set("auth_error", "oauth_failed");
     return NextResponse.redirect(baseUrl);
   }

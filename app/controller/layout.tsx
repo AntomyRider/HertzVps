@@ -9,13 +9,14 @@ const LayoutController = ({
 }>) => {
   return (
     <ControllerAuthGuard>
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-black text-white">
         <SidebarController />
 
-        <main className="flex min-h-screen flex-col space-y-6 bg-black p-4 pt-18 text-white sm:p-6 lg:ml-64 lg:pt-6">
-          <HeaderController />
+        <main className="flex min-h-screen flex-col space-y-6 bg-neutral-900 p-4 pt-18 pb-24 text-white sm:p-6 lg:ml-64 lg:pt-6 lg:pb-6">
+          
 
-          <div className="flex min-h-0 flex-1 flex-col rounded-md bg-neutral-900/40 p-4 sm:p-6">
+          <div className="flex min-h-0 flex-1 flex-col rounded-3xl bg-black p-4 sm:p-6 ">
+            <HeaderController />
             {children}
           </div>
         </main>

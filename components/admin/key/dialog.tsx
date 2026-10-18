@@ -304,7 +304,7 @@ export const DialogKey = () => {
                           customDaysError: null,
                         })
                       }
-                      className={`rounded-sm border py-2 text-xs font-medium transition ${
+                      className={`rounded-full border py-2 text-xs font-medium transition ${
                         form.selectedPreset === preset.id
                           ? "border-blue-500/50 bg-blue-500/10 text-blue-400 font-semibold"
                           : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:text-white"
@@ -352,7 +352,7 @@ export const DialogKey = () => {
                   placeholder="เลือกสินค้าที่ต้องการเติมคีย์เข้าสต็อก..."
                   disabled={form.isSubmittingCreate}
                 />
-                <span className="mt-1 block text-[11px] text-neutral-500">
+                <span className="mt-1 block text-2xs text-neutral-500">
                   หากเลือกสินค้า ระบบจะนำรหัสคีย์ที่สร้างทั้งหมดไปต่อท้ายในสต็อกให้อัตโนมัติ
                 </span>
               </div>
@@ -363,7 +363,7 @@ export const DialogKey = () => {
                 type="button"
                 disabled={form.isSubmittingCreate}
                 onClick={handleCloseCreate}
-                className="rounded-sm border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
+                className="rounded-full border border-neutral-800 px-4 py-2 text-xs font-medium text-neutral-400 transition hover:bg-neutral-900 hover:text-white disabled:opacity-50 cursor-pointer"
               >
                 ยกเลิก
               </button>
@@ -372,7 +372,7 @@ export const DialogKey = () => {
                 type="submit"
                 disabled={form.isSubmittingCreate}
                 isLoading={form.isSubmittingCreate}
-                className="rounded-sm bg-blue-600 px-5 py-2 text-xs font-medium text-white transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
+                className="text-xs font-medium text-white transition disabled:opacity-50 cursor-pointer"
               >
                 สร้างรหัสคีย์
               </ButtonUI>
@@ -409,7 +409,7 @@ export const DialogKey = () => {
                 <button
                   type="button"
                   onClick={handleCopyAllCreated}
-                  className="flex items-center gap-1 text-[11px] text-blue-400 transition hover:text-blue-300 cursor-pointer"
+                  className="flex items-center gap-1 text-2xs text-blue-400 transition hover:text-blue-300 cursor-pointer"
                 >
                   {form.copiedAll ? <Check size={12} /> : <Copy size={12} />}
                   <span>{form.copiedAll ? "คัดลอกแล้ว" : "คัดลอกทั้งหมด"}</span>
@@ -423,7 +423,7 @@ export const DialogKey = () => {
                 className="w-full resize-none rounded-sm border border-neutral-800 bg-neutral-900/60 p-2.5 text-xs text-neutral-200 outline-none leading-relaxed select-all"
                 onClick={(e) => (e.target as HTMLTextAreaElement).select()}
               />
-              <span className="mt-1 block text-[11px] text-neutral-500">
+              <span className="mt-1 block text-2xs text-neutral-500">
                 * กรุณาคัดลอกรหัสคีย์เก็บไว้ หรือส่งมอบให้ลูกค้าตามต้องการ
               </span>
             </div>
@@ -505,7 +505,7 @@ export const DialogKey = () => {
                         addDaysError: null,
                       })
                     }
-                    className={`flex-1 rounded-sm border py-1 text-[11px] font-medium transition ${
+                    className={`flex-1 rounded-sm border py-1 text-2xs font-medium transition ${
                       form.addDaysInput === String(d)
                         ? "border-blue-500/50 bg-blue-500/10 text-blue-400 font-semibold"
                         : "border-neutral-800 bg-neutral-900/40 text-neutral-400 hover:border-neutral-700 hover:text-white"

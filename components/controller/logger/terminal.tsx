@@ -161,32 +161,32 @@ export default function TerminalLoggerController() {
                     {/* Left: Time, Status, Account, Action & Message */}
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                       {/* Timestamp */}
-                      <span className="shrink-0 rounded-sm border border-neutral-800 bg-neutral-950 px-2 py-0.5 text-[11px] font-medium text-neutral-400">
+                      <span className="shrink-0 rounded-sm border border-neutral-800 bg-neutral-950 px-2 py-0.5 text-2xs font-medium text-neutral-400">
                         {log.timestamp}
                       </span>
 
                       {/* Status Badge */}
                       <span
-                        className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2 py-0.5 text-[11px] font-semibold ${statusInfo.badgeClass}`}
+                        className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2 py-0.5 text-2xs font-semibold ${statusInfo.badgeClass}`}
                       >
                         <StatusIcon size={12} strokeWidth={1.8} />
                         <span>{statusInfo.label}</span>
                       </span>
 
                       {/* Account Badge */}
-                      <span className="shrink-0 rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-[11px] font-semibold text-white">
+                      <span className="shrink-0 rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-2xs font-semibold text-white">
                         {log.accountName}
                       </span>
 
                       {/* Action Type Badge */}
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-neutral-800 bg-neutral-950 px-2 py-0.5 text-[11px] text-blue-400">
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-neutral-800 bg-neutral-950 px-2 py-0.5 text-2xs text-blue-400">
                         <ActionIcon size={12} strokeWidth={1.8} />
                         <span>{actionInfo.label}</span>
                       </span>
 
                       {/* Group Name (if present) */}
                       {log.groupName && (
-                        <span className="shrink-0 rounded-sm bg-neutral-800/70 px-2 py-0.5 text-[11px] text-neutral-300">
+                        <span className="shrink-0 rounded-sm bg-neutral-800/70 px-2 py-0.5 text-2xs text-neutral-300">
                           {log.groupName}
                         </span>
                       )}

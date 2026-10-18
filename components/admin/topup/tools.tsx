@@ -17,13 +17,13 @@ const ToolsTopup = () => {
   return (
     <FadeIn
       direction="up"
-      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
     >
       <SearchUI
         value={adminSearch}
         onChange={handleSearchChange}
         placeholder="ค้นหาชื่อผู้ใช้, Discord ID, รหัสซอง..."
-        className="w-full max-w-sm rounded-sm"
+        className="w-full max-w-sm"
       />
     </FadeIn>
   );

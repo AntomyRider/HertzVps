@@ -63,13 +63,13 @@ export const DialogOrder = () => {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <span className="block text-[11px] font-medium text-neutral-500">
+                <span className="block text-2xs font-medium text-neutral-500">
                   ผู้สั่งซื้อ
                 </span>
                 <span className="block truncate text-xs font-semibold text-white">
                   {viewingOrder?.userName}
                 </span>
-                <span className="block truncate text-[10px] text-neutral-500">
+                <span className="block truncate text-2xs text-neutral-500">
                   ID: {viewingOrder?.userDiscordId}
                 </span>
               </div>
@@ -91,7 +91,7 @@ export const DialogOrder = () => {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <span className="block text-[11px] font-medium text-neutral-500">
+                <span className="block text-2xs font-medium text-neutral-500">
                   สินค้าที่ซื้อ
                 </span>
                 <span className="block truncate text-xs font-semibold text-white">
@@ -102,7 +102,7 @@ export const DialogOrder = () => {
                   {Number(viewingOrder?.price || 0).toLocaleString("th-TH", {
                     minimumFractionDigits: 2,
                   })}{" "}
-                  <span className="text-[11px] font-normal text-neutral-400">
+                  <span className="text-2xs font-normal text-neutral-400">
                     ({viewingOrder?.quantity || 1} ชิ้น)
                   </span>
                 </span>
@@ -119,7 +119,7 @@ export const DialogOrder = () => {
               <button
                 type="button"
                 onClick={handleCopyStock}
-                className="flex items-center gap-1 text-[11px] text-neutral-400 transition hover:text-white"
+                className="flex items-center gap-1 text-2xs text-neutral-400 transition hover:text-white"
               >
                 {copied ? (
                   <>
@@ -141,7 +141,7 @@ export const DialogOrder = () => {
           </div>
 
           {/* Order Metadata */}
-          <div className="rounded-sm border border-neutral-800/80 bg-neutral-900/30 p-2.5 text-[11px] text-neutral-400 flex items-center justify-between">
+          <div className="rounded-sm border border-neutral-800/80 bg-neutral-900/30 p-2.5 text-2xs text-neutral-400 flex items-center justify-between">
             <span>วันที่ทำรายการ:</span>
             <span className="text-neutral-300">
               {viewingOrder &&

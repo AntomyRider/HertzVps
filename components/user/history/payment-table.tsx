@@ -27,25 +27,25 @@ export const PaymentHistoryTable = () => {
     switch (status) {
       case "SUCCESS":
         return (
-          <span className="inline-flex items-center rounded-sm bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+          <span className="inline-flex items-center rounded-sm bg-emerald-500/20 px-2 py-0.5 text-2xs font-bold text-emerald-400">
             สำเร็จ
           </span>
         );
       case "PENDING":
         return (
-          <span className="inline-flex items-center rounded-sm bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+          <span className="inline-flex items-center rounded-sm bg-amber-500/20 px-2 py-0.5 text-2xs font-bold text-amber-400">
             รอดำเนินการ
           </span>
         );
       case "REJECTED":
         return (
-          <span className="inline-flex items-center rounded-sm bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-400">
+          <span className="inline-flex items-center rounded-sm bg-red-500/20 px-2 py-0.5 text-2xs font-bold text-red-400">
             ไม่สำเร็จ
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center rounded-sm bg-neutral-800 px-2 py-0.5 text-[10px] font-bold text-neutral-400">
+          <span className="inline-flex items-center rounded-sm bg-neutral-800 px-2 py-0.5 text-2xs font-bold text-neutral-400">
             {status}
           </span>
         );
@@ -193,7 +193,7 @@ export const PaymentHistoryTable = () => {
                     <TableCell className="text-xs text-neutral-400">
                       <div className="max-w-[200px] truncate">
                         {payment.voucherCode ? (
-                          <span className="text-[11px] text-neutral-300">
+                          <span className="text-2xs text-neutral-300">
                             ซอง: {payment.voucherCode}
                           </span>
                         ) : payment.senderName ? (

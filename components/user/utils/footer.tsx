@@ -3,8 +3,8 @@ import { Mail } from "lucide-react";
 
 const FooterHome = () => {
   return (
-    <footer className="mt-auto w-full border-t border-neutral-800 bg-neutral-950/70 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-5 md:flex-row">
+    <footer className="mt-auto w-full border-t border-neutral-800 bg-black backdrop-blur-md pb-20 md:pb-0">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5 md:flex-row">
 
         <p className="text-sm text-neutral-500">
           © {new Date().getFullYear()} Hertz Manager. All rights reserved.

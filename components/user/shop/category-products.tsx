@@ -88,7 +88,7 @@ const CategoryProducts = ({ categoryId }: CategoryProductsProps) => {
       {/* Category Banner & Title */}
       <FadeIn direction="up" delay={60} className="mb-5 sm:mb-8 rounded-md bg-neutral-950">
         {isValidImageUrl(currentCategory.image) && (
-          <div className="relative aspect-[16/5] sm:aspect-[16/4] w-full overflow-hidden rounded-sm bg-neutral-900">
+          <div className="relative aspect-[16/5] sm:aspect-[16/4] w-full overflow-hidden rounded-2xl bg-neutral-900 ">
             <Image
               src={currentCategory.image!}
               alt={currentCategory.name}

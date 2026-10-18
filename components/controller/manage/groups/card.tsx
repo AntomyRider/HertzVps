@@ -81,7 +81,7 @@ export default function CardGroupManageController({
                     )}
 
                     {imageCount > 1 && (
-                      <span className="absolute bottom-1 right-1 rounded-sm border border-neutral-800 bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">
+                      <span className="absolute bottom-1 right-1 rounded-sm border border-neutral-800 bg-black/80 px-1.5 py-0.5 text-2xs font-semibold text-blue-400">
                         +{imageCount - 1}
                       </span>
                     )}
@@ -94,7 +94,7 @@ export default function CardGroupManageController({
                     </h3>
 
                     <span
-                      className={`inline-block text-[11px] font-medium ${
+                      className={`inline-block text-2xs font-medium ${
                         isEnabled ? "text-blue-400" : "text-neutral-500"
                       }`}
                     >

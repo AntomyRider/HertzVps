@@ -220,26 +220,26 @@ export default function MonitorController() {
       <FadeIn
         direction="up"
         delay={0}
-        className="flex min-w-0 flex-1 flex-col rounded-md border border-neutral-800 bg-neutral-950 p-2 sm:p-2.5"
+        className="flex min-w-0 flex-1 flex-col sm:p-2.5"
       >
         {/* 16:9 Screen Viewport */}
-        <div className="relative aspect-video min-h-[190px] w-full overflow-hidden rounded-md border border-neutral-800/80 bg-black sm:min-h-[260px]">
+        <div className="relative aspect-video min-h-[190px] w-full overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 sm:min-h-[260px]">
           {/* Top Floating Controls Overlay */}
           <div className="absolute inset-x-2 top-2 z-20 flex items-center justify-between gap-2 pointer-events-none sm:inset-x-3 sm:top-3">
             {/* Left: Stream Status Badge */}
-            <div className="pointer-events-auto flex items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-950/80 px-2 py-0.5 backdrop-blur-xs">
+            <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-950/80 px-2 py-0.5 backdrop-blur-xs">
               <span
-                className={`h-1.5 w-1.5 rounded-sm ${
+                className={`h-1.5 w-1.5 rounded-full ${
                   isLiveStreaming
                     ? "bg-emerald-400 animate-pulse"
                     : isProgramOnline
                       ? isMonitorPaused
                         ? "bg-amber-400"
                         : "bg-blue-400 animate-pulse"
-                      : "bg-neutral-500"
+                      : "bg-red-500"
                 }`}
               />
-              <span className="text-[10px] font-medium text-neutral-300 sm:text-[11px]">
+              <span className="text-sm text-neutral-300 sm:text-2xs">
                 {isLiveStreaming
                   ? "ถ่ายทอดสด"
                   : isProgramOnline
@@ -330,7 +330,7 @@ export default function MonitorController() {
                   ปิดการแชร์หน้าจออยู่
                 </h4>
 
-                <p className="mt-1 max-w-xs text-[11px] leading-relaxed text-neutral-400 sm:text-xs">
+                <p className="mt-1 max-w-xs text-2xs leading-relaxed text-neutral-400 sm:text-xs">
                   ระบบปิดการแชร์หน้าจอไว้เป็นค่าเริ่มต้น เพื่อประหยัดทรัพยากรเครื่อง
                 </p>
 
@@ -350,7 +350,7 @@ export default function MonitorController() {
                 <Tv size={18} strokeWidth={1.8} className="sm:h-5 sm:w-5" />
               </div>
 
-              <h4 className="mt-2 text-xs font-semibold text-white sm:text-sm">
+              <h4 className="mt-2 text-xs text-white sm:text-sm">
                 {!isConnected
                   ? "ยังไม่ได้เชื่อมต่อคีย์ใช้งาน"
                   : !isProgramOnline
@@ -358,7 +358,7 @@ export default function MonitorController() {
                     : "กำลังเชื่อมต่อ WebRTC P2P..."}
               </h4>
 
-              <p className="mt-1 hidden max-w-sm text-[11px] leading-relaxed text-neutral-500 sm:block">
+              <p className="mt-1 hidden max-w-sm text-2xs leading-relaxed text-neutral-500 sm:block">
                 {!isConnected
                   ? "กรอกรหัสคีย์และกดเชื่อมต่อเพื่อดูหน้าจอการทำงานแบบเรียลไทม์"
                   : !isProgramOnline

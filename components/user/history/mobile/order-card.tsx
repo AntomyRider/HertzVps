@@ -45,7 +45,7 @@ export const UserOrderMobileCard = ({
             <h4 className="truncate text-xs sm:text-sm font-semibold text-white">
               {order.productName}
             </h4>
-            <p className="mt-0.5 truncate text-[10px] sm:text-[11px] text-neutral-400">
+            <p className="mt-0.5 truncate text-2xs text-neutral-400">
               #{order.id.slice(-8)} • {formattedDate}
             </p>
           </div>
@@ -61,14 +61,14 @@ export const UserOrderMobileCard = ({
 
       {/* Bottom: Quantity badge + View Data Action Button */}
       <div className="flex items-center justify-between gap-2 border-t border-neutral-800/60 pt-2.5 sm:pt-3">
-        <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-950 px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-medium text-neutral-300 shrink-0">
+        <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-950 px-2 sm:px-2.5 py-0.5 text-2xs font-medium text-neutral-300 shrink-0">
           จำนวน x{order.quantity || 1} ชิ้น
         </span>
 
         <button
           type="button"
           onClick={() => onViewDetail(order)}
-          className="inline-flex items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-900 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium text-neutral-200 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400 cursor-pointer shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-900 px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-2xs sm:text-xs font-medium text-neutral-200 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400 cursor-pointer shrink-0"
         >
           <Eye size={12} />
           <span>ดูข้อมูลสินค้า</span>

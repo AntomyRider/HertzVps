@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, ReactNode, HTMLAttributes } from "react";
+import { useEffect, useState, ReactNode, HTMLAttributes } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +12,12 @@ export interface DialogProps {
 }
 
 export const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -27,11 +34,11 @@ export const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
     };
   }, [open, onOpenChange]);
 
-  if (!open) return null;
+  if (!mounted || !open) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs animate-overlay-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onOpenChange(false);
@@ -39,7 +46,8 @@ export const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
       }}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -58,7 +66,7 @@ export const DialogContent = ({
   return (
     <div
       className={cn(
-        "relative w-full max-h-[90vh] overflow-y-auto rounded-md border border-neutral-800 bg-neutral-950 p-4 sm:p-6",
+        "relative w-full max-h-[90vh] overflow-y-auto rounded-3xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6 animate-dialog-fade-in",
         maxWidth,
         className
       )}

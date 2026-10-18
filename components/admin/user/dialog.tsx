@@ -136,7 +136,7 @@ export const DialogUser = () => {
                 <span className="block truncate text-sm font-semibold text-white">
                   {editingUser?.name}
                 </span>
-                <span className="block truncate text-[11px] text-neutral-500">
+                <span className="block truncate text-2xs text-neutral-500">
                   ID: {editingUser?.discordId}
                 </span>
               </div>
@@ -184,7 +184,7 @@ export const DialogUser = () => {
                     {form.balanceError}
                   </span>
                 )}
-                <span className="mt-1 block text-[11px] text-neutral-500">
+                <span className="mt-1 block text-2xs text-neutral-500">
                   * กำหนดยอดเงินคงเหลือใหม่ของผู้ใช้ได้โดยตรง
                 </span>
               </div>

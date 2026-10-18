@@ -130,7 +130,7 @@ const DownloadContainer = () => {
         <FadeIn
           direction="right"
           duration={550}
-          className="w-full md:w-64 shrink-0 rounded-md bg-neutral-950 p-2.5 space-y-2"
+          className="w-full md:w-64 shrink-0 rounded-2xl bg-neutral-950 p-2.5 space-y-2"
         >
           <div className="flex items-center justify-between px-2.5 py-1.5">
             <p className="text-xs font-semibold text-neutral-400">
@@ -155,7 +155,7 @@ const DownloadContainer = () => {
                   type="button"
                   onClick={() => setSelectedRelease(release)}
                   className={cn(
-                    "flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2.5 text-left text-xs font-medium transition cursor-pointer",
+                    "flex w-full items-center justify-between gap-2 rounded-full px-5 py-2 text-left text-xs font-medium transition cursor-pointer",
                     isSelected
                       ? "bg-blue-500/10 text-blue-500"
                       : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
@@ -169,7 +169,7 @@ const DownloadContainer = () => {
                   </div>
 
                   {index === 0 && (
-                    <span className="inline-flex items-center rounded-sm bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-400 shrink-0">
+                    <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2 py-0.5 text-2xs font-semibold text-blue-400 shrink-0">
                       ล่าสุด
                     </span>
                   )}
@@ -184,7 +184,7 @@ const DownloadContainer = () => {
           direction="up"
           delay={80}
           duration={550}
-          className="flex-1 rounded-md bg-neutral-950 p-4 sm:p-5 space-y-5"
+          className="flex-1 rounded-3xl bg-neutral-950 p-4 sm:p-5 space-y-5"
         >
           {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
@@ -194,7 +194,7 @@ const DownloadContainer = () => {
                   {activeRelease.name || activeRelease.tagName}
                 </h2>
                 {isLatest && (
-                  <span className="inline-flex items-center rounded-sm bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-500">
+                  <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-500">
                     เวอร์ชันล่าสุด
                   </span>
                 )}
@@ -207,7 +207,7 @@ const DownloadContainer = () => {
 
               <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400">
                 <span className="inline-flex items-center gap-1.5">
-                  <Tag size={14} strokeWidth={1.8} className="text-neutral-500" />
+                  <Tag size={14} strokeWidth={1.8} className="text-white" />
                   <span>เวอร์ชัน: {activeRelease.tagName}</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
@@ -222,32 +222,12 @@ const DownloadContainer = () => {
                 </span>
               </div>
             </div>
-
-            {primaryExeAsset ? (
-              <a
-                href={primaryExeAsset.downloadUrl}
-                download={primaryExeAsset.name}
-                className="inline-flex items-center justify-center gap-2 rounded-sm bg-blue-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-blue-500 shrink-0"
-              >
-                <Download size={15} strokeWidth={1.8} />
-                <span>ดาวน์โหลด (.exe)</span>
-              </a>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center justify-center gap-2 rounded-sm bg-neutral-900 px-4 py-2.5 text-xs font-medium text-neutral-500 cursor-not-allowed shrink-0"
-              >
-                <Download size={15} strokeWidth={1.8} />
-                <span>ยังไม่มีไฟล์ .exe</span>
-              </button>
-            )}
           </div>
 
           {/* Direct EXE Files Section */}
           <div className="space-y-2.5">
             <p className="text-xs font-semibold text-neutral-400">
-              ไฟล์ติดตั้งโปรแกรม (.exe) ({activeRelease.assets.length})
+              ไฟล์ติดตั้งโปรแกรม
             </p>
 
             {activeRelease.assets.length > 0 ? (
@@ -260,7 +240,7 @@ const DownloadContainer = () => {
                           <FileDown size={18} strokeWidth={1.8} />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-white">
+                          <p className="truncate text-sm  text-white">
                             {asset.name}
                           </p>
                           <p className="text-xs text-neutral-400">
@@ -273,10 +253,10 @@ const DownloadContainer = () => {
                       <a
                         href={asset.downloadUrl}
                         download={asset.name}
-                        className="inline-flex items-center justify-center gap-2 rounded-sm bg-blue-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-blue-500 shrink-0"
+                        className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-xs  text-white transition hover:bg-blue-500 shrink-0"
                       >
                         <Download size={14} strokeWidth={1.8} />
-                        <span>ดาวน์โหลด .exe</span>
+                        <span>ดาวน์โหลด</span>
                       </a>
                     </div>
                   </FadeIn>
@@ -302,7 +282,7 @@ const DownloadContainer = () => {
           {/* Release Notes / Description */}
           <FadeIn direction="up" delay={140} className="space-y-2">
             <p className="text-xs font-semibold text-neutral-400">
-              รายละเอียดการอัปเดต (Release Notes)
+              รายละเอียดการอัปเดต
             </p>
             <div className="rounded-md bg-neutral-900/50 p-4">
               {activeRelease.body ? (

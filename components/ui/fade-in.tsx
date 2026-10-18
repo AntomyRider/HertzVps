@@ -25,24 +25,24 @@ const directionClasses: Record<
   { hidden: string; visible: string }
 > = {
   up: {
-    hidden: "opacity-0 translate-y-5",
-    visible: "opacity-100 translate-y-0",
+    hidden: "opacity-0 blur-md translate-y-4",
+    visible: "opacity-100 blur-0 translate-y-0",
   },
   down: {
-    hidden: "opacity-0 -translate-y-5",
-    visible: "opacity-100 translate-y-0",
+    hidden: "opacity-0 blur-md -translate-y-4",
+    visible: "opacity-100 blur-0 translate-y-0",
   },
   left: {
-    hidden: "opacity-0 translate-x-5",
-    visible: "opacity-100 translate-x-0",
+    hidden: "opacity-0 blur-md translate-x-4",
+    visible: "opacity-100 blur-0 translate-x-0",
   },
   right: {
-    hidden: "opacity-0 -translate-x-5",
-    visible: "opacity-100 translate-x-0",
+    hidden: "opacity-0 blur-md -translate-x-4",
+    visible: "opacity-100 blur-0 translate-x-0",
   },
   none: {
-    hidden: "opacity-0",
-    visible: "opacity-100",
+    hidden: "opacity-0 blur-md",
+    visible: "opacity-100 blur-0",
   },
 };
 
@@ -96,7 +96,7 @@ const FadeIn = ({
         transitionDelay: isVisible ? `${delay}ms` : "0ms",
       }}
       className={cn(
-        "transition-all ease-out will-change-[opacity,transform]",
+        "transition-all ease-out will-change-[opacity,transform,filter]",
         isVisible ? visible : hidden,
         className
       )}

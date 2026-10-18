@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { useAutoPageSize } from "@/lib/useAutoPageSize";
 import { Wallet, User as UserIcon } from "lucide-react";
 import Table, {
   TableHeader,
@@ -17,8 +18,6 @@ import ToolsTopup from "./tools";
 import AdminTopupMobileCard from "./mobile/card";
 import { isValidImageUrl } from "@/lib/utils";
 
-const ITEMS_PER_PAGE = 10;
-
 const AdminPaymentsTable = () => {
   const {
     adminPayments,
@@ -26,6 +25,12 @@ const AdminPaymentsTable = () => {
     adminSearch,
     fetchAdminPayments,
   } = usePaymentStore();
+
+  const tableWrapperRef = useRef<HTMLDivElement>(null);
+  const itemsPerPage = useAutoPageSize(tableWrapperRef, {
+    defaultSize: 10,
+    fallbackRowHeight: 53,
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -39,12 +44,19 @@ const AdminPaymentsTable = () => {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(adminPayments.length / ITEMS_PER_PAGE)
+    Math.ceil(adminPayments.length / itemsPerPage)
   );
   const safePage = Math.min(currentPage, totalPages);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedPayments = adminPayments.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE
+    (safePage - 1) * itemsPerPage,
+    safePage * itemsPerPage
   );
 
   return (
@@ -78,11 +90,35 @@ const AdminPaymentsTable = () => {
             <AdminTopupMobileCard key={p.id} payment={p} />
           ))
         )}
+
+        {/* Mobile Pagination */}
+        {!isLoadingAdminPayments && adminPayments.length > itemsPerPage && (
+          <div className="pt-2">
+            <Pagination
+              currentPage={safePage}
+              totalItems={adminPayments.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
 
       {/* Desktop Payments Table (hidden on mobile, visible on md+) */}
-      <div className="hidden md:block">
-        <Table>
+      <div ref={tableWrapperRef} className="hidden md:block">
+        <Table
+          footer={
+            !isLoadingAdminPayments && adminPayments.length > 0 && (
+              <Pagination
+                embedded
+                currentPage={safePage}
+                totalItems={adminPayments.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            )
+          }
+        >
           <TableHeader>
             <TableRow>
               <TableHead>ผู้ใช้งาน</TableHead>
@@ -162,7 +198,7 @@ const AdminPaymentsTable = () => {
                         <span className="truncate font-medium text-white text-xs sm:text-sm">
                           {p.userName}
                         </span>
-                        <span className="truncate text-[11px] text-neutral-500">
+                        <span className="truncate text-2xs text-neutral-500">
                           {p.userDiscordId}
                         </span>
                       </div>
@@ -171,7 +207,8 @@ const AdminPaymentsTable = () => {
 
                   {/* Method */}
                   <TableCell className="text-center">
-                    <span className="inline-flex items-center rounded-sm border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-xs font-semibold text-orange-400">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-xs font-semibold text-orange-400">
+                      <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
                       TrueMoney
                     </span>
                   </TableCell>
@@ -195,7 +232,7 @@ const AdminPaymentsTable = () => {
                           รหัส: {p.voucherCode}
                         </span>
                       )}
-                      <span className="text-[11px] text-neutral-500 truncate max-w-[200px]">
+                      <span className="text-2xs text-neutral-500 truncate max-w-[200px]">
                         {p.senderName
                           ? `ผู้ส่ง: ${p.senderName}`
                           : p.note || "-"}
@@ -216,7 +253,8 @@ const AdminPaymentsTable = () => {
 
                   {/* Status */}
                   <TableCell className="text-center">
-                    <span className="inline-flex items-center rounded-sm border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-400">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                       สำเร็จ
                     </span>
                   </TableCell>
@@ -226,16 +264,6 @@ const AdminPaymentsTable = () => {
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination (10 items per page) */}
-      {!isLoadingAdminPayments && adminPayments.length > 0 && (
-        <Pagination
-          currentPage={safePage}
-          totalItems={adminPayments.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={setCurrentPage}
-        />
-      )}
     </div>
   );
 };

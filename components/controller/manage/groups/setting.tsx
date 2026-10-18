@@ -140,7 +140,7 @@ export default function SettingGroupManageController({
           />
           <span className="truncate font-medium">ตั้งค่าการสุ่ม</span>
           {activeCount > 0 && (
-            <span className="rounded-sm bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-blue-400">
+            <span className="rounded-sm bg-blue-500/10 px-1.5 py-0.5 text-2xs font-semibold text-blue-400">
               {activeCount}
             </span>
           )}

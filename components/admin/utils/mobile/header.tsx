@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 
@@ -13,14 +12,9 @@ export const AdminMobileHeader = ({ onToggleDrawer }: AdminMobileHeaderProps) =>
     <header className="fixed top-0 left-0 right-0 z-40 flex h-14 items-center justify-between border-b border-neutral-900 bg-neutral-950/90 px-4 backdrop-blur-md lg:hidden">
       {/* Brand / Logo */}
       <Link href="/admin" className="flex items-center gap-2.5">
-        <Image
-          src="/hertz_logo.png"
-          alt="Hertz Admin"
-          width={75}
-          height={24}
-          className="h-6 w-auto object-contain"
-          priority
-        />
+        <span className="text-base font-bold text-white tracking-wide">
+          HERTZ PANEL
+        </span>
       </Link>
 
       {/* Hamburger Toggle */}

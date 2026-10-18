@@ -13,6 +13,7 @@ import ControllerMobileHeader from "./mobile/header";
 import ControllerMobileDrawer, {
   ControllerMenuGroup,
 } from "./mobile/drawer";
+import ControllerMobileBottomBar from "./mobile/bottom-bar";
 import BackUI from "@/components/ui/back";
 import { useControllerStore } from "@/store/controllerStore";
 import { KeyRound, LogOut } from "lucide-react";
@@ -68,11 +69,13 @@ const SidebarController = () => {
         menuGroups={menuGroups}
       />
 
+      {/* Mobile Bottom Navigation Bar (lg:hidden) */}
+      <ControllerMobileBottomBar />
+
       {/* Desktop Persistent Sidebar (hidden on mobile, visible on lg+) */}
-      <aside className="fixed left-0 top-0 hidden h-screen w-64 flex-col border-r border-neutral-900 bg-neutral-950 px-4 py-6 text-white lg:flex">
+      <aside className="fixed left-0 top-0 hidden h-screen w-64 flex-col bg-neutral-900 px-4 py-6 text-white lg:flex">
         <div className="mb-6 px-3">
-          <h1 className="text-lg font-bold">Hertz Controller</h1>
-          <p className="mt-1 text-xs text-neutral-500">Control Panel</p>
+          <h1 className="text-lg font-bold">HERTZ REMOTE</h1>
         </div>
 
         
@@ -80,7 +83,7 @@ const SidebarController = () => {
         <nav className="flex flex-1 flex-col gap-6 overflow-y-auto">
           {menuGroups.map((group) => (
             <div key={group.title}>
-              <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-neutral-600">
+              <p className="mb-2 px-3 text-2xs font-medium uppercase tracking-wider text-neutral-600">
                 {group.title}
               </p>
 
@@ -98,10 +101,10 @@ const SidebarController = () => {
                     <Link
                       key={menu.href}
                       href={menu.href}
-                      className={`flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition ${
+                      className={`flex items-center gap-3 rounded-full px-5 py-2 text-sm transition ${
                         isActive
-                          ? "bg-blue-500/10 text-blue-500"
-                          : "text-neutral-400 hover:bg-blue-500/10 hover:text-white"
+                          ? "bg-neutral-950 text-white"
+                          : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                       }`}
                     >
                       <Icon size={18} strokeWidth={1.8} />

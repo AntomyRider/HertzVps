@@ -63,12 +63,12 @@ export default function HeaderTools() {
   const StatusIcon = status?.icon;
 
   return (
-    <div className="flex flex-col gap-4 rounded-md border border-neutral-800 bg-neutral-950 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-3xl border border-neutral-800 bg-neutral-900 p-5 sm:flex-row sm:items-center sm:justify-between">
       {/* Left: Overall Health & Timestamp */}
       <div className="flex flex-wrap items-center gap-3">
         {status && (
           <div
-            className={`inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-xs font-medium ${status.className}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${status.className}`}
           >
             <span className={`h-2 w-2 rounded-full ${status.dotColor} animate-pulse`} />
             {StatusIcon && <StatusIcon size={14} />}
@@ -90,8 +90,8 @@ export default function HeaderTools() {
       {/* Right: Auto-refresh Toggle & Refresh Button */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Auto Refresh Pills */}
-        <div className="flex items-center gap-1 rounded-sm border border-neutral-800 bg-neutral-900/60 p-1">
-          <span className="px-2 text-[11px] font-medium text-neutral-400">
+        <div className="flex items-center gap-1 rounded-full border border-neutral-800 bg-neutral-950/60 p-1">
+          <span className="px-2 text-2xs font-medium text-neutral-400">
             รีเฟรชอัตโนมัติ:
           </span>
           {intervals.map((item) => (
@@ -99,7 +99,7 @@ export default function HeaderTools() {
               key={item.value}
               type="button"
               onClick={() => setRefreshInterval(item.value)}
-              className={`rounded-sm px-2.5 py-1 text-xs font-medium transition ${
+              className={`rounded-full px-2.5 py-1 text-xs font-medium transition cursor-pointer ${
                 refreshInterval === item.value
                   ? "bg-blue-600 text-white"
                   : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
@@ -115,7 +115,7 @@ export default function HeaderTools() {
           type="button"
           disabled={isLoading || isRefreshing}
           onClick={() => fetchMetrics(true)}
-          className="flex items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-200 transition hover:border-neutral-700 hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-950 px-3.5 py-1.5 text-xs font-medium text-neutral-200 transition hover:border-neutral-700 hover:bg-neutral-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
         >
           {isRefreshing || isLoading ? (
             <Loader2 size={14} className="animate-spin text-blue-400" />

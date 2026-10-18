@@ -46,17 +46,18 @@ export const AdminCategoryMobileCard = ({
           <h4 className="truncate text-xs sm:text-sm font-semibold text-white">
             {category.name}
           </h4>
-          <p className="text-[10px] text-neutral-500">ID: {category.id.slice(-6)}</p>
+          <p className="text-2xs text-neutral-500">ID: {category.id.slice(-6)}</p>
         </div>
       </div>
 
       {/* Bottom: Product count, Date & Actions */}
       <div className="flex items-center justify-between border-t border-neutral-900 pt-2.5">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-[10px] font-semibold text-blue-400">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900 px-2.5 py-0.5 text-2xs font-semibold text-blue-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
             {category.productCount || 0} รายการ
           </span>
-          <span className="text-[10px] text-neutral-500">{formattedDate}</span>
+          <span className="text-2xs text-neutral-500">{formattedDate}</span>
         </div>
 
         <div className="flex items-center gap-1.5">

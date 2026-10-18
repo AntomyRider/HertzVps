@@ -99,7 +99,7 @@ export const AdminKeyMobileCard = ({
       </div>
 
       {/* Middle: HWID info */}
-      <div className="flex items-center justify-between rounded-sm bg-neutral-950/60 px-2.5 py-1.5 text-[11px]">
+      <div className="flex items-center justify-between rounded-sm bg-neutral-950/60 px-2.5 py-1.5 text-2xs">
         <span className="text-neutral-500">HWID:</span>
         {keyItem.hwid ? (
           <span
@@ -116,18 +116,20 @@ export const AdminKeyMobileCard = ({
       {/* Duration & Expiry */}
       <div className="flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-[10px] font-medium text-neutral-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900 px-2.5 py-0.5 text-2xs font-medium text-neutral-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
             {keyItem.durationDays || 30} วัน
           </span>
-          <span className="text-[11px] text-neutral-500">{formattedCreated}</span>
+          <span className="text-2xs text-neutral-500">{formattedCreated}</span>
         </div>
 
         {isExpired ? (
-          <span className="inline-flex items-center rounded-sm border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-0.5 text-2xs font-semibold text-red-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
             หมดอายุแล้ว
           </span>
         ) : keyItem.expiresAt ? (
-          <span className="text-[11px] text-neutral-400">
+          <span className="text-2xs text-neutral-400">
             หมดอายุ:{" "}
             {new Date(keyItem.expiresAt).toLocaleDateString("th-TH", {
               day: "numeric",
@@ -135,7 +137,7 @@ export const AdminKeyMobileCard = ({
             })}
           </span>
         ) : (
-          <span className="text-[11px] text-neutral-500">ไม่จำกัดวัน</span>
+          <span className="text-2xs text-neutral-500">ไม่จำกัดวัน</span>
         )}
       </div>
 

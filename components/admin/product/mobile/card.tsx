@@ -57,10 +57,11 @@ export const AdminProductMobileCard = ({
               {product.name}
             </h4>
             <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex items-center rounded-sm border border-neutral-800 bg-neutral-900 px-1.5 py-0.2 text-[10px] font-medium text-blue-400">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-2xs font-medium text-blue-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
                 {product.categoryName || "ทั่วไป"}
               </span>
-              <span className="text-[10px] text-neutral-500">ID: {product.id.slice(-6)}</span>
+              <span className="text-2xs text-neutral-500">ID: {product.id.slice(-6)}</span>
             </div>
           </div>
         </div>
@@ -76,20 +77,26 @@ export const AdminProductMobileCard = ({
       {/* Middle: Stock status & Sales metrics */}
       <div className="flex items-center justify-between rounded-sm bg-neutral-950/60 px-2.5 py-1.5 text-xs">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-neutral-400">สต็อก:</span>
+          <span className="text-2xs text-neutral-400">สต็อก:</span>
           <span
             className={cn(
-              "inline-flex items-center rounded-sm px-1.5 py-0.2 text-[10px] font-semibold",
+              "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-2xs font-semibold",
               stockCount > 0
                 ? "bg-neutral-800 text-neutral-200"
                 : "bg-red-500/10 text-red-400 border border-red-500/20"
             )}
           >
+            <span
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                stockCount > 0 ? "bg-emerald-400" : "bg-red-400"
+              )}
+            />
             {stockCount} ชิ้น
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px]">
+        <div className="flex items-center gap-2 text-2xs">
           <span className="text-neutral-500">ขายแล้ว {product.soldCount || 0} ชิ้น</span>
           <span className="text-neutral-600">•</span>
           <span className="text-emerald-400 font-medium">
@@ -100,7 +107,7 @@ export const AdminProductMobileCard = ({
 
       {/* Bottom: Date & Actions */}
       <div className="flex items-center justify-between border-t border-neutral-900 pt-2.5">
-        <span className="text-[11px] text-neutral-500">{formattedDate}</span>
+        <span className="text-2xs text-neutral-500">{formattedDate}</span>
 
         <div className="flex items-center gap-1.5">
           {/* Stock Button */}

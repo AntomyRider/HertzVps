@@ -36,7 +36,7 @@ export const ToolsUser = () => {
   return (
     <FadeIn
       direction="up"
-      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
     >
       {/* Search Input & Role Filter */}
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
@@ -44,7 +44,7 @@ export const ToolsUser = () => {
           value={search}
           onChange={handleSearchChange}
           placeholder="ค้นหาชื่อผู้ใช้ หรือ Discord ID..."
-          className="w-full sm:max-w-xs rounded-sm"
+          className="w-full sm:max-w-xs"
         />
 
         <div className="w-full sm:w-52">
@@ -59,8 +59,8 @@ export const ToolsUser = () => {
 
       {/* Summary Badge */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-900/80 px-3 py-2 text-xs text-neutral-400">
-          <Users size={14} className="text-neutral-500" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/80 px-3.5 py-1.5 text-xs text-neutral-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
           <span>ผู้ใช้ในระบบ:</span>
           <span className="font-semibold text-white">{users.length} คน</span>
         </div>

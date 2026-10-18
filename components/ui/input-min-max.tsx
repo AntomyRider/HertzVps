@@ -107,7 +107,7 @@ const IuputMinMax = ({
   return (
     <div className="flex shrink-0 items-center gap-2 select-none">
       <div className="flex h-9 items-center rounded-xl border border-white/[0.1] bg-neutral-900/90 shadow-[inset_0_1px_2px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.06)] transition-all focus-within:border-sky-500/60 focus-within:ring-1 focus-within:ring-sky-500/20">
-        <span className="border-r border-white/[0.08] px-2.5 text-[10px] font-semibold text-neutral-400 tracking-tight">
+        <span className="border-r border-white/[0.08] px-2.5 text-2xs font-semibold text-neutral-400 tracking-tight">
           ต่ำสุด
         </span>
 
@@ -125,7 +125,7 @@ const IuputMinMax = ({
       <span className="text-xs font-bold text-neutral-600">-</span>
 
       <div className="flex h-9 items-center rounded-xl border border-white/[0.1] bg-neutral-900/90 shadow-[inset_0_1px_2px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.06)] transition-all focus-within:border-sky-500/60 focus-within:ring-1 focus-within:ring-sky-500/20">
-        <span className="border-r border-white/[0.08] px-2.5 text-[10px] font-semibold text-neutral-400 tracking-tight">
+        <span className="border-r border-white/[0.08] px-2.5 text-2xs font-semibold text-neutral-400 tracking-tight">
           สูงสุด
         </span>
 

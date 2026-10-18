@@ -12,6 +12,8 @@ const adapter = new PrismaMariaDb({
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
   connectionLimit: 5,
+  // Required when the server uses caching_sha2_password (MySQL 8+); ignored by MariaDB.
+  allowPublicKeyRetrieval: true,
 });
 
 export const prisma =

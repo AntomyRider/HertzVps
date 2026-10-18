@@ -11,6 +11,7 @@ export interface PaginationProps {
   itemsPerPage?: number;
   onPageChange: (page: number) => void;
   className?: string;
+  embedded?: boolean;
 }
 
 export const Pagination: React.FC<PaginationProps> = ({
@@ -19,6 +20,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   itemsPerPage = 10,
   onPageChange,
   className,
+  embedded = false,
 }) => {
   if (totalItems <= 0) return null;
 
@@ -62,28 +64,29 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   const pages = getPageNumbers();
 
-  return (
-    <FadeIn direction="up" duration={450}>
-      <div
-        className={cn(
-          "flex flex-col sm:flex-row items-center justify-between gap-3 rounded-md border border-neutral-800 bg-neutral-950 px-4 py-3",
-          className
-        )}
-      >
-        {/* Left: Summary text */}
-        <p className="text-xs text-neutral-400">
-          แสดง{" "}
-          <span className="font-semibold text-white">
-            {startItem.toLocaleString("th-TH")} - {endItem.toLocaleString("th-TH")}
-          </span>{" "}
-          จากทั้งหมด{" "}
-          <span className="font-semibold text-white">
-            {totalItems.toLocaleString("th-TH")}
-          </span>{" "}
-          รายการ
-        </p>
+  const content = (
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3",
+        !embedded && "rounded-md border border-neutral-800 bg-neutral-950",
+        className
+      )}
+    >
+      {/* Left: Summary text */}
+      <p className="text-xs text-neutral-400">
+        แสดง{" "}
+        <span className="font-semibold text-white">
+          {startItem.toLocaleString("th-TH")} - {endItem.toLocaleString("th-TH")}
+        </span>{" "}
+        จากทั้งหมด{" "}
+        <span className="font-semibold text-white">
+          {totalItems.toLocaleString("th-TH")}
+        </span>{" "}
+        รายการ
+      </p>
 
-        {/* Right: Page navigation buttons */}
+      {/* Right: Page navigation buttons */}
+      {totalPages > 1 && (
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -131,7 +134,17 @@ export const Pagination: React.FC<PaginationProps> = ({
             <ChevronRight size={15} strokeWidth={1.8} />
           </button>
         </div>
-      </div>
+      )}
+    </div>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <FadeIn direction="up" duration={450}>
+      {content}
     </FadeIn>
   );
 };

@@ -18,6 +18,7 @@ import {
   formatCurrentThaiTime,
   scheduleKeyDailyStatFlush,
   syncHistoricalDailyStats,
+  notifyFleetUpdated,
   type ControllerTimeRange,
   type ControllerWebSSEEvent,
 } from "@/lib/controllerHub";
@@ -145,6 +146,7 @@ export async function POST(req: NextRequest) {
     const {
       code,
       hwid,
+      version,
       action,
       rtcSignal,
       screenFrame,
@@ -165,6 +167,7 @@ export async function POST(req: NextRequest) {
     }: {
       code?: string;
       hwid?: string;
+      version?: string;
       action?:
         | "SYNC_STATE"
         | "RTC_SIGNAL"
@@ -241,6 +244,9 @@ export async function POST(req: NextRequest) {
     }
 
     const session = markProgramOnline(keyCode, keyId);
+    if (version) {
+      session.version = String(version);
+    }
 
     // 0. Fast-path สำหรับ WebRTC Signaling (RTC_SIGNAL: Offer / ICE จากตัวโปรแกรม -> หน้าเว็บ)
     if (action === "RTC_SIGNAL" && rtcSignal) {
@@ -279,6 +285,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "HEARTBEAT") {
+      notifyFleetUpdated();
       const commands = consumePendingCommands(keyCode, ackCommandIds);
       return NextResponse.json({
         success: true,
@@ -433,6 +440,7 @@ export async function POST(req: NextRequest) {
       type: "SNAPSHOT",
       data: snapshot,
     });
+    notifyFleetUpdated();
 
     const commands = consumePendingCommands(keyCode, ackCommandIds);
     return NextResponse.json({
@@ -466,6 +474,7 @@ export async function PUT(req: NextRequest) {
       chartData,
       timeRange,
       config,
+      version,
     }: {
       code?: string;
       hwid?: string;
@@ -481,6 +490,7 @@ export async function PUT(req: NextRequest) {
       chartData?: ControllerChartPoint[];
       timeRange?: ControllerTimeRange;
       config?: Record<string, unknown>;
+      version?: string;
     } = await req.json();
 
     const { valid, error, status, keyCode, keyId } = await validateControllerKey(
@@ -495,6 +505,11 @@ export async function PUT(req: NextRequest) {
     }
 
     const session = markProgramOnline(keyCode, keyId);
+    if (version) {
+      session.version = String(version);
+    } else if (config && typeof config === "object" && "version" in config) {
+      session.version = String((config as any).version);
+    }
 
     if (groupsByAccount && typeof groupsByAccount === "object") {
       // ส่ง session เดิมเข้าไปเพื่อเติมรูปแบบ delta (imagePreview ที่มาเป็น "hash:...")
@@ -527,6 +542,7 @@ export async function PUT(req: NextRequest) {
       type: "STATE_UPDATED",
       data: snapshot,
     });
+    notifyFleetUpdated();
 
     return NextResponse.json({
       success: true,
@@ -684,6 +700,7 @@ export async function DELETE(req: NextRequest) {
 
     if (!target || target === "SESSION" || target === "OFFLINE") {
       handleProgramDisconnect(keyCode, true);
+      notifyFleetUpdated();
       return NextResponse.json({
         success: true,
         isProgramOnline: false,

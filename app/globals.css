@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Noto+Sans+Thai:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mitr:wght@200;300;400;500;600;700&family=Noto+Sans+Thai:wght@100..900&family=Passero+One&family=Spicy+Rice&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -11,6 +11,8 @@
   --font-sans: var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --font-heading: var(--font-noto-sans-thai), "Noto Sans Thai", sans-serif;
+  --font-passero-one: "Passero One", cursive;
+  --font-spicy-rice: "Spicy Rice", cursive;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,6 +51,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* Fluid Typography with clamp() */
+  --text-2xs: clamp(0.625rem, 0.58rem + 0.2vw, 0.6875rem);
   --text-xs: clamp(0.7rem, 0.66rem + 0.2vw, 0.75rem);
   --text-sm: clamp(0.8rem, 0.75rem + 0.25vw, 0.875rem);
   --text-base: clamp(0.9rem, 0.85rem + 0.3vw, 1rem);
@@ -58,6 +61,9 @@
   --text-3xl: clamp(1.5rem, 1.3rem + 1vw, 1.875rem);
   --text-4xl: clamp(1.75rem, 1.45rem + 1.5vw, 2.25rem);
   --text-5xl: clamp(2.1rem, 1.7rem + 2vw, 3rem);
+  --text-6xl: clamp(2.5rem, 2rem + 2.5vw, 3.75rem);
+  --text-7xl: clamp(3rem, 2.2rem + 3.5vw, 4.5rem);
+  --text-8xl: clamp(3.5rem, 2.5rem + 5vw, 6rem);
 }
 
 @keyframes grid-move {
@@ -113,6 +119,19 @@
   50% {
     opacity: 0;
   }
+}
+
+@keyframes rainbow-spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.animate-rainbow-spin {
+  animation: rainbow-spin 3.5s linear infinite;
 }
 
 .noto-sans-thai {
@@ -287,4 +306,49 @@ input[type="number"] {
 
 .animate-toast-slide-up {
   animation: toastSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Dialog / Modal Fade-In Animations */
+@keyframes dialogFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes overlayFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-dialog-fade-in {
+  animation: dialogFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-overlay-fade-in {
+  animation: overlayFadeIn 0.2s ease-out forwards;
+}
+
+.font-spicy-rice {
+  font-family: var(--font-spicy-rice), "Spicy Rice", cursive;
+}
+
+@font-face {
+  font-family: 'Passero One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/passeroone/v28/JTUTjIko8DOq5FeaeEAjgE5B.ttf') format('truetype');
+}
+
+.font-passero-one {
+  font-family: 'Passero One', var(--font-passero-one), sans-serif !important;
 }

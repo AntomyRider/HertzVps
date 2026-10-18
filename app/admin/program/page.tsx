@@ -13,7 +13,7 @@ const ProgramOverviewPage = () => {
           ภาพรวมของโปรแกรม
         </h1>
         <p className="mt-1 text-sm text-neutral-400">
-          ตรวจสอบสุขภาพ สถานะออนไลน์ และอัตราความสำเร็จ (Success Rate) ของโปรแกรม Hertz Auto Post ทั้งระบบ
+          ตรวจสอบสถานะออนไลน์ ระยะเวลา เวอร์ชั่น และจำนวนบัญชีที่เชื่อมต่อของโปรแกรม Hertz Auto Post ทั้งระบบ
         </p>
       </div>
 
