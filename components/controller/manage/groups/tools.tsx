@@ -46,7 +46,7 @@ export default function ToolsGroupManageController({
         <ButtonUI
           type="button"
           onClick={() => deleteAllGroups(accountId)}
-          className="flex flex-1 cursor-pointer items-center justify-center gap-2 border border-neutral-800 bg-neutral-900 px-4 py-2 text-xs text-red-400 hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300 sm:flex-initial"
+          className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-red-600 hover:bg-red-700 text-white px-4 py-2 text-xs sm:flex-initial transition-colors"
         >
           <Trash2 size={15} strokeWidth={1.8} />
           <span>ลบกลุ่มทั้งหมด</span>

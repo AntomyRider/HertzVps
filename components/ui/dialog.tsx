@@ -38,7 +38,7 @@ export const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs animate-overlay-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-6 backdrop-blur-xs animate-overlay-fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onOpenChange(false);

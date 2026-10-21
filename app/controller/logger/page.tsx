@@ -1,13 +1,7 @@
-import ToolsLoggerController from "@/components/controller/logger/tools";
-import TerminalLoggerController from "@/components/controller/logger/terminal";
+import LoggerControllerView from "@/components/controller/logger";
 
 const ControllerLoggerPage = () => {
-  return (
-    <div className="space-y-6">
-      <ToolsLoggerController />
-      <TerminalLoggerController />
-    </div>
-  );
+  return <LoggerControllerView />;
 };
 
 export default ControllerLoggerPage;

@@ -6,6 +6,13 @@ export interface ControllerStats {
   success: number;
   failed: number;
   pending: number;
+  share?: number;
+  shareTotal?: number;
+  shareFailed?: number;
+  sharePending?: number;
+  boost?: number;
+  boostTotal?: number;
+  boostFailed?: number;
 }
 
 export interface ControllerChartPoint {
@@ -15,6 +22,13 @@ export interface ControllerChartPoint {
   failed: number;
   pending: number;
   total?: number;
+  share?: number;
+  shareTotal?: number;
+  shareFailed?: number;
+  sharePending?: number;
+  boost?: number;
+  boostTotal?: number;
+  boostFailed?: number;
 }
 
 export interface ControllerAccountStats {
@@ -24,6 +38,12 @@ export interface ControllerAccountStats {
   post: number;
   comment: number;
   reaction: number;
+}
+
+export interface ControllerAccountTimer {
+  duration?: number;
+  remaining?: number;
+  endTime?: number;
 }
 
 export interface ControllerAccountItem {
@@ -36,7 +56,10 @@ export interface ControllerAccountItem {
   groupName: string;
   groupCurrent: number;
   groupTotal: number;
+  taskTimer?: ControllerAccountTimer | null;
   stats: ControllerAccountStats;
+  proxy?: string | null;
+  isActive?: boolean;
 }
 
 export type ControllerReactionType =
@@ -67,10 +90,20 @@ export interface ControllerGroupItem {
   randomContent: boolean;
   randomImage: boolean;
   randomReaction: boolean;
+  shareMode?: boolean;
+  share?: string;
+  shareContent?: string;
+  boostMode?: boolean;
+  boostLinks?: string;
+  boostComments?: string;
+  boostRandomComment?: boolean;
+  boostCommentCount?: number;
 }
 
 export type ControllerLogActionType = "POST" | "COMMENT" | "REACTION" | "SYSTEM";
 export type ControllerLogStatusType = "SUCCESS" | "FAILED" | "INFO";
+export type LogLevel = "info" | "success" | "warn" | "error" | "debug";
+export type LogLevelFilter = "all" | LogLevel;
 
 export interface ControllerLogItem {
   id: string;
@@ -80,6 +113,8 @@ export interface ControllerLogItem {
   groupName?: string;
   action: ControllerLogActionType;
   status: ControllerLogStatusType;
+  level?: LogLevel;
+  source?: string;
   message: string;
 }
 
@@ -87,6 +122,7 @@ export interface ControllerLogFilter {
   search: string;
   accountId: string;
   status: "ALL" | ControllerLogStatusType;
+  level: LogLevelFilter;
   autoScroll: boolean;
 }
 
@@ -105,7 +141,8 @@ interface ControllerState {
   // Overview stats & chart state
   stats: ControllerStats;
   chartData: ControllerChartPoint[];
-  timeRange: "7d" | "30d" | "1y";
+  timeRange: "1d" | "7d" | "30d" | "90d" | "1y";
+  statsMode: "post" | "share" | "boost";
   isLoading: boolean;
   isRefreshing: boolean;
   error: string | null;
@@ -119,6 +156,7 @@ interface ControllerState {
   groupSearch: string;
   isGroupDialogOpen: boolean;
   editingGroup: ControllerGroupItem | null;
+  createGroupInitialData: { name?: string; links?: string[] } | null;
 
   // Logger state
   logs: ControllerLogItem[];
@@ -136,6 +174,9 @@ interface ControllerState {
   config: Record<string, unknown> | null;
   isSavingConfig: boolean;
 
+  // Real-time tool event (scan-joined, search-join, etc.)
+  lastToolEvent: ControllerToolEvent | null;
+
   // Actions
   setInputKey: (val: string) => void;
   setShowKey: (show: boolean) => void;
@@ -143,10 +184,11 @@ interface ControllerState {
   disconnectKey: () => void;
   initRealtimeIfNeeded: () => Promise<void>;
   fetchOverviewData: (
-    range?: "7d" | "30d" | "1y",
+    range?: "1d" | "7d" | "30d" | "90d" | "1y",
     silent?: boolean
   ) => Promise<void>;
-  setTimeRange: (range: "7d" | "30d" | "1y") => void;
+  setTimeRange: (range: "1d" | "7d" | "30d" | "90d" | "1y") => void;
+  setStatsMode: (mode: "post" | "share" | "boost") => void;
 
   // Monitor actions
   toggleMonitorPaused: () => Promise<void>;
@@ -158,18 +200,58 @@ interface ControllerState {
   updateAppConfig: (patch: Record<string, unknown>) => Promise<string | null>;
 
   // Manage actions (Full CRUD -> /api/v1/public/controller/to-program)
+  actionLoading: Record<string, boolean>;
+  isAllActionLoading: boolean;
   setAccountSearch: (search: string) => void;
   startAllAccounts: () => Promise<void>;
   stopAllAccounts: () => Promise<void>;
+  startAccount: (id: string) => Promise<void>;
+  stopAccount: (id: string) => Promise<void>;
   toggleAccountRunning: (id: string) => Promise<void>;
   resetAccountStats: (id: string) => Promise<void>;
+  resetAllStats: () => Promise<boolean>;
+  resetCategoryStats: (
+    accountId: string,
+    category: "post" | "share" | "boost"
+  ) => Promise<boolean>;
   deleteAccount: (id: string) => Promise<void>;
+
+  // Key & License actions
+  keyDetails: {
+    hwid?: string | null;
+    remainingDays?: number;
+    expiresAt?: string;
+    isActive?: boolean;
+    isActivated?: boolean;
+  } | null;
+  fetchKeyDetails: () => Promise<void>;
+  resetHwid: () => Promise<{ success: boolean; message?: string; error?: string }>;
 
   // Groups actions (Full CRUD -> /api/v1/public/controller/to-program)
   setGroupSearch: (search: string) => void;
   openCreateGroupDialog: () => void;
+  openCreateGroupWithData: (data: { name?: string; links?: string[] }) => void;
   openEditGroupDialog: (group: ControllerGroupItem) => void;
   closeGroupDialog: () => void;
+  batchCopyGroups: (
+    sourceAccountId: string,
+    targetAccountId: string,
+    groupNames: string[]
+  ) => Promise<{ success: boolean; message?: string; count?: number }>;
+  updateAccountProfile: (
+    accountId: string,
+    data: {
+      name?: string;
+      avatar?: string | null;
+      proxy?: string | null;
+      isActive?: boolean;
+    }
+  ) => Promise<{ success: boolean; message?: string }>;
+  sendToolCommand: (
+    action: string,
+    accountId: string,
+    payload?: Record<string, unknown>
+  ) => Promise<{ success: boolean; message?: string; data?: unknown }>;
   toggleGroupEnabled: (
     accountId: string,
     groupId: string,
@@ -187,6 +269,14 @@ interface ControllerState {
       randomContent: boolean;
       randomImage: boolean;
       randomReaction: boolean;
+      shareMode?: boolean;
+      share?: string;
+      shareContent?: string;
+      boostMode?: boolean;
+      boostLinks?: string;
+      boostComments?: string;
+      boostRandomComment?: boolean;
+      boostCommentCount?: number;
     }
   ) => Promise<void>;
   deleteGroup: (accountId: string, groupId: string) => Promise<void>;
@@ -194,6 +284,10 @@ interface ControllerState {
 
   // Logger actions
   updateLogFilter: (patch: Partial<ControllerLogFilter>) => void;
+  toggleLogAutoScroll: () => void;
+  setLogLevelFilter: (level: LogLevelFilter) => void;
+  setLogSearchQuery: (query: string) => void;
+  copyLogs: () => Promise<boolean>;
   clearLogs: () => Promise<void>;
   addLog: (log: Omit<ControllerLogItem, "id" | "timestamp">) => void;
 }
@@ -202,6 +296,8 @@ const SESSION_STORAGE_KEY = "hertz_controller_key";
 
 let activeEventSource: EventSource | null = null;
 let activeSubscribedKey = "";
+const pendingStopAccountIds = new Map<string, number>();
+let pendingStopAllUntil = 0;
 
 type ScreenFrameListener = (
   frame: string,
@@ -255,6 +351,38 @@ const emitRtcSignal = (signal: Record<string, unknown> | undefined) => {
   }
 };
 
+export interface ControllerToolEvent {
+  tool: string;
+  userId?: string;
+  type: string;
+  message?: string;
+  groups?: unknown[];
+  results?: unknown[];
+  data?: unknown;
+  mode?: string;
+  code?: number;
+  [key: string]: unknown;
+}
+
+type ToolEventListener = (event: ControllerToolEvent) => void;
+const toolEventListeners = new Set<ToolEventListener>();
+
+export const subscribeToolEvent = (listener: ToolEventListener) => {
+  toolEventListeners.add(listener);
+  return () => {
+    toolEventListeners.delete(listener);
+  };
+};
+
+const emitToolEvent = (event: ControllerToolEvent | undefined) => {
+  if (!event) return;
+  for (const listener of toolEventListeners) {
+    try {
+      listener(event);
+    } catch {}
+  }
+};
+
 const closeActiveSSE = () => {
   if (activeEventSource) {
     activeEventSource.close();
@@ -264,9 +392,42 @@ const closeActiveSSE = () => {
 };
 
 const buildZeroChartPoints = (
-  range: "7d" | "30d" | "1y"
+  range: "1d" | "7d" | "30d" | "90d" | "1y"
 ): ControllerChartPoint[] => {
-  const count = range === "7d" ? 7 : range === "30d" ? 30 : 12;
+  if (range === "1d") {
+    const defaultTwoHourSlots = [
+      "00:00",
+      "02:00",
+      "04:00",
+      "06:00",
+      "08:00",
+      "10:00",
+      "12:00",
+      "14:00",
+      "16:00",
+      "18:00",
+      "20:00",
+      "22:00",
+    ];
+    return defaultTwoHourSlots.map((slot) => ({
+      date: slot,
+      label: slot,
+      total: 0,
+      success: 0,
+      failed: 0,
+      pending: 0,
+      share: 0,
+      shareTotal: 0,
+      shareFailed: 0,
+      sharePending: 0,
+      boost: 0,
+      boostTotal: 0,
+      boostFailed: 0,
+    }));
+  }
+
+  const count =
+    range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : 12;
   const now = new Date();
   const points: ControllerChartPoint[] = [];
 
@@ -277,9 +438,17 @@ const buildZeroChartPoints = (
       points.push({
         date: d.toISOString(),
         label: d.toLocaleDateString("th-TH", { month: "short" }),
+        total: 0,
         success: 0,
         failed: 0,
         pending: 0,
+        share: 0,
+        shareTotal: 0,
+        shareFailed: 0,
+        sharePending: 0,
+        boost: 0,
+        boostTotal: 0,
+        boostFailed: 0,
       });
     } else {
       d.setDate(d.getDate() - i);
@@ -289,9 +458,17 @@ const buildZeroChartPoints = (
           day: "numeric",
           month: "short",
         }),
+        total: 0,
         success: 0,
         failed: 0,
         pending: 0,
+        share: 0,
+        shareTotal: 0,
+        shareFailed: 0,
+        sharePending: 0,
+        boost: 0,
+        boostTotal: 0,
+        boostFailed: 0,
       });
     }
   }
@@ -311,6 +488,7 @@ const INITIAL_LOG_FILTER: ControllerLogFilter = {
   search: "",
   accountId: "",
   status: "ALL",
+  level: "all",
   autoScroll: true,
 };
 
@@ -354,9 +532,27 @@ export const useControllerStore = create<ControllerState>((set, get) => {
             screenFrame: null,
             screenResolution: null,
             screenUpdatedAt: null,
-            isMonitorPaused: true,
+            isMonitorPaused: false,
           });
           return;
+        }
+
+        let accountsToApply = data.accounts;
+        if (Array.isArray(accountsToApply)) {
+          const now = Date.now();
+          const isStopAllActive = pendingStopAllUntil > now;
+          accountsToApply = accountsToApply.map((acc: ControllerAccountItem) => {
+            const isAccStopActive = (pendingStopAccountIds.get(acc.id) || 0) > now;
+            if (isStopAllActive || isAccStopActive) {
+              return {
+                ...acc,
+                isRunning: false,
+                currentTask: "หยุดการทำงานแล้ว",
+                taskTimer: null,
+              };
+            }
+            return acc;
+          });
         }
 
         set((state) => ({
@@ -370,8 +566,8 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           ...(Array.isArray(data.chartData) && data.chartData.length > 0
             ? { chartData: data.chartData }
             : {}),
-          ...(Array.isArray(data.accounts)
-            ? { accounts: data.accounts }
+          ...(Array.isArray(accountsToApply)
+            ? { accounts: accountsToApply }
             : {}),
           ...(data.groupsByAccount
             ? { groupsByAccount: data.groupsByAccount }
@@ -411,6 +607,17 @@ export const useControllerStore = create<ControllerState>((set, get) => {
         const data = parsed.data || parsed;
         if (data && data.rtcSignal) {
           emitRtcSignal(data.rtcSignal as Record<string, unknown>);
+        }
+      } catch {}
+    });
+
+    es.addEventListener("tool_event", (evt) => {
+      try {
+        const parsed = JSON.parse((evt as MessageEvent).data || "{}");
+        const data = parsed.data || parsed;
+        if (data && data.toolEvent) {
+          emitToolEvent(data.toolEvent as ControllerToolEvent);
+          set({ lastToolEvent: data.toolEvent as ControllerToolEvent });
         }
       } catch {}
     });
@@ -483,10 +690,12 @@ export const useControllerStore = create<ControllerState>((set, get) => {
     connectError: null,
     config: null,
     isSavingConfig: false,
+    keyDetails: null,
 
     stats: { ...EMPTY_STATS },
     chartData: buildZeroChartPoints("7d"),
     timeRange: "7d",
+    statsMode: "post",
     isLoading: false,
     isRefreshing: false,
     error: null,
@@ -494,11 +703,14 @@ export const useControllerStore = create<ControllerState>((set, get) => {
     // ข้อมูลทั้งหมดจะว่างเปล่าจนกว่าจะเชื่อมต่อและตัวโปรแกรมส่งข้อมูลขึ้นมา
     accounts: [],
     accountSearch: "",
+    actionLoading: {},
+    isAllActionLoading: false,
 
     groupsByAccount: {},
     groupSearch: "",
     isGroupDialogOpen: false,
     editingGroup: null,
+    createGroupInitialData: null,
 
     logs: [],
     logFilter: INITIAL_LOG_FILTER,
@@ -506,9 +718,10 @@ export const useControllerStore = create<ControllerState>((set, get) => {
     screenFrame: null,
     screenResolution: null,
     screenUpdatedAt: null,
-    isMonitorPaused: true,
+    isMonitorPaused: false,
     monitorPreset: "balanced",
     isMonitorFullscreen: false,
+    lastToolEvent: null,
 
     setInputKey: (inputKey) => set({ inputKey, connectError: null }),
     setShowKey: (showKey) => set({ showKey }),
@@ -608,7 +821,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           isMonitorPaused:
             typeof monitorConfig?.paused === "boolean"
               ? monitorConfig.paused
-              : true,
+              : false,
           monitorPreset: monitorConfig?.preset || "balanced",
         });
 
@@ -637,7 +850,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           screenFrame: null,
           screenResolution: null,
           screenUpdatedAt: null,
-          isMonitorPaused: true,
+          isMonitorPaused: false,
         });
         return { success: false, error: errMsg };
       }
@@ -750,12 +963,16 @@ export const useControllerStore = create<ControllerState>((set, get) => {
       }
     },
 
-    setTimeRange: (range: "7d" | "30d" | "1y") => {
+    setTimeRange: (range: "1d" | "7d" | "30d" | "90d" | "1y") => {
       set({
         timeRange: range,
         chartData: buildZeroChartPoints(range),
       });
       void get().fetchOverviewData(range, true);
+    },
+
+    setStatsMode: (mode: "post" | "share" | "boost") => {
+      set({ statsMode: mode });
     },
 
     toggleMonitorPaused: async () => {
@@ -836,8 +1053,13 @@ export const useControllerStore = create<ControllerState>((set, get) => {
     setAccountSearch: (accountSearch) => set({ accountSearch }),
 
     startAllAccounts: async () => {
-      const { keyCode, accounts } = get();
-      if (!keyCode || accounts.length === 0) return;
+      const { keyCode, accounts, isAllActionLoading } = get();
+      if (!keyCode || accounts.length === 0 || isAllActionLoading) return;
+
+      pendingStopAllUntil = 0;
+      pendingStopAccountIds.clear();
+
+      set({ isAllActionLoading: true });
 
       const now = formatCurrentTime();
       const newLogs: ControllerLogItem[] = accounts.map((acc, idx) => ({
@@ -867,12 +1089,21 @@ export const useControllerStore = create<ControllerState>((set, get) => {
         });
       } catch {
         // State will resync from SSE
+      } finally {
+        set({ isAllActionLoading: false });
       }
     },
 
     stopAllAccounts: async () => {
-      const { keyCode, accounts } = get();
-      if (!keyCode || accounts.length === 0) return;
+      const { keyCode, accounts, isAllActionLoading } = get();
+      if (!keyCode || accounts.length === 0 || isAllActionLoading) return;
+
+      pendingStopAllUntil = Date.now() + 5000;
+      for (const acc of accounts) {
+        pendingStopAccountIds.set(acc.id, Date.now() + 5000);
+      }
+
+      set({ isAllActionLoading: true });
 
       const now = formatCurrentTime();
       const newLogs: ControllerLogItem[] = accounts.map((acc, idx) => ({
@@ -890,6 +1121,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           ...acc,
           isRunning: false,
           currentTask: "หยุดการทำงานแล้ว",
+          taskTimer: null,
         })),
         logs: [...state.logs, ...newLogs],
       }));
@@ -901,43 +1133,44 @@ export const useControllerStore = create<ControllerState>((set, get) => {
         });
       } catch {
         // State will resync from SSE
+      } finally {
+        set({ isAllActionLoading: false });
       }
     },
 
-    toggleAccountRunning: async (id) => {
-      const { keyCode, accounts } = get();
-      if (!keyCode) return;
+    startAccount: async (id: string) => {
+      const { keyCode, accounts, actionLoading } = get();
+      if (!keyCode || actionLoading[id]) return;
+
+      pendingStopAccountIds.delete(id);
+      pendingStopAllUntil = 0;
 
       const target = accounts.find((acc) => acc.id === id);
-      const nextRunning = target ? !target.isRunning : false;
+      if (!target) return;
 
       set((state) => {
-        const newLog: ControllerLogItem | null = target
-          ? {
-              id: `log-${Date.now()}`,
-              timestamp: formatCurrentTime(),
-              accountId: target.id,
-              accountName: target.name,
-              groupName: target.groupName,
-              action: "SYSTEM",
-              status: "INFO",
-              message: nextRunning
-                ? "เริ่มเดินงานอัตโนมัติของบัญชี"
-                : "หยุดการทำงานของบัญชีชั่วคราว",
-            }
-          : null;
-
+        const newLog: ControllerLogItem = {
+          id: `log-${Date.now()}`,
+          timestamp: formatCurrentTime(),
+          accountId: target.id,
+          accountName: target.name,
+          groupName: target.groupName,
+          action: "SYSTEM",
+          status: "INFO",
+          message: "เริ่มเดินงานอัตโนมัติของบัญชี",
+        };
         return {
+          actionLoading: { ...state.actionLoading, [id]: true },
           accounts: state.accounts.map((acc) =>
             acc.id === id
               ? {
                   ...acc,
-                  isRunning: nextRunning,
-                  currentTask: nextRunning ? "กำลังรันงาน..." : "พร้อมทำงาน",
+                  isRunning: true,
+                  currentTask: "กำลังเริ่มรันงาน...",
                 }
               : acc
           ),
-          logs: newLog ? [...state.logs, newLog] : state.logs,
+          logs: [...state.logs, newLog],
         };
       });
 
@@ -946,10 +1179,80 @@ export const useControllerStore = create<ControllerState>((set, get) => {
           code: keyCode,
           action: "TOGGLE_ACCOUNT",
           accountId: id,
-          isRunning: nextRunning,
+          isRunning: true,
         });
       } catch {
         // State will resync from SSE
+      } finally {
+        set((state) => ({
+          actionLoading: { ...state.actionLoading, [id]: false },
+        }));
+      }
+    },
+
+    stopAccount: async (id: string) => {
+      const { keyCode, accounts, actionLoading } = get();
+      if (!keyCode || actionLoading[id]) return;
+
+      pendingStopAccountIds.set(id, Date.now() + 5000);
+
+      const target = accounts.find((acc) => acc.id === id);
+      if (!target) return;
+
+      set((state) => {
+        const newLog: ControllerLogItem = {
+          id: `log-${Date.now()}`,
+          timestamp: formatCurrentTime(),
+          accountId: target.id,
+          accountName: target.name,
+          groupName: target.groupName,
+          action: "SYSTEM",
+          status: "INFO",
+          message: "หยุดการทำงานของบัญชีชั่วคราว",
+        };
+        return {
+          actionLoading: { ...state.actionLoading, [id]: true },
+          accounts: state.accounts.map((acc) =>
+            acc.id === id
+              ? {
+                  ...acc,
+                  isRunning: false,
+                  currentTask: "หยุดการทำงานแล้ว",
+                  taskTimer: null,
+                }
+              : acc
+          ),
+          logs: [...state.logs, newLog],
+        };
+      });
+
+      try {
+        await axios.patch("/api/v1/public/controller/to-program", {
+          code: keyCode,
+          action: "TOGGLE_ACCOUNT",
+          accountId: id,
+          isRunning: false,
+        });
+      } catch {
+        // State will resync from SSE
+      } finally {
+        set((state) => ({
+          actionLoading: { ...state.actionLoading, [id]: false },
+        }));
+      }
+    },
+
+    toggleAccountRunning: async (id: string) => {
+      const { accounts, actionLoading } = get();
+      if (actionLoading[id]) return;
+
+      const target = accounts.find((acc) => acc.id === id);
+      if (!target) return;
+
+      if (target.isRunning) {
+        await get().stopAccount(id);
+      } else {
+        await get().startAccount(id);
       }
     },
 
@@ -986,6 +1289,142 @@ export const useControllerStore = create<ControllerState>((set, get) => {
       }
     },
 
+    resetAllStats: async () => {
+      const { keyCode } = get();
+      if (!keyCode) return false;
+
+      set((state) => ({
+        accounts: state.accounts.map((acc) => ({
+          ...acc,
+          stats: {
+            total: 0,
+            success: 0,
+            failed: 0,
+            post: 0,
+            comment: 0,
+            reaction: 0,
+          },
+        })),
+        stats: { total: 0, success: 0, failed: 0, pending: 0 },
+      }));
+
+      try {
+        await axios.patch("/api/v1/public/controller/to-program", {
+          code: keyCode,
+          action: "RESET_ALL_STATS",
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+
+    resetCategoryStats: async (accountId, category) => {
+      const { keyCode } = get();
+      if (!keyCode) return false;
+
+      set((state) => ({
+        accounts: state.accounts.map((acc) => {
+          if (acc.id !== accountId) return acc;
+          const newStats = { ...acc.stats };
+          if (category === "post") {
+            newStats.total = Math.max(0, newStats.total - newStats.post);
+            newStats.post = 0;
+          } else if (category === "share") {
+            // share
+          } else if (category === "boost") {
+            newStats.comment = 0;
+            newStats.reaction = 0;
+          }
+          return {
+            ...acc,
+            stats: newStats,
+          };
+        }),
+      }));
+
+      try {
+        await axios.patch("/api/v1/public/controller/to-program", {
+          code: keyCode,
+          action: "RESET_CATEGORY_STATS",
+          accountId,
+          category,
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+
+    fetchKeyDetails: async () => {
+      const { keyCode } = get();
+      if (!keyCode) return;
+
+      try {
+        const { data } = await axios.get<{
+          valid: boolean;
+          status: string;
+          key?: {
+            code: string;
+            hwid: string | null;
+            isActive: boolean;
+            isActivated: boolean;
+            durationDays: number;
+            remainingDays: number;
+            remainingSeconds: number;
+            activatedAt: string | null;
+            expiresAt: string | null;
+          };
+        }>(`/api/v1/public/keys/status?code=${encodeURIComponent(keyCode)}`);
+
+        if (data.valid && data.key) {
+          set({
+            keyDetails: {
+              hwid: data.key.hwid || null,
+              remainingDays: data.key.remainingDays,
+              expiresAt: data.key.expiresAt || undefined,
+              isActive: data.key.isActive,
+              isActivated: data.key.isActivated,
+            },
+          });
+        }
+      } catch (err) {
+        console.error("fetchKeyDetails error:", err);
+      }
+    },
+
+    resetHwid: async () => {
+      const { keyCode } = get();
+      if (!keyCode) {
+        return { success: false, error: "ไม่พบรหัส License Key สำหรับการรีเซ็ต HWID" };
+      }
+
+      try {
+        const { data } = await axios.post<{
+          success?: boolean;
+          message?: string;
+          error?: string;
+        }>("/api/v1/public/keys/reset-hwid", { code: keyCode });
+
+        if (data.success) {
+          set((state) => ({
+            keyDetails: state.keyDetails
+              ? { ...state.keyDetails, hwid: null }
+              : null,
+          }));
+          return {
+            success: true,
+            message: data.message || "รีเซ็ต HWID สำเร็จ สามารถนำคีย์ไปเปิดใช้งานบนเครื่องใหม่ได้ทันที",
+          };
+        }
+        return { success: false, error: data.error || "ไม่สามารถรีเซ็ต HWID ได้" };
+      } catch (err: any) {
+        const errMsg =
+          err?.response?.data?.error || err.message || "เกิดข้อผิดพลาดในการรีเซ็ต HWID";
+        return { success: false, error: errMsg };
+      }
+    },
+
     deleteAccount: async (id) => {
       const { keyCode } = get();
       if (!keyCode) return;
@@ -1012,12 +1451,21 @@ export const useControllerStore = create<ControllerState>((set, get) => {
     openCreateGroupDialog: () =>
       set({
         editingGroup: null,
+        createGroupInitialData: null,
+        isGroupDialogOpen: true,
+      }),
+
+    openCreateGroupWithData: (data) =>
+      set({
+        editingGroup: null,
+        createGroupInitialData: data,
         isGroupDialogOpen: true,
       }),
 
     openEditGroupDialog: (group) =>
       set({
         editingGroup: group,
+        createGroupInitialData: null,
         isGroupDialogOpen: true,
       }),
 
@@ -1025,6 +1473,7 @@ export const useControllerStore = create<ControllerState>((set, get) => {
       set({
         isGroupDialogOpen: false,
         editingGroup: null,
+        createGroupInitialData: null,
       }),
 
     toggleGroupEnabled: async (accountId, groupId, enabled) => {
@@ -1089,6 +1538,14 @@ export const useControllerStore = create<ControllerState>((set, get) => {
                       randomContent: payload.randomContent,
                       randomImage: payload.randomImage,
                       randomReaction: payload.randomReaction,
+                      shareMode: payload.shareMode,
+                      share: payload.share,
+                      shareContent: payload.shareContent,
+                      boostMode: payload.boostMode,
+                      boostLinks: payload.boostLinks,
+                      boostComments: payload.boostComments,
+                      boostRandomComment: payload.boostRandomComment,
+                      boostCommentCount: payload.boostCommentCount,
                     }
                   : grp
               ),
@@ -1185,10 +1642,185 @@ export const useControllerStore = create<ControllerState>((set, get) => {
       }
     },
 
+    batchCopyGroups: async (sourceAccountId, targetAccountId, groupNames) => {
+      const { keyCode } = get();
+      if (!keyCode) return { success: false, message: "กรุณาเชื่อมต่อคีย์ก่อนดำเนินการ" };
+
+      try {
+        const { data } = await axios.post<{
+          success?: boolean;
+          copiedCount?: number;
+          groupsByAccount?: Record<string, ControllerGroupItem[]>;
+          message?: string;
+        }>("/api/v1/public/controller/to-program", {
+          code: keyCode,
+          action: "BATCH_COPY_GROUPS",
+          payload: {
+            sourceAccountId,
+            targetAccountId,
+            groupNames,
+          },
+        });
+
+        if (data?.groupsByAccount) {
+          set({ groupsByAccount: data.groupsByAccount });
+        }
+
+        return {
+          success: true,
+          count: data?.copiedCount || groupNames.length,
+          message: `คัดลอกสำเร็จ ${data?.copiedCount || groupNames.length} กลุ่ม`,
+        };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการคัดลอกกลุ่ม";
+        return { success: false, message: msg };
+      }
+    },
+
+    updateAccountProfile: async (accountId, data) => {
+      const { keyCode, accounts } = get();
+      if (!keyCode) return { success: false, message: "กรุณาเชื่อมต่อคีย์ก่อนดำเนินการ" };
+
+      set({
+        accounts: accounts.map((acc) =>
+          acc.id === accountId
+            ? {
+                ...acc,
+                name: data.name?.trim() || acc.name,
+                avatar: data.avatar !== undefined ? data.avatar : acc.avatar,
+                proxy: data.proxy !== undefined ? data.proxy : acc.proxy,
+                isActive: data.isActive !== undefined ? data.isActive : acc.isActive,
+              }
+            : acc
+        ),
+      });
+
+      try {
+        const res = await axios.post<{ success?: boolean; message?: string }>(
+          "/api/v1/public/controller/to-program",
+          {
+            code: keyCode,
+            action: "UPDATE_ACCOUNT_PROFILE",
+            payload: {
+              accountId,
+              ...data,
+            },
+          }
+        );
+        return { success: true, message: res.data?.message || "บันทึกโปรไฟล์สำเร็จ" };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบันทึก";
+        return { success: false, message: msg };
+      }
+    },
+
+    sendToolCommand: async (action, accountId, payload) => {
+      const { keyCode } = get();
+      if (!keyCode) return { success: false, message: "กรุณาเชื่อมต่อคีย์ก่อนดำเนินการ" };
+
+      try {
+        const { data } = await axios.post<{ success?: boolean; message?: string; command?: unknown }>(
+          "/api/v1/public/controller/to-program",
+          {
+            code: keyCode,
+            action: "TOOL_COMMAND",
+            payload: {
+              toolId: action,
+              accountId,
+              toolPayload: payload,
+            },
+          }
+        );
+        return { success: true, data };
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการส่งคำสั่ง";
+        return { success: false, message: msg };
+      }
+    },
+
     updateLogFilter: (patch) =>
       set((state) => ({
         logFilter: { ...(state.logFilter || INITIAL_LOG_FILTER), ...patch },
       })),
+
+    toggleLogAutoScroll: () =>
+      set((state) => ({
+        logFilter: {
+          ...(state.logFilter || INITIAL_LOG_FILTER),
+          autoScroll: !(state.logFilter?.autoScroll ?? true),
+        },
+      })),
+
+    setLogLevelFilter: (level) =>
+      set((state) => ({
+        logFilter: {
+          ...(state.logFilter || INITIAL_LOG_FILTER),
+          level,
+        },
+      })),
+
+    setLogSearchQuery: (query) =>
+      set((state) => ({
+        logFilter: {
+          ...(state.logFilter || INITIAL_LOG_FILTER),
+          search: query,
+        },
+      })),
+
+    copyLogs: async () => {
+      const { logs, logFilter } = get();
+      const currentLevelFilter = logFilter?.level || "all";
+      const searchQuery = (logFilter?.search || "").toLowerCase().trim();
+
+      const filtered = logs.filter((item) => {
+        const itemLevel = (
+          item.level ||
+          (item.status === "SUCCESS"
+            ? "success"
+            : item.status === "FAILED"
+            ? "error"
+            : "info")
+        ).toLowerCase();
+
+        const matchLevel =
+          currentLevelFilter === "all" || itemLevel === currentLevelFilter;
+        const matchSearch =
+          !searchQuery ||
+          item.message.toLowerCase().includes(searchQuery) ||
+          (item.source && item.source.toLowerCase().includes(searchQuery)) ||
+          (item.accountName &&
+            item.accountName.toLowerCase().includes(searchQuery)) ||
+          itemLevel.includes(searchQuery);
+
+        return matchLevel && matchSearch;
+      });
+
+      if (filtered.length === 0) return false;
+
+      const text = filtered
+        .map((l) => {
+          const lv = (
+            l.level ||
+            (l.status === "SUCCESS"
+              ? "SUCCESS"
+              : l.status === "FAILED"
+              ? "ERROR"
+              : "INFO")
+          ).toUpperCase();
+          return `[${l.timestamp}] [${lv}] ${l.message}`;
+        })
+        .join("\n");
+
+      try {
+        if (typeof navigator !== "undefined" && navigator.clipboard) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    },
 
     clearLogs: async () => {
       const { keyCode } = get();

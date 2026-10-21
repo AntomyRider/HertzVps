@@ -157,7 +157,7 @@ const DownloadContainer = () => {
                   className={cn(
                     "flex w-full items-center justify-between gap-2 rounded-full px-5 py-2 text-left text-xs font-medium transition cursor-pointer",
                     isSelected
-                      ? "bg-blue-500/10 text-blue-500"
+                      ? "bg-neutral-800 text-white"
                       : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
                   )}
                 >

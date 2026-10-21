@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   FileText,
   Images,
-  Sparkles,
+  Smile,
   SlidersHorizontal,
   ChevronUp,
 } from "lucide-react";
 import Toggle from "@/components/ui/toggle";
+import ButtonUI from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface GroupRandomSettingValues {
   randomContent: boolean;
@@ -19,20 +21,24 @@ export interface GroupRandomSettingValues {
 interface SettingGroupManageControllerProps {
   values: GroupRandomSettingValues;
   onChange: (patch: Partial<GroupRandomSettingValues>) => void;
+  disabled?: boolean;
+  className?: string;
+  shareMode?: boolean;
 }
 
 export default function SettingGroupManageController({
   values,
   onChange,
+  disabled = false,
+  className,
+  shareMode = false,
 }: SettingGroupManageControllerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const activeCount = [
-    values.randomContent,
-    values.randomImage,
-    values.randomReaction,
-  ].filter(Boolean).length;
+  const hasAnyRandom = shareMode
+    ? values.randomReaction
+    : values.randomContent || values.randomImage || values.randomReaction;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,98 +67,107 @@ export default function SettingGroupManageController({
     };
   }, [isOpen]);
 
-  const items: {
-    key: keyof GroupRandomSettingValues;
-    label: string;
-    icon: typeof FileText;
-    checked: boolean;
-  }[] = [
+  const allItems = [
     {
-      key: "randomContent",
-      label: "สุ่มคอนเทนต์",
+      key: "randomContent" as const,
+      label: "สุ่มข้อความโพสต์",
+      desc: "สุ่มจากชุดข้อความที่คั่นด้วย ---",
       icon: FileText,
       checked: values.randomContent,
+      hideInShare: true,
     },
     {
-      key: "randomImage",
+      key: "randomImage" as const,
       label: "สุ่มรูปภาพ",
+      desc: "สุ่มเลือกรูปภาพเมื่อโพสต์",
       icon: Images,
       checked: values.randomImage,
+      hideInShare: true,
     },
     {
-      key: "randomReaction",
-      label: "สุ่มความรู้สึก",
-      icon: Sparkles,
+      key: "randomReaction" as const,
+      label: "สุ่มรีแอคชัน",
+      desc: "สุ่มกดความรู้สึกแต่ละกลุ่ม",
+      icon: Smile,
       checked: values.randomReaction,
+      hideInShare: false,
     },
   ];
 
+  const items = shareMode ? allItems.filter((i) => !i.hideInShare) : allItems;
+
   return (
-    <div ref={containerRef} className="relative min-w-0 flex-1 sm:w-48">
-      {/* Dropup Panel (opens upward above button) */}
+    <div ref={containerRef} className={cn("relative inline-block", className)}>
+      {/* Dropup Panel (opens upward) */}
       {isOpen && (
-        <div className="absolute bottom-full right-0 z-50 mb-1.5 w-64 space-y-1.5 rounded-md border border-neutral-800 bg-neutral-950 p-2 sm:left-0 sm:right-auto">
-          {items.map((item) => {
-            const Icon = item.icon;
+        <div className="absolute bottom-full right-0 sm:left-0 sm:right-auto z-50 mb-2 w-72 rounded-xl border border-neutral-800 bg-neutral-950 p-3 shadow-xl">
+          <div className="mb-2 flex items-center justify-between border-b border-neutral-800 pb-2">
+            <span className="text-xs font-medium text-neutral-300">
+              การสุ่มทำงาน
+            </span>
+          </div>
 
-            return (
-              <div
-                key={item.key}
-                className="flex items-center justify-between gap-3 rounded-sm border border-neutral-800/80 bg-neutral-900/50 px-2.5 py-2"
-              >
-                {/* Left: Icon on Left, Text right next to Icon */}
-                <div className="flex min-w-0 items-center gap-2">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-neutral-800 bg-neutral-950 text-blue-400">
-                    <Icon size={14} strokeWidth={1.8} />
+          <div className="space-y-2.5">
+            {items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.key}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-neutral-800/80 bg-neutral-900/60 p-2.5"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-neutral-800 text-neutral-300">
+                      <Icon size={14} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium text-neutral-200">
+                        {item.label}
+                      </p>
+                      <p className="truncate text-[10px] text-neutral-500">
+                        {item.desc}
+                      </p>
+                    </div>
                   </div>
-                  <span className="truncate text-xs font-medium text-neutral-300">
-                    {item.label}
-                  </span>
-                </div>
 
-                {/* Right: Toggle Button */}
-                <Toggle
-                  size="sm"
-                  checked={item.checked}
-                  onCheckedChange={(checked) => onChange({ [item.key]: checked })}
-                />
-              </div>
-            );
-          })}
+                  <Toggle
+                    size="sm"
+                    checked={item.checked}
+                    onCheckedChange={(checked) =>
+                      onChange({ [item.key]: checked })
+                    }
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Dropup Trigger Button */}
-      <button
+      {/* Trigger Button */}
+      <ButtonUI
         type="button"
+        variant="ghost"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-sm border bg-neutral-950 px-3 text-xs transition ${
-          isOpen
-            ? "border-blue-500/50 text-white"
-            : "border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:text-white"
-        }`}
+        disabled={disabled}
+        className={cn(
+          "relative flex h-8 w-full items-center justify-between gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all select-none sm:w-auto",
+          hasAnyRandom
+            ? "border-blue-500/50 !bg-blue-500/10 text-blue-300"
+            : "border-neutral-800 !bg-neutral-900/90 text-neutral-300 hover:border-neutral-700 hover:text-white"
+        )}
       >
-        <div className="flex items-center gap-2 truncate">
-          <SlidersHorizontal
-            size={15}
-            strokeWidth={1.8}
-            className="shrink-0 text-blue-400"
-          />
-          <span className="truncate font-medium">ตั้งค่าการสุ่ม</span>
-          {activeCount > 0 && (
-            <span className="rounded-sm bg-blue-500/10 px-1.5 py-0.5 text-2xs font-semibold text-blue-400">
-              {activeCount}
-            </span>
-          )}
+        <div className="flex items-center gap-1.5 truncate">
+          <SlidersHorizontal className="h-3.5 w-3.5 text-neutral-400 shrink-0" />
+          <span className="truncate">ตั้งค่ากลุ่ม</span>
         </div>
 
         <ChevronUp
-          size={15}
-          className={`shrink-0 text-neutral-500 transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-white" : ""
-          }`}
+          className={cn(
+            "ml-0.5 h-3.5 w-3.5 text-neutral-400 transition-transform duration-200 shrink-0",
+            isOpen ? "rotate-180" : ""
+          )}
         />
-      </button>
+      </ButtonUI>
     </div>
   );
 }

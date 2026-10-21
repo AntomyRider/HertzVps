@@ -10,12 +10,17 @@ import {
   broadcastToWeb,
   buildGroupItem,
   formatCurrentThaiTime,
+  setSessionStopAllLock,
+  clearSessionStopAllLock,
+  setSessionStoppingLock,
+  clearSessionStoppingLock,
   type ControllerTimeRange,
   type ControllerProgramSSEEvent,
 } from "@/lib/controllerHub";
 import type {
   ControllerLogItem,
   ControllerReactionType,
+  ControllerGroupItem,
 } from "@/store/controllerStore";
 
 export const dynamic = "force-dynamic";
@@ -108,7 +113,7 @@ export async function GET(req: NextRequest) {
           timestamp: new Date().toISOString(),
         });
 
-        // ส่ง MONITOR_CONFIG เริ่มต้น (ปิดแชร์หน้าจอ paused = true เสมอ) ให้ตัวโปรแกรมทันที
+        // ส่ง MONITOR_CONFIG เริ่มต้น (เปิดแชร์หน้าจอ paused = false ตามค่า session) ให้ตัวโปรแกรมทันที
         enqueueCommandForProgram(keyCode, "MONITOR_CONFIG", {
           action: "MONITOR_CONFIG",
           payload: {
@@ -183,7 +188,11 @@ export async function POST(req: NextRequest) {
         | "CREATE_GROUP"
         | "START_ALL_ACCOUNTS"
         | "STOP_ALL_ACCOUNTS"
-        | "UPDATE_CONFIG";
+        | "UPDATE_CONFIG"
+        | "BATCH_COPY_GROUPS"
+        | "UPDATE_ACCOUNT_PROFILE"
+        | "TOOL_COMMAND"
+        | (string & {});
       accountId?: string;
       payload?: {
         name?: string;
@@ -195,11 +204,28 @@ export async function POST(req: NextRequest) {
         randomContent?: boolean;
         randomImage?: boolean;
         randomReaction?: boolean;
+        shareMode?: boolean;
+        share?: string;
+        shareContent?: string;
+        boostMode?: boolean;
+        boostLinks?: string;
+        boostComments?: string;
+        boostRandomComment?: boolean;
+        boostCommentCount?: number;
         viewerId?: string;
         signalType?: string;
         sdp?: unknown;
         candidate?: unknown;
         config?: Record<string, unknown>;
+        sourceAccountId?: string;
+        targetAccountId?: string;
+        groupNames?: string[];
+        avatar?: string | null;
+        proxy?: string | null;
+        isActive?: boolean;
+        toolId?: string;
+        toolPayload?: Record<string, unknown>;
+        [key: string]: unknown;
       };
       timeRange?: ControllerTimeRange;
     } = await req.json();
@@ -264,6 +290,14 @@ export async function POST(req: NextRequest) {
           userId: accountId,
           accountId,
           images: newGroup.images,
+          shareMode: newGroup.shareMode,
+          share: newGroup.share,
+          shareContent: newGroup.shareContent,
+          boostMode: newGroup.boostMode,
+          boostLinks: newGroup.boostLinks,
+          boostComments: newGroup.boostComments,
+          boostRandomComment: newGroup.boostRandomComment,
+          boostCommentCount: newGroup.boostCommentCount,
           group: {
             ...newGroup,
             userId: accountId,
@@ -272,6 +306,14 @@ export async function POST(req: NextRequest) {
             link: linksList,
             images: newGroup.images,
             isActive: newGroup.enabled,
+            shareMode: newGroup.shareMode,
+            share: newGroup.share,
+            shareContent: newGroup.shareContent,
+            boostMode: newGroup.boostMode,
+            boostLinks: newGroup.boostLinks,
+            boostComments: newGroup.boostComments,
+            boostRandomComment: newGroup.boostRandomComment,
+            boostCommentCount: newGroup.boostCommentCount,
           },
         },
       });
@@ -293,6 +335,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "START_ALL_ACCOUNTS") {
+      clearSessionStopAllLock(keyCode);
       const now = formatCurrentThaiTime();
       const newLogs: ControllerLogItem[] = session.accounts.map((acc, idx) => ({
         id: `log_${Date.now()}_${idx}`,
@@ -333,6 +376,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "STOP_ALL_ACCOUNTS") {
+      setSessionStopAllLock(keyCode, 6000);
+      // เคลียร์คำสั่ง START เก่าที่อาจค้างอยู่ในคิวโปรแกรมทันที
+      session.pendingCommands = session.pendingCommands.filter(
+        (cmd) => cmd.action !== "START_ALL" && cmd.action !== "START_USER"
+      );
       const now = formatCurrentThaiTime();
       const newLogs: ControllerLogItem[] = session.accounts.map((acc, idx) => ({
         id: `log_${Date.now()}_${idx}`,
@@ -409,6 +457,187 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (action === "BATCH_COPY_GROUPS") {
+      const { sourceAccountId, targetAccountId, groupNames } = payload || {};
+      if (
+        !sourceAccountId ||
+        !targetAccountId ||
+        !Array.isArray(groupNames) ||
+        groupNames.length === 0
+      ) {
+        return NextResponse.json(
+          { error: "ข้อมูลไม่ครบถ้วนสำหรับการคัดลอกกลุ่ม" },
+          { status: 400 }
+        );
+      }
+
+      const sourceGroups = session.groupsByAccount[sourceAccountId] || [];
+      const targetGroups = session.groupsByAccount[targetAccountId] || [];
+      const isSameAccount = sourceAccountId === targetAccountId;
+
+      const copiedGroups: ControllerGroupItem[] = [];
+      const commands = [];
+
+      for (const name of groupNames) {
+        const orig = sourceGroups.find((g) => g.name === name || g.id === name);
+        if (!orig) continue;
+
+        const newId = `grp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const newName = isSameAccount ? `${orig.name} (คัดลอก)` : orig.name;
+
+        const cloned: ControllerGroupItem = {
+          ...orig,
+          id: newId,
+          accountId: targetAccountId,
+          name: newName,
+        };
+
+        copiedGroups.push(cloned);
+
+        const linksList = (cloned.links || "")
+          .split("\n")
+          .map((l: string) => l.trim())
+          .filter(Boolean);
+
+        const cmd = enqueueCommandForProgram(keyCode, "CREATE_GROUP", {
+          action: "CREATE_GROUP",
+          accountId: targetAccountId,
+          groupId: cloned.id,
+          payload: {
+            userId: targetAccountId,
+            accountId: targetAccountId,
+            images: cloned.images,
+            shareMode: cloned.shareMode,
+            share: cloned.share,
+            shareContent: cloned.shareContent,
+            boostMode: cloned.boostMode,
+            boostLinks: cloned.boostLinks,
+            boostComments: cloned.boostComments,
+            boostRandomComment: cloned.boostRandomComment,
+            boostCommentCount: cloned.boostCommentCount,
+            group: {
+              ...cloned,
+              userId: targetAccountId,
+              comments: cloned.comment,
+              links: linksList,
+              link: linksList,
+              images: cloned.images,
+              isActive: cloned.enabled,
+              shareMode: cloned.shareMode,
+              share: cloned.share,
+              shareContent: cloned.shareContent,
+              boostMode: cloned.boostMode,
+              boostLinks: cloned.boostLinks,
+              boostComments: cloned.boostComments,
+              boostRandomComment: cloned.boostRandomComment,
+              boostCommentCount: cloned.boostCommentCount,
+            },
+          },
+        });
+        commands.push(cmd);
+      }
+
+      session.groupsByAccount[targetAccountId] = [
+        ...copiedGroups,
+        ...targetGroups,
+      ];
+
+      broadcastToWeb(keyCode, {
+        type: "GROUPS_UPDATED",
+        data: {
+          accountId: targetAccountId,
+          groupsByAccount: { ...session.groupsByAccount },
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        copiedCount: copiedGroups.length,
+        groupsByAccount: session.groupsByAccount,
+        commands,
+      });
+    }
+
+    if (action === "UPDATE_ACCOUNT_PROFILE") {
+      const targetAccountId =
+        typeof payload?.accountId === "string" && payload.accountId
+          ? payload.accountId
+          : accountId;
+
+      if (!targetAccountId) {
+        return NextResponse.json(
+          { error: "กรุณาระบุ accountId" },
+          { status: 400 }
+        );
+      }
+
+      const name = payload?.name as string | undefined;
+      const avatar = payload?.avatar as string | null | undefined;
+      const proxy = payload?.proxy as string | null | undefined;
+      const isActive = payload?.isActive as boolean | undefined;
+
+      session.accounts = session.accounts.map((acc) => {
+        if (acc.id !== targetAccountId) return acc;
+        return {
+          ...acc,
+          name: typeof name === "string" && name.trim() ? name.trim() : acc.name,
+          avatar: avatar !== undefined ? avatar : acc.avatar,
+          proxy: proxy !== undefined ? proxy : acc.proxy,
+          isActive: typeof isActive === "boolean" ? isActive : acc.isActive,
+        };
+      });
+
+      const command = enqueueCommandForProgram(keyCode, "UPDATE_ACCOUNT", {
+        action: "UPDATE_ACCOUNT",
+        accountId: targetAccountId,
+        payload: {
+          userId: targetAccountId,
+          name,
+          avatar,
+          proxy,
+          isActive,
+        },
+      });
+
+      broadcastToWeb(keyCode, {
+        type: "ACCOUNT_UPDATED",
+        data: {
+          accounts: [...session.accounts],
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        accounts: session.accounts,
+        command,
+      });
+    }
+
+    if (action === "TOOL_COMMAND") {
+      const toolId =
+        typeof payload?.toolId === "string" ? payload.toolId : "TOOL_COMMAND";
+      const targetAccountId =
+        typeof payload?.accountId === "string" && payload.accountId
+          ? payload.accountId
+          : accountId;
+      const toolPayload = (payload?.toolPayload || {}) as Record<string, unknown>;
+
+      const command = enqueueCommandForProgram(keyCode, toolId, {
+        action: toolId,
+        accountId: targetAccountId,
+        payload: {
+          ...toolPayload,
+          accountId: targetAccountId,
+          userId: targetAccountId,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        command,
+      });
+    }
+
     return NextResponse.json(
       { error: "ไม่รู้จักคำสั่ง (action) ที่ระบุ" },
       { status: 400 }
@@ -445,6 +674,14 @@ export async function PUT(req: NextRequest) {
         randomContent: boolean;
         randomImage: boolean;
         randomReaction: boolean;
+        shareMode?: boolean;
+        share?: string;
+        shareContent?: string;
+        boostMode?: boolean;
+        boostLinks?: string;
+        boostComments?: string;
+        boostRandomComment?: boolean;
+        boostCommentCount?: number;
       };
     } = await req.json();
 
@@ -490,6 +727,17 @@ export async function PUT(req: NextRequest) {
         randomContent: Boolean(payload.randomContent),
         randomImage: Boolean(payload.randomImage),
         randomReaction: Boolean(payload.randomReaction),
+        shareMode: Boolean(payload.shareMode),
+        share: typeof payload.share === "string" ? payload.share : "",
+        shareContent: typeof payload.shareContent === "string" ? payload.shareContent : "",
+        boostMode: Boolean(payload.boostMode),
+        boostLinks: typeof payload.boostLinks === "string" ? payload.boostLinks : "",
+        boostComments: typeof payload.boostComments === "string" ? payload.boostComments : "",
+        boostRandomComment: Boolean(payload.boostRandomComment),
+        boostCommentCount:
+          typeof payload.boostCommentCount === "number" && payload.boostCommentCount > 0
+            ? payload.boostCommentCount
+            : 1,
       };
       return updatedGroup;
     });
@@ -511,6 +759,17 @@ export async function PUT(req: NextRequest) {
         existingImages: [],
         newImages: Array.isArray(payload.images) ? payload.images : [],
         images: Array.isArray(payload.images) ? payload.images : [],
+        shareMode: Boolean(payload.shareMode),
+        share: typeof payload.share === "string" ? payload.share : "",
+        shareContent: typeof payload.shareContent === "string" ? payload.shareContent : "",
+        boostMode: Boolean(payload.boostMode),
+        boostLinks: typeof payload.boostLinks === "string" ? payload.boostLinks : "",
+        boostComments: typeof payload.boostComments === "string" ? payload.boostComments : "",
+        boostRandomComment: Boolean(payload.boostRandomComment),
+        boostCommentCount:
+          typeof payload.boostCommentCount === "number" && payload.boostCommentCount > 0
+            ? payload.boostCommentCount
+            : 1,
         data: {
           userId: accountId,
           oldName,
@@ -525,6 +784,17 @@ export async function PUT(req: NextRequest) {
           randomContent: Boolean(payload.randomContent),
           randomImage: Boolean(payload.randomImage),
           randomReaction: Boolean(payload.randomReaction),
+          shareMode: Boolean(payload.shareMode),
+          share: typeof payload.share === "string" ? payload.share : "",
+          shareContent: typeof payload.shareContent === "string" ? payload.shareContent : "",
+          boostMode: Boolean(payload.boostMode),
+          boostLinks: typeof payload.boostLinks === "string" ? payload.boostLinks : "",
+          boostComments: typeof payload.boostComments === "string" ? payload.boostComments : "",
+          boostRandomComment: Boolean(payload.boostRandomComment),
+          boostCommentCount:
+            typeof payload.boostCommentCount === "number" && payload.boostCommentCount > 0
+              ? payload.boostCommentCount
+              : 1,
           isActive: existingGroup ? existingGroup.enabled : true,
         },
       },
@@ -566,11 +836,14 @@ export async function PATCH(req: NextRequest) {
       isRunning,
       paused,
       preset,
+      category,
     }: {
       code?: string;
       action?:
         | "TOGGLE_ACCOUNT"
         | "RESET_ACCOUNT_STATS"
+        | "RESET_ALL_STATS"
+        | "RESET_CATEGORY_STATS"
         | "TOGGLE_GROUP"
         | "UPDATE_MONITOR_CONFIG";
       accountId?: string;
@@ -579,6 +852,7 @@ export async function PATCH(req: NextRequest) {
       isRunning?: boolean;
       paused?: boolean;
       preset?: "smooth" | "balanced" | "hd";
+      category?: "post" | "share" | "boost";
     } = await req.json();
 
     const { valid, error, status, keyCode } = await validateControllerKey(
@@ -640,6 +914,12 @@ export async function PATCH(req: NextRequest) {
           : target
             ? !target.isRunning
             : false;
+
+      if (nextRunning) {
+        clearSessionStoppingLock(keyCode, accountId);
+      } else {
+        setSessionStoppingLock(keyCode, accountId, 6000);
+      }
 
       if (target) {
         const newLog: ControllerLogItem = {
@@ -716,6 +996,86 @@ export async function PATCH(req: NextRequest) {
         action: "RESET_USER_STATS",
         accountId,
         payload: { accountId },
+      });
+
+      broadcastToWeb(keyCode, {
+        type: "ACCOUNT_UPDATED",
+        data: {
+          accounts: [...session.accounts],
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        accounts: session.accounts,
+        command,
+      });
+    }
+
+    if (action === "RESET_ALL_STATS") {
+      session.accounts = session.accounts.map((acc) => ({
+        ...acc,
+        stats: {
+          total: 0,
+          success: 0,
+          failed: 0,
+          post: 0,
+          comment: 0,
+          reaction: 0,
+        },
+      }));
+      session.stats = { total: 0, success: 0, failed: 0, pending: 0 };
+
+      const command = enqueueCommandForProgram(keyCode, "RESET_ALL_STATS", {
+        action: "RESET_ALL_STATS",
+      });
+
+      broadcastToWeb(keyCode, {
+        type: "ACCOUNT_UPDATED",
+        data: {
+          accounts: [...session.accounts],
+          stats: { ...session.stats },
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        accounts: session.accounts,
+        stats: session.stats,
+        command,
+      });
+    }
+
+    if (action === "RESET_CATEGORY_STATS") {
+      if (!accountId) {
+        return NextResponse.json(
+          { error: "กรุณาระบุ accountId" },
+          { status: 400 }
+        );
+      }
+
+      session.accounts = session.accounts.map((acc) => {
+        if (acc.id !== accountId) return acc;
+        const newStats = { ...acc.stats };
+        if (category === "post") {
+          newStats.total = Math.max(0, newStats.total - newStats.post);
+          newStats.post = 0;
+        } else if (category === "share") {
+          // share
+        } else if (category === "boost") {
+          newStats.comment = 0;
+          newStats.reaction = 0;
+        }
+        return {
+          ...acc,
+          stats: newStats,
+        };
+      });
+
+      const command = enqueueCommandForProgram(keyCode, "RESET_CATEGORY_STATS", {
+        action: "RESET_CATEGORY_STATS",
+        accountId,
+        payload: { accountId, category },
       });
 
       broadcastToWeb(keyCode, {

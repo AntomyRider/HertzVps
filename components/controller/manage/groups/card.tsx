@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { FolderKanban, Settings2, Trash2 } from "lucide-react";
+import { FolderKanban, Settings2, Trash2, Share2, Rocket } from "lucide-react";
 import FadeIn from "@/components/ui/fade-in";
 import ButtonUI from "@/components/ui/button";
 import Toggle from "@/components/ui/toggle";
@@ -74,6 +74,14 @@ export default function CardGroupManageController({
                         alt={group.name}
                         className="h-full w-full object-cover"
                       />
+                    ) : group.boostMode ? (
+                      <div className="flex h-full w-full items-center justify-center text-amber-400 bg-amber-500/10">
+                        <Rocket size={24} strokeWidth={1.8} />
+                      </div>
+                    ) : group.shareMode ? (
+                      <div className="flex h-full w-full items-center justify-center text-violet-400 bg-violet-500/10">
+                        <Share2 size={24} strokeWidth={1.8} />
+                      </div>
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-neutral-500">
                         <FolderKanban size={24} strokeWidth={1.8} />
@@ -81,7 +89,7 @@ export default function CardGroupManageController({
                     )}
 
                     {imageCount > 1 && (
-                      <span className="absolute bottom-1 right-1 rounded-sm border border-neutral-800 bg-black/80 px-1.5 py-0.5 text-2xs font-semibold text-blue-400">
+                      <span className="absolute bottom-1 right-1 rounded-sm border border-neutral-800 bg-black/80 px-1.5 py-0.5 text-2xs font-medium text-blue-400">
                         +{imageCount - 1}
                       </span>
                     )}
@@ -89,17 +97,33 @@ export default function CardGroupManageController({
 
                   {/* Group Name & Info */}
                   <div className="min-w-0 flex-1 space-y-1">
-                    <h3 className="truncate text-sm font-bold text-white">
+                    <h3 className="truncate text-sm font-medium text-white">
                       {group.name}
                     </h3>
 
-                    <span
-                      className={`inline-block text-2xs font-medium ${
-                        isEnabled ? "text-blue-400" : "text-neutral-500"
-                      }`}
-                    >
-                      {isEnabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={`inline-block text-2xs font-medium ${
+                          isEnabled ? "text-blue-400" : "text-neutral-500"
+                        }`}
+                      >
+                        {isEnabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                      </span>
+
+                      {group.shareMode && (
+                        <span className="inline-flex items-center gap-1 rounded bg-violet-500/15 border border-violet-500/30 px-1.5 py-0.2 text-[10px] font-medium text-violet-300">
+                          <Share2 size={9} />
+                          <span>แชร์ลิงก์</span>
+                        </span>
+                      )}
+
+                      {group.boostMode && (
+                        <span className="inline-flex items-center gap-1 rounded bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.2 text-[10px] font-medium text-amber-300">
+                          <Rocket size={9} />
+                          <span>ดันโพสต์</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -131,7 +155,7 @@ export default function CardGroupManageController({
                   type="button"
                   onClick={() => deleteGroup(accountId, group.id)}
                   title="ลบกลุ่ม"
-                  className="h-9 w-9 shrink-0 cursor-pointer border border-neutral-800 bg-transparent p-0 text-neutral-400 hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
+                  className="h-9 w-9 shrink-0 cursor-pointer rounded-lg bg-red-600 text-white hover:bg-red-700 p-0 transition-colors flex items-center justify-center"
                 >
                   <Trash2 size={15} strokeWidth={1.8} />
                 </ButtonUI>

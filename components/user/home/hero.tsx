@@ -20,7 +20,7 @@ const HeroHome = () => {
 
         {/* 1. Main Headline */}
         <FadeIn direction="up" delay={80} duration={550}>
-          <h1 className="font-passero-one text-5xl font-normal tracking-wider uppercase sm:text-6xl md:text-8xl bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
+          <h1 className="font-passero-one text-6xl font-normal tracking-wider uppercase sm:text-7xl md:text-8xl bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
             HERTZ MANAGER
           </h1>
         </FadeIn>

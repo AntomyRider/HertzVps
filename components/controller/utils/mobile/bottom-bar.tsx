@@ -3,36 +3,42 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  SquareChartGantt,
-  SlidersHorizontal,
-  ScrollText,
+  ChartPie ,
+  HardDrive ,
+  Gamepad2 ,
   Settings,
+  CodeXml 
 } from "lucide-react";
 
 interface NavItem {
   label: string;
   href: string;
-  icon: typeof SquareChartGantt;
+  icon: typeof ChartPie ;
 }
 
 const navItems: NavItem[] = [
   {
     label: "ภาพรวม",
     href: "/controller",
-    icon: SquareChartGantt,
+    icon: ChartPie ,
   },
   {
-    label: "จัดการ",
+    label: "เริ่มการทำงาน",
+    href: "/controller/worker",
+    icon: Gamepad2 ,
+  },
+  {
+    label: "จัดการข้อมูล",
     href: "/controller/manage",
-    icon: SlidersHorizontal,
+    icon: HardDrive ,
   },
   {
-    label: "บันทึก",
+    label: "ผลการทำงาน",
     href: "/controller/logger",
-    icon: ScrollText,
+    icon: CodeXml  ,
   },
   {
-    label: "ตั้งค่า",
+    label: "การตั้งค่า",
     href: "/controller/setting",
     icon: Settings,
   },
@@ -46,7 +52,7 @@ export const ControllerMobileBottomBar = () => {
       aria-label="เมนูควบคุมบนมือถือ"
       className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-900 bg-neutral-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
     >
-      <div className="grid h-16 grid-cols-4 items-center px-2">
+      <div className="grid h-16 grid-cols-5 items-center px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -75,7 +81,7 @@ export const ControllerMobileBottomBar = () => {
 
               <span
                 className={`text-2xs leading-none ${
-                  isActive ? "font-semibold text-blue-400" : "font-medium"
+                  isActive ? " text-blue-400" : "font-medium"
                 }`}
               >
                 {item.label}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { BadgeDollarSign  } from "lucide-react";
+import { BadgeDollarSign } from "lucide-react";
 import Input from "@/components/ui/input";
 import ButtonUI from "@/components/ui/button";
 import { usePaymentStore } from "@/store/paymentStore";
@@ -33,7 +33,9 @@ const TrueMoneyForm = () => {
     const urlMatch = trimmed.match(/[?&]v=([a-zA-Z0-9]+)/);
     const code = urlMatch ? urlMatch[1] : trimmed;
     if (code.length !== 35 || !/^[a-zA-Z0-9]+$/.test(code)) {
-      setVoucherError("รหัสซองอั่งเปาต้องมีความยาว 35 ตัวอักษร (กรุณาตรวจสอบลิงก์ซองของขวัญอีกครั้ง)");
+      setVoucherError(
+        "รหัสซองอั่งเปาต้องมีความยาว 35 ตัวอักษร (กรุณาตรวจสอบลิงก์ซองของขวัญอีกครั้ง)",
+      );
       return;
     }
 
@@ -46,7 +48,7 @@ const TrueMoneyForm = () => {
         "เติมเงินสำเร็จ!",
         `ยอดเงิน +฿${(res.amount || 0).toLocaleString("th-TH", {
           minimumFractionDigits: 2,
-        })} ถูกเพิ่มเข้ากระเป๋าของคุณเรียบร้อยแล้ว`
+        })} ถูกเพิ่มเข้ากระเป๋าของคุณเรียบร้อยแล้ว`,
       );
       setVoucherUrl("");
     }
@@ -88,9 +90,10 @@ const TrueMoneyForm = () => {
                 type="submit"
                 disabled={isSubmitting || !voucherUrl.trim()}
                 isLoading={isSubmitting}
-                className="flex  items-center justify-center  text-xs text-white transition cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white transition cursor-pointer"
               >
-                <BadgeDollarSign className="size-4 sm:size-5" />
+                <BadgeDollarSign className="size-4" />
+                <span>เติมเงิน</span>
               </ButtonUI>
             )}
           </div>
@@ -100,60 +103,53 @@ const TrueMoneyForm = () => {
             </span>
           )}
           <span className="mt-1.5 block text-2xs text-neutral-500">
-            * คัดลอกลิงก์ซองของขวัญจากแอป TrueMoney มาวางที่นี่ ระบบจะเติมเงินอัตโนมัติทันที
+            * คัดลอกลิงก์ซองของขวัญจากแอป TrueMoney มาวางที่นี่
+            ระบบจะเติมเงินอัตโนมัติทันที
           </span>
         </div>
       </form>
 
       {/* Guide Steps */}
+
       <div className="rounded-3xl border border-neutral-800 bg-neutral-950 p-4">
-        <h4 className="flex items-center gap-2 text-xs font-semibold text-white">
-          <Image
-            src="/truemoney.png"
-            alt="TrueMoney"
-            width={16}
-            height={16}
-            className="object-contain"
-          />
-          <span>วิธีสร้างซองของขวัญ TrueMoney เพื่อเติมเงิน</span>
+        <h4 className="flex items-center gap-2 text-xs text-white">
+          <span>วิธีสร้างซองของขวัญเพื่อเติมเงิน</span>
         </h4>
-        <ol className="mt-3 space-y-2 text-xs text-neutral-400">
-          <li className="flex items-start gap-2">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-2xs font-bold text-neutral-300">
+
+        <ol className="mt-4 space-y-3 text-xs leading-relaxed text-neutral-400">
+          <li className="flex items-start gap-2.5">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-neutral-800 text-xs text-neutral-300">
               1
             </span>
             <span>
-              เปิดแอป <strong className="text-white">TrueMoney</strong> ไปที่เมนู{" "}
-              <strong className="text-white">&quot;โอนเงิน&quot;</strong> แล้วเลือก{" "}
-              <strong className="text-white">&quot;ส่งซองของขวัญ&quot;</strong>
+              เปิดแอป "TrueMoney" ไปที่เมนู "โอนเงิน" แล้วเลือก "ส่งซองของขวัญ"
             </span>
           </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-2xs font-bold text-neutral-300">
+
+          <li className="flex items-start gap-2.5">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-neutral-800 text-xs text-neutral-300">
               2
             </span>
             <span>
-              ใส่จำนวนเงินที่ต้องการเติม, เลือกประเภทการสุ่มเป็น{" "}
-              <strong className="text-white">&quot;แบ่งจำนวนเงินเท่ากัน&quot;</strong>
+              ใส่จำนวนเงินที่ต้องการเติม แล้วเลือกประเภทการแบ่งเงินเป็น
+              "แบ่งจำนวนเงินเท่ากัน"
             </span>
           </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-2xs font-bold text-neutral-300">
+
+          <li className="flex items-start gap-2.5">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-neutral-800 text-xs text-neutral-300">
               3
             </span>
-            <span>
-              กำหนดจำนวนคนที่รับซองเป็น{" "}
-              <strong className="text-white">1 คน</strong> เท่านั้น
-            </span>
+            <span>กำหนดจำนวนผู้รับซองเป็น "1 คน"</span>
           </li>
-          <li className="flex items-start gap-2">
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm bg-neutral-800 text-2xs font-bold text-neutral-300">
+
+          <li className="flex items-start gap-2.5">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-neutral-800 text-xs text-neutral-300">
               4
             </span>
             <span>
-              กดยืนยันสร้างซอง แล้วกด{" "}
-              <strong className="text-white">&quot;คัดลอกลิงก์&quot;</strong>{" "}
-              นำมาวางในช่องด้านบนแล้วกดแลกรับเงิน
+              ยืนยันการสร้างซอง จากนั้นกด "คัดลอกลิงก์"
+              แล้วนำลิงก์มาวางในช่องด้านบนเพื่อแลกรับเงิน
             </span>
           </li>
         </ol>

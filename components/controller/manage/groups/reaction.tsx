@@ -1,95 +1,82 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  Ban,
-  ThumbsUp,
-  Heart,
-  Smile,
-  Laugh,
-  Sparkles,
-  Frown,
-  Angry,
-  ChevronUp,
-  Check,
-  type LucideIcon,
-} from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { ChevronUp, Smile, X } from "lucide-react";
 import { type ControllerReactionType } from "@/store/controllerStore";
+import ButtonUI from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-interface ReactionGroupManageControllerProps {
-  value: ControllerReactionType;
-  onChange: (value: ControllerReactionType) => void;
-}
-
-interface ReactionOption {
-  value: ControllerReactionType;
+export interface ReactionOption {
+  type: ControllerReactionType;
   label: string;
-  icon: LucideIcon;
-  color: string;
+  emoji: string;
+  activeColor: string;
 }
 
-const REACTION_OPTIONS: ReactionOption[] = [
+export const REACTIONS: ReactionOption[] = [
   {
-    value: "",
-    label: "ไม่แสดงความรู้สึก",
-    icon: Ban,
-    color: "text-neutral-400",
-  },
-  {
-    value: "LIKE",
+    type: "LIKE",
     label: "ถูกใจ",
-    icon: ThumbsUp,
-    color: "text-blue-400",
+    emoji: "👍",
+    activeColor: "border-blue-500 bg-blue-600/20 text-blue-400",
   },
   {
-    value: "LOVE",
+    type: "LOVE",
     label: "รักเลย",
-    icon: Heart,
-    color: "text-red-400",
+    emoji: "❤️",
+    activeColor: "border-red-500 bg-red-600/20 text-red-400",
   },
   {
-    value: "CARE",
+    type: "CARE",
     label: "ห่วงใย",
-    icon: Smile,
-    color: "text-amber-400",
+    emoji: "🥰",
+    activeColor: "border-amber-500 bg-amber-600/20 text-amber-400",
   },
   {
-    value: "HAHA",
+    type: "HAHA",
     label: "ฮ่าๆ",
-    icon: Laugh,
-    color: "text-amber-400",
+    emoji: "😂",
+    activeColor: "border-yellow-500 bg-yellow-600/20 text-yellow-400",
   },
   {
-    value: "WOW",
+    type: "WOW",
     label: "ว้าว",
-    icon: Sparkles,
-    color: "text-amber-400",
+    emoji: "😮",
+    activeColor: "border-yellow-500 bg-yellow-600/20 text-yellow-400",
   },
   {
-    value: "SAD",
+    type: "SAD",
     label: "เศร้า",
-    icon: Frown,
-    color: "text-blue-400",
+    emoji: "😢",
+    activeColor: "border-sky-500 bg-sky-600/20 text-sky-400",
   },
   {
-    value: "ANGRY",
+    type: "ANGRY",
     label: "โกรธ",
-    icon: Angry,
-    color: "text-red-500",
+    emoji: "😡",
+    activeColor: "border-orange-500 bg-orange-600/20 text-orange-400",
   },
 ];
 
+interface ReactionGroupManageControllerProps {
+  value: ControllerReactionType;
+  randomReaction?: boolean;
+  onChange: (value: ControllerReactionType) => void;
+  disabled?: boolean;
+  className?: string;
+}
+
 export default function ReactionGroupManageController({
   value,
+  randomReaction = false,
   onChange,
+  disabled = false,
+  className,
 }: ReactionGroupManageControllerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const selectedOption =
-    REACTION_OPTIONS.find((item) => item.value === value) ||
-    REACTION_OPTIONS[0];
-  const SelectedIcon = selectedOption.icon;
+  const activeReaction = REACTIONS.find((r) => r.type === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -118,69 +105,106 @@ export default function ReactionGroupManageController({
     };
   }, [isOpen]);
 
+  const handleSelectReaction = (type: ControllerReactionType) => {
+    onChange(value === type ? "" : type);
+    setIsOpen(false);
+  };
+
+  const handleClearReaction = () => {
+    onChange("");
+    setIsOpen(false);
+  };
+
   return (
-    <div ref={containerRef} className="relative min-w-0 flex-1 sm:w-20">
-      {/* Dropup Menu (opens upward above trigger) */}
+    <div ref={containerRef} className={cn("relative inline-block", className)}>
+      {/* Dropup Panel (opens upward) */}
       {isOpen && (
-        <div className="absolute bottom-full left-0 z-50 mb-1.5 max-h-64 w-52 overflow-y-auto rounded-md border border-neutral-800 bg-neutral-950 p-1">
-          {REACTION_OPTIONS.map((item) => {
-            const Icon = item.icon;
-            const isSelected = item.value === value;
-
-            return (
-              <button
-                key={item.value || "NONE"}
+        <div className="absolute bottom-full left-0 z-50 mb-2 w-64 rounded-xl border border-neutral-800 bg-neutral-950 p-3 shadow-xl">
+          <div className="mb-2 flex items-center justify-between border-b border-neutral-800 pb-2">
+            <span className="text-xs font-medium text-neutral-300">
+              ความรู้สึกโพสต์
+            </span>
+            {value && (
+              <ButtonUI
                 type="button"
-                onClick={() => {
-                  onChange(item.value);
-                  setIsOpen(false);
-                }}
-                className={`flex w-full cursor-pointer items-center justify-between rounded-sm px-2.5 py-2 text-left text-xs transition ${
-                  isSelected
-                    ? "bg-blue-500/10 font-semibold text-blue-400"
-                    : "text-neutral-300 hover:bg-neutral-900 hover:text-white"
-                }`}
+                variant="ghost"
+                onClick={handleClearReaction}
+                className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] text-neutral-400 hover:text-red-400"
               >
-                <div className="flex items-center gap-2 truncate">
-                  <Icon size={14} strokeWidth={1.8} className={item.color} />
-                  <span className="truncate">{item.label}</span>
-                </div>
+                <X size={12} />
+                <span>ยกเลิก</span>
+              </ButtonUI>
+            )}
+          </div>
 
-                {isSelected && (
-                  <Check size={13} className="shrink-0 text-blue-400" />
-                )}
-              </button>
-            );
-          })}
+          <div className="grid grid-cols-4 gap-1.5">
+            {REACTIONS.map((item) => {
+              const isSelected = item.type === value;
+              return (
+                <ButtonUI
+                  key={item.type}
+                  type="button"
+                  variant="ghost"
+                  onClick={() => handleSelectReaction(item.type)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 rounded-lg border p-2 transition-all",
+                    isSelected
+                      ? item.activeColor
+                      : "border-neutral-800/80 !bg-neutral-900/60 hover:border-neutral-700 hover:!bg-neutral-850"
+                  )}
+                >
+                  <span className="text-xl leading-none">{item.emoji}</span>
+                  <span className="text-[10px] text-neutral-300">
+                    {item.label}
+                  </span>
+                </ButtonUI>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Dropup Trigger Button */}
-      <button
+      {/* Trigger Button */}
+      <ButtonUI
         type="button"
+        variant="ghost"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-sm border bg-neutral-950 px-3 text-xs transition ${
-          isOpen
-            ? "border-blue-500/50 text-white"
-            : "border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:text-white"
-        }`}
+        disabled={disabled}
+        className={cn(
+          "relative flex h-8 w-full items-center justify-between gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all select-none sm:w-auto",
+          randomReaction
+            ? "border-amber-500/40 !bg-amber-500/10 text-amber-300"
+            : activeReaction
+            ? activeReaction.activeColor
+            : "border-neutral-800 !bg-neutral-900/90 text-neutral-300 hover:border-neutral-700 hover:text-white"
+        )}
       >
-        <div className="flex items-center gap-2 truncate">
-          <SelectedIcon
-            size={15}
-            strokeWidth={1.8}
-            className={selectedOption.color}
-          />
-          <span className="truncate font-medium">{selectedOption.label}</span>
+        <div className="flex items-center gap-1.5 truncate">
+          {randomReaction ? (
+            <>
+              <Smile className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <span className="truncate">สุ่มความรู้สึก</span>
+            </>
+          ) : activeReaction ? (
+            <>
+              <span className="text-sm leading-none shrink-0">{activeReaction.emoji}</span>
+              <span className="truncate">{activeReaction.label}</span>
+            </>
+          ) : (
+            <>
+              <Smile className="h-3.5 w-3.5 text-neutral-400 shrink-0" />
+              <span className="truncate">เลือกรีแอคชัน</span>
+            </>
+          )}
         </div>
 
         <ChevronUp
-          size={15}
-          className={`shrink-0 text-neutral-500 transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-white" : ""
-          }`}
+          className={cn(
+            "ml-0.5 h-3.5 w-3.5 text-neutral-400 transition-transform duration-200 shrink-0",
+            isOpen ? "rotate-180" : ""
+          )}
         />
-      </button>
+      </ButtonUI>
     </div>
   );
 }

@@ -1,33 +1,30 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  SquareChartGantt,
-  SlidersHorizontal,
-  ScrollText,
+  ChartPie ,
+  HardDrive ,
+  Gamepad2 ,
   Settings,
+  CodeXml,
+  type LucideIcon,
 } from "lucide-react";
 import ControllerMobileHeader from "./mobile/header";
-import ControllerMobileDrawer, {
-  ControllerMenuGroup,
-} from "./mobile/drawer";
 import ControllerMobileBottomBar from "./mobile/bottom-bar";
 import BackUI from "@/components/ui/back";
-import { useControllerStore } from "@/store/controllerStore";
-import { KeyRound, LogOut } from "lucide-react";
+
+export interface ControllerMenuGroup {
+  title: string;
+  menus: {
+    label: string;
+    href: string;
+    icon: LucideIcon;
+  }[];
+}
 
 const SidebarController = () => {
   const pathname = usePathname();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { keyCode, isProgramOnline, disconnectKey } = useControllerStore();
-
-  const maskKey = (code: string) => {
-    if (!code) return "ยังไม่ได้ระบุคีย์";
-    if (code.length <= 8) return code;
-    return `${code.slice(0, 4)}••••••••${code.slice(-4)}`;
-  };
 
   const menuGroups: ControllerMenuGroup[] = [
     {
@@ -36,20 +33,25 @@ const SidebarController = () => {
         {
           label: "ภาพรวม",
           href: "/controller",
-          icon: SquareChartGantt,
+          icon: ChartPie ,
+        },
+        {
+          label: "เริ่มการทำงาน",
+          href: "/controller/worker",
+          icon: Gamepad2 ,
         },
         {
           label: "จัดการข้อมูล",
           href: "/controller/manage",
-          icon: SlidersHorizontal,
+          icon: HardDrive ,
         },
         {
           label: "แสดงผลการทำงาน",
           href: "/controller/logger",
-          icon: ScrollText,
+          icon: CodeXml  ,
         },
         {
-          label: "ตั้งค่า",
+          label: "การตั้งค่า",
           href: "/controller/setting",
           icon: Settings,
         },
@@ -60,14 +62,7 @@ const SidebarController = () => {
   return (
     <>
       {/* Mobile Top Header (lg:hidden) */}
-      <ControllerMobileHeader onToggleDrawer={() => setIsDrawerOpen(true)} />
-
-      {/* Mobile Slide Drawer (lg:hidden) */}
-      <ControllerMobileDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        menuGroups={menuGroups}
-      />
+      <ControllerMobileHeader />
 
       {/* Mobile Bottom Navigation Bar (lg:hidden) */}
       <ControllerMobileBottomBar />
@@ -75,10 +70,10 @@ const SidebarController = () => {
       {/* Desktop Persistent Sidebar (hidden on mobile, visible on lg+) */}
       <aside className="fixed left-0 top-0 hidden h-screen w-64 flex-col bg-neutral-900 px-4 py-6 text-white lg:flex">
         <div className="mb-6 px-3">
-          <h1 className="text-lg font-bold">HERTZ REMOTE</h1>
+          <h1 className="font-passero-one text-xl tracking-wider uppercase bg-gradient-to-r from-white via-blue-200 to-blue-400 bg-clip-text text-transparent">
+            HERTZ REMOTE
+          </h1>
         </div>
-
-        
 
         <nav className="flex flex-1 flex-col gap-6 overflow-y-auto">
           {menuGroups.map((group) => (
@@ -103,7 +98,7 @@ const SidebarController = () => {
                       href={menu.href}
                       className={`flex items-center gap-3 rounded-full px-5 py-2 text-sm transition ${
                         isActive
-                          ? "bg-neutral-950 text-white"
+                          ? "bg-neutral-800 text-white"
                           : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                       }`}
                     >
@@ -122,7 +117,7 @@ const SidebarController = () => {
           <BackUI
             href="/"
             text="กลับสู่หน้าหลัก"
-            className="w-full rounded-sm px-3 py-2.5 text-sm hover:bg-blue-500/10"
+            className="w-full rounded-full px-5 py-2 text-sm hover:bg-neutral-800"
           />
         </div>
       </aside>

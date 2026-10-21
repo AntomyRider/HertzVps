@@ -164,6 +164,7 @@ export async function POST(req: NextRequest) {
       logs,
       autoCountStats,
       ackCommandIds,
+      payload,
     }: {
       code?: string;
       hwid?: string;
@@ -178,7 +179,10 @@ export async function POST(req: NextRequest) {
         | "UPSERT_GROUP"
         | "PUSH_LOG"
         | "PUSH_LOGS"
-        | "HEARTBEAT";
+        | "HEARTBEAT"
+        | "TOOL_EVENT"
+        | (string & {});
+      payload?: Record<string, unknown>;
       rtcSignal?: Record<string, unknown>;
       screenFrame?: string;
       screenResolution?: string;
@@ -292,6 +296,21 @@ export async function POST(req: NextRequest) {
         isProgramOnline: true,
         commands,
         sessionEpoch: session.epoch,
+      });
+    }
+
+    if (action === "TOOL_EVENT") {
+      const toolEventPayload = (payload as Record<string, unknown>) || {};
+      broadcastToWeb(keyCode, {
+        type: "TOOL_EVENT",
+        data: {
+          toolEvent: toolEventPayload,
+        },
+      });
+      const commands = consumePendingCommands(keyCode, ackCommandIds);
+      return NextResponse.json({
+        success: true,
+        commands,
       });
     }
 
@@ -421,7 +440,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (Array.isArray(accounts)) {
-      session.accounts = normalizeAccounts(accounts, session.groupsByAccount);
+      session.accounts = normalizeAccounts(
+        accounts,
+        session.groupsByAccount,
+        session.stoppingLocks,
+        session.isStoppingAllUntil
+      );
     }
 
     if (Array.isArray(logs)) {
@@ -475,6 +499,7 @@ export async function PUT(req: NextRequest) {
       timeRange,
       config,
       version,
+      ackCommandIds,
     }: {
       code?: string;
       hwid?: string;
@@ -491,6 +516,7 @@ export async function PUT(req: NextRequest) {
       timeRange?: ControllerTimeRange;
       config?: Record<string, unknown>;
       version?: string;
+      ackCommandIds?: string[];
     } = await req.json();
 
     const { valid, error, status, keyCode, keyId } = await validateControllerKey(
@@ -519,7 +545,12 @@ export async function PUT(req: NextRequest) {
       );
     }
     if (Array.isArray(accounts)) {
-      session.accounts = normalizeAccounts(accounts, session.groupsByAccount);
+      session.accounts = normalizeAccounts(
+        accounts,
+        session.groupsByAccount,
+        session.stoppingLocks,
+        session.isStoppingAllUntil
+      );
     }
     if (config && typeof config === "object") {
       session.config = config;
@@ -544,10 +575,13 @@ export async function PUT(req: NextRequest) {
     });
     notifyFleetUpdated();
 
+    const commands = consumePendingCommands(keyCode, ackCommandIds);
+
     return NextResponse.json({
       success: true,
       snapshot,
       sessionEpoch: session.epoch,
+      commands,
     });
   } catch (err) {
     console.error("PUT /api/v1/public/controller/from-program error:", err);

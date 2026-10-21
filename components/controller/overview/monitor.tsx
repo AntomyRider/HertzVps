@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, Maximize2, Minimize2, Tv } from "lucide-react";
+import { Maximize2, Minimize2, Tv } from "lucide-react";
 import FadeIn from "@/components/ui/fade-in";
-import ButtonUI from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import {
   useControllerStore,
   subscribeScreenFrame,
@@ -18,10 +13,7 @@ import {
 const RTC_CONFIG: RTCConfiguration = {
   iceServers: [
     {
-      urls: [
-        "stun:stun.l.google.com:19302",
-        "stun:stun.cloudflare.com:3478",
-      ],
+      urls: ["stun:stun.l.google.com:19302", "stun:stun.cloudflare.com:3478"],
     },
   ],
 };
@@ -33,9 +25,8 @@ export default function MonitorController() {
     isProgramOnline,
     screenFrame,
     screenResolution,
-    isMonitorPaused,
+    config,
     isMonitorFullscreen,
-    toggleMonitorPaused,
     setIsMonitorFullscreen,
     sendRtcSignal,
   } = useControllerStore();
@@ -49,12 +40,24 @@ export default function MonitorController() {
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const viewerIdRef = useRef<string>(
-    `web_${Math.random().toString(36).slice(2, 8)}`
+    `web_${Math.random().toString(36).slice(2, 8)}`,
   );
+
+  const hasVideoOrFrame = Boolean(isWebRtcConnected || screenFrame);
+  const isScreenShareAllowed =
+    hasVideoOrFrame ||
+    (config && typeof config.screenShareEnabled === "boolean"
+      ? config.screenShareEnabled
+      : true);
+  const isLiveStreaming =
+    isConnected && isProgramOnline && hasVideoOrFrame && isScreenShareAllowed;
 
   // Attach MediaStream to both preview and fullscreen <video> elements
   const attachStreamToVideos = (stream: MediaStream | null) => {
-    if (previewVideoRef.current && previewVideoRef.current.srcObject !== stream) {
+    if (
+      previewVideoRef.current &&
+      previewVideoRef.current.srcObject !== stream
+    ) {
       previewVideoRef.current.srcObject = stream;
       if (stream) {
         void previewVideoRef.current.play().catch(() => {});
@@ -96,7 +99,7 @@ export default function MonitorController() {
 
   // WebRTC P2P Signaling & PeerConnection consumer
   useEffect(() => {
-    if (!isConnected || !isProgramOnline || !keyCode || isMonitorPaused) {
+    if (!isConnected || !isProgramOnline || !keyCode || !isScreenShareAllowed) {
       if (peerRef.current) {
         try {
           peerRef.current.close();
@@ -150,7 +153,7 @@ export default function MonitorController() {
 
         try {
           await pc.setRemoteDescription(
-            new RTCSessionDescription(signal.sdp as RTCSessionDescriptionInit)
+            new RTCSessionDescription(signal.sdp as RTCSessionDescriptionInit),
           );
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
@@ -180,7 +183,7 @@ export default function MonitorController() {
         if (peerRef.current) {
           try {
             await peerRef.current.addIceCandidate(
-              new RTCIceCandidate(signal.candidate as RTCIceCandidateInit)
+              new RTCIceCandidate(signal.candidate as RTCIceCandidateInit),
             );
           } catch {}
         }
@@ -209,11 +212,13 @@ export default function MonitorController() {
       attachStreamToVideos(null);
       setIsWebRtcConnected(false);
     };
-  }, [isConnected, isProgramOnline, keyCode, isMonitorPaused, sendRtcSignal]);
-
-  const hasVideoOrFrame = Boolean(isWebRtcConnected || screenFrame);
-  const isLiveStreaming =
-    isConnected && isProgramOnline && hasVideoOrFrame && !isMonitorPaused;
+  }, [
+    isConnected,
+    isProgramOnline,
+    keyCode,
+    isScreenShareAllowed,
+    sendRtcSignal,
+  ]);
 
   return (
     <>
@@ -223,71 +228,10 @@ export default function MonitorController() {
         className="flex min-w-0 flex-1 flex-col sm:p-2.5"
       >
         {/* 16:9 Screen Viewport */}
-        <div className="relative aspect-video min-h-[190px] w-full overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 sm:min-h-[260px]">
-          {/* Top Floating Controls Overlay */}
-          <div className="absolute inset-x-2 top-2 z-20 flex items-center justify-between gap-2 pointer-events-none sm:inset-x-3 sm:top-3">
-            {/* Left: Stream Status Badge */}
-            <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-950/80 px-2 py-0.5 backdrop-blur-xs">
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  isLiveStreaming
-                    ? "bg-emerald-400 animate-pulse"
-                    : isProgramOnline
-                      ? isMonitorPaused
-                        ? "bg-amber-400"
-                        : "bg-blue-400 animate-pulse"
-                      : "bg-red-500"
-                }`}
-              />
-              <span className="text-sm text-neutral-300 sm:text-2xs">
-                {isLiveStreaming
-                  ? "ถ่ายทอดสด"
-                  : isProgramOnline
-                    ? isMonitorPaused
-                      ? "ปิดแชร์หน้าจอ"
-                      : "กำลังเชื่อมต่อ..."
-                    : "ออฟไลน์"}
-              </span>
-            </div>
-
-            {/* Right: Play/Pause & Fullscreen Action Buttons */}
-            <div className="flex items-center gap-1 pointer-events-auto sm:gap-1.5">
-              {/* Play / Pause Toggle */}
-              <button
-                type="button"
-                disabled={!isConnected || !isProgramOnline}
-                onClick={() => toggleMonitorPaused()}
-                className={`flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm border backdrop-blur-xs text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7 ${
-                  isMonitorPaused
-                    ? "border-blue-500/40 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-                    : "border-neutral-800 bg-neutral-950/80 text-neutral-300 hover:border-neutral-700 hover:text-white"
-                }`}
-                title={isMonitorPaused ? "เปิดการแชร์หน้าจอ (แสดงภาพสด)" : "ปิดการแชร์หน้าจอ"}
-              >
-                {isMonitorPaused ? (
-                  <Play size={12} strokeWidth={1.8} className="sm:h-3.5 sm:w-3.5" />
-                ) : (
-                  <Pause size={12} strokeWidth={1.8} className="sm:h-3.5 sm:w-3.5" />
-                )}
-              </button>
-
-              {/* Fullscreen Expand */}
-              <button
-                type="button"
-                disabled={!hasVideoOrFrame}
-                onClick={() => setIsMonitorFullscreen(true)}
-                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm border border-neutral-800 bg-neutral-950/80 backdrop-blur-xs text-neutral-400 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7"
-                title="ขยายเต็มจอ"
-              >
-                <Maximize2 size={12} strokeWidth={1.8} className="sm:h-3.5 sm:w-3.5" />
-              </button>
-            </div>
-          </div>
-
+        <div className="relative aspect-video h-full w-full overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 ">
           {/* Viewport Content */}
-          {hasVideoOrFrame && isProgramOnline && !isMonitorPaused ? (
+          {hasVideoOrFrame && isProgramOnline && isScreenShareAllowed ? (
             <>
-              {/* Native Hardware-Decoded WebRTC <video> Stream */}
               <video
                 ref={previewVideoRef}
                 autoPlay
@@ -298,7 +242,6 @@ export default function MonitorController() {
                 }`}
               />
 
-              {/* Instant Fallback <img> while WebRTC P2P handshakes */}
               {!isWebRtcConnected && screenFrame && (
                 <img
                   ref={previewImgRef}
@@ -309,61 +252,46 @@ export default function MonitorController() {
                 />
               )}
             </>
-          ) : isConnected && isProgramOnline && isMonitorPaused ? (
-            /* Paused / Disabled State */
-            <div className="relative flex h-full w-full flex-col items-center justify-center px-4 pt-8 pb-4 text-center">
-              {screenFrame && (
-                <img
-                  src={screenFrame}
-                  alt=""
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover opacity-20 blur-sm"
-                />
-              )}
+          ) : isConnected && isProgramOnline && !isScreenShareAllowed ? (
+            <div className="relative flex h-full w-full flex-col items-center justify-center px-4 py-8 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-400/10 text-amber-400">
+                <Tv size={26} strokeWidth={1.7} />
+              </div>
 
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-neutral-800 bg-neutral-900/80 text-blue-400 sm:h-11 sm:w-11">
-                  <Tv size={18} strokeWidth={1.8} className="sm:h-5 sm:w-5" />
-                </div>
+              <h4 className="mt-4 text-sm font-medium tracking-tight text-white sm:text-base">
+                รอสัญญาณการเชื่อมต่อจากโปรแกรม
+              </h4>
 
-                <h4 className="mt-2 text-xs font-semibold text-white sm:text-sm">
-                  ปิดการแชร์หน้าจออยู่
-                </h4>
+              <p className="mt-2 max-w-xs text-xs leading-relaxed text-white/50">
+                กรุณาเปิดฟังก์ชันแชร์หน้าจอในโปรแกรม Hertz Manager
+                แล้วรอสักครู่ ระบบจะแสดงภาพให้อัตโนมัติ
+              </p>
 
-                <p className="mt-1 max-w-xs text-2xs leading-relaxed text-neutral-400 sm:text-xs">
-                  ระบบปิดการแชร์หน้าจอไว้เป็นค่าเริ่มต้น เพื่อประหยัดทรัพยากรเครื่อง
-                </p>
-
-                <ButtonUI
-                  onClick={() => toggleMonitorPaused()}
-                  className="mt-3 flex items-center gap-1.5 rounded-sm px-3.5 py-1.5 text-xs font-medium"
-                >
-                  <Play size={13} strokeWidth={2} />
-                  <span>เปิดแสดงภาพสด</span>
-                </ButtonUI>
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/5 px-3 py-1.5">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+                <span className="text-xs text-amber-300">กำลังรอสัญญาณ</span>
               </div>
             </div>
           ) : (
-            /* Offline / Connecting State */
-            <div className="flex h-full w-full flex-col items-center justify-center px-4 pt-10 pb-4 text-center">
-              <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-neutral-800 bg-neutral-900/60 text-neutral-400 sm:h-11 sm:w-11">
-                <Tv size={18} strokeWidth={1.8} className="sm:h-5 sm:w-5" />
+            <div className="flex h-full w-full flex-col items-center justify-center px-4 py-8 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/40">
+                <Tv size={26} strokeWidth={1.7} />
               </div>
 
-              <h4 className="mt-2 text-xs text-white sm:text-sm">
+              <h4 className="mt-4 text-sm font-medium tracking-tight text-white">
                 {!isConnected
                   ? "ยังไม่ได้เชื่อมต่อคีย์ใช้งาน"
                   : !isProgramOnline
-                    ? "รอรับสัญญาณภาพหน้าจอจากตัวโปรแกรม..."
-                    : "กำลังเชื่อมต่อ WebRTC P2P..."}
+                    ? "รอรับสัญญาณจากโปรแกรม"
+                    : "กำลังเชื่อมต่อโปรแกรม..."}
               </h4>
 
-              <p className="mt-1 hidden max-w-sm text-2xs leading-relaxed text-neutral-500 sm:block">
+              <p className="mt-2 hidden max-w-sm text-xs leading-relaxed text-white/40 sm:block">
                 {!isConnected
-                  ? "กรอกรหัสคีย์และกดเชื่อมต่อเพื่อดูหน้าจอการทำงานแบบเรียลไทม์"
+                  ? "กรอกรหัสคีย์และกดเชื่อมต่อเพื่อดูหน้าจอการทำงาน"
                   : !isProgramOnline
-                    ? "เมื่อตัวโปรแกรม Hertz Auto Post เชื่อมต่อออนไลน์ ภาพหน้าจอคอมพิวเตอร์จะพร้อมแสดงผล"
-                    : "กำลังเตรียมช่องทางสตรีมภาพความละเอียดสูง..."}
+                    ? "รอให้โปรแกรม Hertz Manager เชื่อมต่อออนไลน์"
+                    : "กำลังเตรียมช่องทางสตรีมภาพความละเอียดสูง"}
               </p>
             </div>
           )}
@@ -381,26 +309,18 @@ export default function MonitorController() {
         >
           <DialogHeader>
             <div className="flex flex-wrap items-center justify-between gap-2 pr-6">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-white">
+                  ถ่ายทอดสดหน้าจอ
+                </span>
+                {screenResolution && (
+                  <span className="rounded-sm border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-2xs text-neutral-400">
+                    {screenResolution}
+                  </span>
+                )}
+              </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => toggleMonitorPaused()}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-300 transition hover:text-white"
-                >
-                  {isMonitorPaused ? (
-                    <>
-                      <Play size={14} strokeWidth={1.8} />
-                      <span>เปิดแสดงภาพสด</span>
-                    </>
-                  ) : (
-                    <>
-                      <Pause size={14} strokeWidth={1.8} />
-                      <span>พักจอ</span>
-                    </>
-                  )}
-                </button>
-
                 <button
                   type="button"
                   onClick={() => setIsMonitorFullscreen(false)}
@@ -414,24 +334,18 @@ export default function MonitorController() {
           </DialogHeader>
 
           <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-md border border-neutral-800 bg-black">
-            {isMonitorPaused ? (
+            {!isScreenShareAllowed ? (
               <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
-                <div className="flex h-11 w-11 items-center justify-center rounded-sm border border-neutral-800 bg-neutral-900/80 text-blue-400">
+                <div className="flex h-11 w-11 items-center justify-center rounded-sm border border-neutral-800 bg-neutral-900/80 text-amber-400">
                   <Tv size={20} strokeWidth={1.8} />
                 </div>
                 <h4 className="mt-2 text-sm font-semibold text-white">
-                  ปิดการแชร์หน้าจออยู่
+                  ไม่ได้เปิด &ldquo;อนุญาตให้แชร์หน้าจอ&rdquo;
                 </h4>
                 <p className="mt-1 text-xs text-neutral-400">
-                  กดปุ่มเปิดแสดงภาพสดเพื่อเริ่มรับชมภาพหน้าจอแบบเต็มจอ
+                  ตัวโปรแกรมบนเครื่องตั้งค่าไม่อนุญาตให้แชร์หน้าจอ
+                  สามารถเปิดได้ที่เมนูตั้งค่าขั้นสูง
                 </p>
-                <ButtonUI
-                  onClick={() => toggleMonitorPaused()}
-                  className="mt-3.5 flex items-center gap-1.5 rounded-sm px-4 py-2 text-xs font-medium"
-                >
-                  <Play size={14} strokeWidth={2} />
-                  <span>เปิดแสดงภาพสด</span>
-                </ButtonUI>
               </div>
             ) : (
               <>

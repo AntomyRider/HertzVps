@@ -1,15 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import {
-  Eye,
-  EyeOff,
-  Unplug,
-  Play,
-  Square,
-  User,
-} from "lucide-react";
+import { Eye, EyeOff, Unplug, Play, Square, User, Loader2 } from "lucide-react";
 import FadeIn from "@/components/ui/fade-in";
+import { isValidImageUrl } from "@/lib/utils";
 import { useControllerStore } from "@/store/controllerStore";
 
 export default function ContainerController() {
@@ -18,14 +12,20 @@ export default function ContainerController() {
     isConnected,
     isProgramOnline,
     isReconnecting,
+    isConnecting,
+    isAuthChecking,
     showKey,
     stats,
     accounts,
+    actionLoading,
+    isAllActionLoading,
     isLoading,
     setShowKey,
     disconnectKey,
     initRealtimeIfNeeded,
     fetchOverviewData,
+    startAccount,
+    stopAccount,
     toggleAccountRunning,
     startAllAccounts,
     stopAllAccounts,
@@ -35,6 +35,36 @@ export default function ContainerController() {
     void initRealtimeIfNeeded();
     void fetchOverviewData();
   }, [initRealtimeIfNeeded, fetchOverviewData]);
+
+  const isConnectingState = isConnecting || isAuthChecking || isReconnecting;
+  const isConnectedState = isConnected && isProgramOnline;
+
+  const connectionStatus = isConnectingState
+    ? "connecting"
+    : isConnectedState
+      ? "connected"
+      : "disconnected";
+
+  const statusLabel =
+    connectionStatus === "connected"
+      ? "เชื่อมต่อสำเร็จ"
+      : connectionStatus === "connecting"
+        ? "กำลังเชื่อมต่อ..."
+        : "ไม่สามารถเชื่อมต่อได้";
+
+  const dotClass =
+    connectionStatus === "connected"
+      ? "bg-emerald-400"
+      : connectionStatus === "connecting"
+        ? "bg-amber-400 animate-pulse"
+        : "bg-red-500";
+
+  const statusClass =
+    connectionStatus === "connected"
+      ? "border-emerald-500/30 bg-emerald-500/10"
+      : connectionStatus === "connecting"
+        ? "border-amber-500/30 bg-amber-500/10"
+        : "border-red-500/30 bg-red-500/10";
 
   const maskKey = (code: string) => {
     if (!code) return "ยังไม่ได้ระบุคีย์";
@@ -79,44 +109,44 @@ export default function ContainerController() {
       delay={65}
       className="flex w-full shrink-0 flex-col divide-y divide-white/10 rounded-3xl border border-neutral-800 bg-neutral-900 xl:w-[380px] 2xl:w-[420px]"
     >
-      {/* 1. Key Status Section */}
-      <div className="p-4 sm:p-5">
+      {/* 1. Connection Status & Key Section */}
+      <div className="space-y-3 p-4 sm:p-5">
+        <h1 className="text-lg tracking-tight text-white border-b pb-3 text-center">
+          ควบคุมการทำงาน
+        </h1>
         <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-2xs font-medium text-neutral-400">
-              License Key
-            </p>
-            <div className="mt-1 flex items-center gap-2">
-              <span className="truncate text-sm font-bold tracking-tight text-white">
-                {maskKey(keyCode)}
-              </span>
-              {keyCode && (
-                <button
-                  type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="cursor-pointer text-neutral-500 transition hover:text-white"
-                  title={showKey ? "ซ่อนคีย์" : "แสดงคีย์"}
-                >
-                  {showKey ? <EyeOff size={13} /> : <Eye size={13} />}
-                </button>
-              )}
-            </div>
-            
+          <div className="group min-w-0">
+            {keyCode && (
+              <div className="mb-1.5 flex items-center gap-1.5 text-xs text-neutral-400 bg-neutral-950 rounded-full px-4 py-2">
+                <span className="truncate font-mono text-neutral-300 blur-sm transition-all duration-200 group-hover:blur-none">
+                  {keyCode}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Right: Disconnect Action */}
-          {(keyCode || isConnected) && (
-            <button
-              type="button"
-              onClick={disconnectKey}
-              className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border border-neutral-800 bg-neutral-900/60 px-2.5 py-1.5 text-xs font-medium text-neutral-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
-              title="ออกจากระบบ / ตัดการเชื่อมต่อคีย์"
-            >
-              <Unplug size={13} />
-              <span>ออกจากระบบ</span>
-            </button>
-          )}
+          <div
+            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-1.5 ${statusClass}`}
+          >
+            <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
+            <span className="text-xs tracking-tight text-white">
+              {statusLabel}
+            </span>
+          </div>
         </div>
+
+        {/* Full-width Disconnect Action */}
+        {(keyCode || isConnected) && (
+          <button
+            type="button"
+            onClick={disconnectKey}
+            className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs  text-red-400 transition hover:border-red-500/40 hover:bg-red-500/20 "
+            title="ออกจากระบบ / ตัดการเชื่อมต่อคีย์"
+          >
+            <Unplug size={13} strokeWidth={1.8} />
+            <span>ออกจากระบบ</span>
+          </button>
+        )}
       </div>
 
       {/* 2. Quick Control Section */}
@@ -124,10 +154,8 @@ export default function ContainerController() {
         {/* Section Header */}
         <div className="flex items-center justify-between gap-2 pb-3">
           <div className="flex items-center gap-2">
-            <h4 className="text-xs font-semibold text-white">
-              ควบคุมบัญชีด่วน
-            </h4>
-            <span className="rounded-sm border border-neutral-800 bg-neutral-900 px-1.5 py-0.5 text-2xs font-semibold text-blue-400">
+            <h4 className="text-sm text-white">จัดการบัญชี</h4>
+            <span className="rounded-full border border-neutral-800 bg-neutral-900 px-4 py-0.5 text-xs text-blue-400">
               {runningCount}/{accounts.length}
             </span>
           </div>
@@ -135,16 +163,22 @@ export default function ContainerController() {
           {accounts.length > 1 && (
             <button
               type="button"
+              disabled={isAllActionLoading}
               onClick={() =>
                 isAnyRunning ? void stopAllAccounts() : void startAllAccounts()
               }
-              className={`inline-flex cursor-pointer items-center gap-1 rounded-sm border px-2 py-1 text-2xs font-medium transition ${
+              className={`inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-1 text-2xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${
                 isAnyRunning
-                  ? "border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                  : "border-blue-500/40 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
+                  ? " bg-red-700 text-white hover:bg-red-800"
+                  : " bg-cyan-700 text-white hover:bg-cyan-800"
               }`}
             >
-              {isAnyRunning ? (
+              {isAllActionLoading ? (
+                <>
+                  <Loader2 size={10} className="animate-spin" strokeWidth={1.8} />
+                  <span>{isAnyRunning ? "กำลังหยุด..." : "กำลังเริ่ม..."}</span>
+                </>
+              ) : isAnyRunning ? (
                 <>
                   <Square size={10} strokeWidth={1.8} />
                   <span>หยุดทั้งหมด</span>
@@ -165,14 +199,14 @@ export default function ContainerController() {
             {accounts.map((acc) => (
               <div
                 key={acc.id}
-                className="flex items-center justify-between gap-2.5 rounded-sm border border-neutral-800/90 bg-neutral-900/40 p-2.5 transition hover:border-neutral-700"
+                className="flex items-center justify-between gap-2.5 rounded-2xl border border-neutral-800/90 bg-neutral-950 p-2.5 transition hover:border-neutral-700"
               >
                 {/* Left: Avatar + Name & Status */}
                 <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                  <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-neutral-800 bg-neutral-900 text-neutral-400">
-                    {acc.avatar ? (
+                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-400">
+                    {isValidImageUrl(acc.avatar) ? (
                       <img
-                        src={acc.avatar}
+                        src={acc.avatar!}
                         alt={acc.name}
                         className="h-full w-full object-cover"
                       />
@@ -189,9 +223,7 @@ export default function ContainerController() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold text-white">
-                      {acc.name}
-                    </p>
+                    <p className="truncate text-xs text-white">{acc.name}</p>
                     <p className="truncate text-2xs text-neutral-400">
                       {acc.isRunning
                         ? acc.currentTask || "กำลังรันงาน..."
@@ -203,22 +235,32 @@ export default function ContainerController() {
                 {/* Right: Toggle Start/Stop Button */}
                 <button
                   type="button"
-                  onClick={() => void toggleAccountRunning(acc.id)}
-                  className={`inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-sm px-2.5 py-1 text-2xs font-medium transition ${
+                  disabled={actionLoading[acc.id] || isAllActionLoading}
+                  onClick={() =>
+                    acc.isRunning
+                      ? void stopAccount(acc.id)
+                      : void startAccount(acc.id)
+                  }
+                  className={`inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${
                     acc.isRunning
                       ? "border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                      : "bg-blue-600 text-white hover:bg-blue-500"
+                      : "bg-cyan-700 text-white hover:bg-cyan-800"
                   }`}
                 >
-                  {acc.isRunning ? (
+                  {actionLoading[acc.id] ? (
+                    <>
+                      <Loader2 size={11} className="animate-spin" strokeWidth={1.8} />
+                      <span>{acc.isRunning ? "กำลังหยุด..." : "กำลังเริ่ม..."}</span>
+                    </>
+                  ) : acc.isRunning ? (
                     <>
                       <Square size={11} strokeWidth={1.8} />
-                      <span>หยุด</span>
+                      <span>หยุดทำงาน</span>
                     </>
                   ) : (
                     <>
                       <Play size={11} strokeWidth={1.8} />
-                      <span>เริ่ม</span>
+                      <span>เริ่มทำงาน</span>
                     </>
                   )}
                 </button>
@@ -237,40 +279,7 @@ export default function ContainerController() {
       </div>
 
       {/* 3. Stats Section (No Icons, Small Headings & Clean Numbers) */}
-      <div className="p-4 sm:p-5">
-        <h4 className="mb-3 text-xs font-semibold text-white">
-          สถิติการทำงาน
-        </h4>
-
-        {isLoading ? (
-          <div className="grid grid-cols-2 gap-2.5">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-14 animate-pulse rounded-sm border border-neutral-800 bg-neutral-900/50"
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2.5">
-            {statItems.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-col justify-center rounded-sm border border-neutral-800/80 bg-neutral-900/40 p-2.5 transition hover:border-neutral-700"
-              >
-                <span className="text-2xs font-medium text-neutral-400">
-                  {item.label}
-                </span>
-                <span
-                  className={`mt-0.5 truncate text-base font-bold tracking-tight sm:text-lg ${item.valueColor}`}
-                >
-                  {item.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      
     </FadeIn>
   );
 }

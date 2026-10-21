@@ -11,7 +11,7 @@ import type {
   ControllerLogStatusType,
 } from "@/store/controllerStore";
 
-export type ControllerTimeRange = "1d" | "7d" | "30d" | "1y";
+export type ControllerTimeRange = "1d" | "7d" | "30d" | "90d" | "1y";
 export type ControllerMonitorPreset = "smooth" | "balanced" | "hd";
 
 export interface ControllerMonitorConfig {
@@ -39,7 +39,15 @@ export type ControllerCommandType =
   | "STOP_ALL"
   | "START_USER"
   | "STOP_USER"
-  | "RESET_USER_STATS";
+  | "RESET_USER_STATS"
+  | "RESET_ALL_STATS"
+  | "RESET_CATEGORY_STATS"
+  | "UPDATE_APP"
+  | "BACKUP_EXPORT"
+  | "BACKUP_IMPORT"
+  | "UPDATE_ACCOUNT"
+  | "TOOL_COMMAND"
+  | (string & {});
 
 export interface ControllerProgramCommand {
   id: string;
@@ -81,13 +89,15 @@ export interface ControllerWebSSEEvent {
     | "SCREEN_FRAME"
     | "RTC_SIGNAL"
     | "PROGRAM_STATUS"
-    | "PROGRAM_OFFLINE";
+    | "PROGRAM_OFFLINE"
+    | "TOOL_EVENT";
   data: Partial<ControllerSnapshot> & {
     log?: ControllerLogItem;
     logs?: ControllerLogItem[];
     account?: ControllerAccountItem;
     accountId?: string;
     rtcSignal?: Record<string, unknown>;
+    toolEvent?: Record<string, unknown>;
   };
   timestamp: string;
 }
@@ -125,6 +135,9 @@ interface ControllerKeySession {
   screenUpdatedAt: string | null;
   monitorConfig: ControllerMonitorConfig;
   pendingCommands: ControllerProgramCommand[];
+  // ล็อกสถานะหยุดชั่วคราวเพื่อกัน Telemetry เก่าจาก Desktop มาพลิกสถานะกลับเป็น running
+  stoppingLocks?: Record<string, number>;
+  isStoppingAllUntil?: number;
   webSubscribers: Set<(event: ControllerWebSSEEvent) => void>;
   programSubscribers: Set<(event: ControllerProgramSSEEvent) => void>;
 }
@@ -155,7 +168,8 @@ export const buildZeroChartPoints = (
     return points;
   }
 
-  const count = range === "7d" ? 7 : range === "30d" ? 30 : 12;
+  const count =
+    range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : 12;
   const now = new Date();
   const points: ControllerChartPoint[] = [];
 
@@ -283,6 +297,7 @@ export const buildChartFromDailyStats = (
     "1d": buildZeroChartPoints("1d"),
     "7d": buildDays(7),
     "30d": buildDays(30),
+    "90d": buildDays(90),
     "1y": buildMonths(),
   };
 };
@@ -302,6 +317,7 @@ const createEmptyChartMap = (): Record<
   "1d": buildZeroChartPoints("1d"),
   "7d": buildZeroChartPoints("7d"),
   "30d": buildZeroChartPoints("30d"),
+  "90d": buildZeroChartPoints("90d"),
   "1y": buildZeroChartPoints("1y"),
 });
 
@@ -556,10 +572,12 @@ export const getOrCreateSession = (
     screenResolution: null,
     screenUpdatedAt: null,
     monitorConfig: {
-      paused: true,
+      paused: false,
       preset: "balanced",
     },
     pendingCommands: [],
+    stoppingLocks: {},
+    isStoppingAllUntil: undefined,
     webSubscribers: new Set(),
     programSubscribers: new Set(),
   };
@@ -829,7 +847,7 @@ export const wipeSessionData = (keyCode: string) => {
   session.screenResolution = null;
   session.screenUpdatedAt = null;
   session.monitorConfig = {
-    paused: true,
+    paused: false,
     preset: session.monitorConfig.preset || "balanced",
   };
   session.pendingCommands = [];
@@ -918,17 +936,18 @@ export const enqueueCommandForProgram = (
     timestamp: new Date().toISOString(),
   };
 
-  const deliveredImmediately = broadcastToProgram(session.keyCode, {
+  // ส่งผ่าน SSE ไปยังตัวโปรแกรมทันที (Realtime 0ms)
+  broadcastToProgram(session.keyCode, {
     type: "COMMAND",
     command,
   });
 
-  if (!deliveredImmediately) {
-    session.pendingCommands = [
-      ...session.pendingCommands.slice(-(MAX_PENDING_COMMANDS - 1)),
-      command,
-    ];
-  }
+  // บันทึกคำสั่งลงคิว pendingCommands เสมอ เพื่อรับประกันว่าตัวโปรแกรมจะได้รับคำสั่งแน่นอน
+  // แม้จังหวะนั้น SSE จะหลุดหรือกำลังเชื่อมต่อใหม่ โดยจะถูกล้างออกเมื่อตัวโปรแกรมส่ง ackCommandIds กลับมา
+  session.pendingCommands = [
+    ...session.pendingCommands.slice(-(MAX_PENDING_COMMANDS - 1)),
+    command,
+  ];
 
   return command;
 };
@@ -959,7 +978,8 @@ export const incrementTodayChartPoint = (
   const fDelta = delta.failed || 0;
   const pDelta = delta.pending || 0;
 
-  (["1d", "7d", "30d", "1y"] as ControllerTimeRange[]).forEach((range) => {
+  (["1d", "7d", "30d", "90d", "1y"] as ControllerTimeRange[]).forEach(
+    (range) => {
     const list = session.chartDataByRange[range];
     if (!list || list.length === 0) return;
 
@@ -1073,6 +1093,14 @@ export const buildGroupItem = (
     randomImage?: boolean;
     randomReaction?: boolean;
     isActive?: boolean;
+    shareMode?: boolean;
+    share?: string;
+    shareContent?: string;
+    boostMode?: boolean;
+    boostLinks?: string;
+    boostComments?: string;
+    boostRandomComment?: boolean;
+    boostCommentCount?: number;
   },
   fallbackIndex = 1,
   previousItem?: ControllerGroupItem
@@ -1169,6 +1197,17 @@ export const buildGroupItem = (
     randomContent: Boolean(rawGroup.randomContent),
     randomImage: Boolean(rawGroup.randomImage),
     randomReaction: Boolean(rawGroup.randomReaction),
+    shareMode: Boolean(rawGroup.shareMode),
+    share: typeof rawGroup.share === "string" ? rawGroup.share : "",
+    shareContent: typeof rawGroup.shareContent === "string" ? rawGroup.shareContent : "",
+    boostMode: Boolean(rawGroup.boostMode),
+    boostLinks: typeof rawGroup.boostLinks === "string" ? rawGroup.boostLinks : "",
+    boostComments: typeof rawGroup.boostComments === "string" ? rawGroup.boostComments : "",
+    boostRandomComment: Boolean(rawGroup.boostRandomComment),
+    boostCommentCount:
+      typeof rawGroup.boostCommentCount === "number" && rawGroup.boostCommentCount > 0
+        ? rawGroup.boostCommentCount
+        : 1,
   };
 };
 
@@ -1205,10 +1244,23 @@ export const normalizeAccounts = (
       } | null;
     }
   >,
-  normalizedGroupsByAccount: Record<string, ControllerGroupItem[]>
+  normalizedGroupsByAccount: Record<string, ControllerGroupItem[]>,
+  stoppingLocks?: Record<string, number>,
+  isStoppingAllUntil?: number
 ): ControllerAccountItem[] => {
+  const now = Date.now();
+  const isStopAllLocked =
+    typeof isStoppingAllUntil === "number" && isStoppingAllUntil > now;
+
   return rawAccounts.map((acc, idx) => {
     const uid = String(acc.id || `acc-${idx + 1}`);
+    const isAccountStopLocked = Boolean(
+      stoppingLocks &&
+        typeof stoppingLocks[uid] === "number" &&
+        stoppingLocks[uid] > now
+    );
+    const isLockedStopping = isStopAllLocked || isAccountStopLocked;
+
     const userGroups = normalizedGroupsByAccount[uid] || [];
     const activeGroups = userGroups.filter((g) => g.enabled);
     const firstGroupName =
@@ -1231,14 +1283,19 @@ export const normalizeAccounts = (
       acc.groupInfo?.groupTotal ?? acc.groupTotal ?? totalLinksCount
     );
 
+    const isRunning = isLockedStopping ? false : Boolean(acc.isRunning);
+    const currentTask = isLockedStopping
+      ? "หยุดการทำงานแล้ว"
+      : acc.currentTask || (isRunning ? "กำลังรันงาน..." : "พร้อมทำงาน");
+
     return {
       id: uid,
       fbId: String(acc.fbId || uid),
       name: String(acc.name || `Account ${uid}`),
       avatar: acc.avatar || null,
-      isRunning: Boolean(acc.isRunning),
-      currentTask:
-        acc.currentTask || (acc.isRunning ? "กำลังรันงาน..." : "พร้อมทำงาน"),
+      isRunning,
+      currentTask,
+      taskTimer: isLockedStopping ? null : acc.taskTimer || null,
       groupName,
       groupCurrent,
       groupTotal,
@@ -1252,6 +1309,44 @@ export const normalizeAccounts = (
       },
     };
   });
+};
+
+export const setSessionStoppingLock = (
+  keyCode: string,
+  accountId: string,
+  durationMs = 6000
+) => {
+  const session = getOrCreateSession(keyCode);
+  if (!session.stoppingLocks) session.stoppingLocks = {};
+  session.stoppingLocks[accountId] = Date.now() + durationMs;
+};
+
+export const clearSessionStoppingLock = (
+  keyCode: string,
+  accountId?: string
+) => {
+  const session = getOrCreateSession(keyCode);
+  if (!session.stoppingLocks) return;
+  if (accountId) {
+    delete session.stoppingLocks[accountId];
+  } else {
+    session.stoppingLocks = {};
+  }
+};
+
+export const setSessionStopAllLock = (keyCode: string, durationMs = 6000) => {
+  const session = getOrCreateSession(keyCode);
+  session.isStoppingAllUntil = Date.now() + durationMs;
+  if (!session.stoppingLocks) session.stoppingLocks = {};
+  for (const acc of session.accounts) {
+    session.stoppingLocks[acc.id] = Date.now() + durationMs;
+  }
+};
+
+export const clearSessionStopAllLock = (keyCode: string) => {
+  const session = getOrCreateSession(keyCode);
+  session.isStoppingAllUntil = undefined;
+  session.stoppingLocks = {};
 };
 
 export const normalizeIncomingLogs = (
@@ -1274,12 +1369,32 @@ export const normalizeIncomingLogs = (
     .map((item, idx) => {
       const msg = String(item.message || "");
       let status: ControllerLogStatusType = item.status || "INFO";
-      if (!item.status && item.level) {
-        const lv = item.level.toLowerCase();
-        if (lv === "success" || msg.includes("สำเร็จ")) status = "SUCCESS";
-        else if (lv === "error" || lv === "warn" || msg.includes("ล้มเหลว"))
+      let level = (item.level ? item.level.toLowerCase() : "") as
+        | "info"
+        | "success"
+        | "warn"
+        | "error"
+        | "debug"
+        | "";
+      if (!level) {
+        if (status === "SUCCESS" || msg.includes("สำเร็จ")) {
+          level = "success";
+          status = "SUCCESS";
+        } else if (
+          status === "FAILED" ||
+          msg.includes("ล้มเหลว") ||
+          msg.toLowerCase().includes("error")
+        ) {
+          level = "error";
           status = "FAILED";
-        else status = "INFO";
+        } else if (msg.includes("เตือน") || msg.toLowerCase().includes("warn")) {
+          level = "warn";
+        } else {
+          level = "info";
+        }
+      } else {
+        if (level === "success") status = "SUCCESS";
+        else if (level === "error") status = "FAILED";
       }
 
       let action: ControllerLogActionType = item.action || "SYSTEM";
@@ -1318,6 +1433,8 @@ export const normalizeIncomingLogs = (
         groupName: item.groupName,
         action,
         status,
+        level,
+        source: item.source || item.accountName || sourceStr,
         message: msg,
       };
     });
@@ -1872,6 +1989,14 @@ export const getProgramOverviewData = async (
       pending: 0,
       total: 0,
     })),
+    "90d": buildZeroChartPoints("90d").map((p) => ({
+      date: p.date,
+      label: p.label,
+      success: 0,
+      failed: 0,
+      pending: 0,
+      total: 0,
+    })),
     "1y": buildZeroChartPoints("1y").map((p) => ({
       date: p.date,
       label: p.label,
@@ -1963,6 +2088,31 @@ export const getProgramOverviewData = async (
       pt.failed = pastStat.failed;
       pt.pending = pastStat.pending;
       pt.total = pastStat.total || (pastStat.success + pastStat.failed + pastStat.pending);
+    }
+  });
+
+  // 3.1 คำนวณ Chart 90d (ข้อมูลย้อนหลังจาก DB รวมกับวันนี้)
+  const fleet90dPoints = chartDataByRange["90d"];
+  fleet90dPoints.forEach((pt, idx) => {
+    const pointDateStr = getBangkokDateString(new Date(pt.date));
+    if (pointDateStr === todayStr || idx === fleet90dPoints.length - 1) {
+      pt.success = fleetSuccess;
+      pt.failed = fleetFailed;
+      pt.pending = fleetPending;
+      pt.total = fleetTotal || (fleetSuccess + fleetFailed + fleetPending);
+    } else {
+      const pastStat = dbPastDaysMap.get(pointDateStr) || {
+        total: 0,
+        success: 0,
+        failed: 0,
+        pending: 0,
+      };
+      pt.success = pastStat.success;
+      pt.failed = pastStat.failed;
+      pt.pending = pastStat.pending;
+      pt.total =
+        pastStat.total ||
+        pastStat.success + pastStat.failed + pastStat.pending;
     }
   });
 

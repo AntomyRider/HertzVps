@@ -91,6 +91,7 @@ async function handleCheckStatus({ code, hwid, version }: StatusPayload) {
       message: "คีย์ถูกต้อง แต่ยังไม่เคยเปิดใช้งานหรือผูกกับเครื่องใด",
       key: {
         code: keyCode,
+        hwid: null,
         isActive,
         isActivated: false,
         durationDays,
@@ -134,6 +135,7 @@ async function handleCheckStatus({ code, hwid, version }: StatusPayload) {
     licenseToken,
     key: {
       code: keyCode,
+      hwid: dbHwid || null,
       isActive,
       isActivated: true,
       durationDays,

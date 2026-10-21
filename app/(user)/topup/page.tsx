@@ -1,4 +1,5 @@
 import TopupContainer from "@/components/user/topup/container";
+import HeaderTopUP from "@/components/user/topup/header";
 
 export const metadata = {
   title: "เติมเงินเข้ากระเป๋า | Hertz Manager",
@@ -6,7 +7,12 @@ export const metadata = {
 };
 
 const UserTopupPage = () => {
-  return <TopupContainer />;
+  return (
+    <div>
+      <HeaderTopUP />
+      <TopupContainer />
+    </div>
+  );
 };
 
 export default UserTopupPage;
